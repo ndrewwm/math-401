@@ -1,0 +1,24 @@
+---
+title: "MATH 401"
+---
+
+
+# Meeting Summaries
+
+## 1/31/25 (upcoming)
+
+- Working on [an overview of Gaussian processes](/gaussian_processes/overview.qmd)
+    - todos:
+        - [ ] update citations
+
+## 1/23/25
+
+- Reviewed sections 1-3. Covered the algorithm that auths present on page N.
+- Goal: try to have some workable code to demonstrate KRR and GPR on simulated data. Let's understand what the methods are producing.
+
+## 1/16/25
+
+- Discussion, admin work
+- Decided to cover first 3 sections of __ paper
+- Mentioned __ textbook.
+
