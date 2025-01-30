@@ -47,48 +47,75 @@ where $k_{Xx} = k_{xX}^\top = (k(x_1, x), \dots, k(x_n, x))^\top$.
 
 This is interesting, because these are closed-form expressions, and notably, we haven't made use of Bayes's Rule. Assuming the kernel and mean functions aren't expensive or difficult to evaluate, the computation is just linear algebra.
 
-
 ### Drawing from a Gaussian Process
 
-```{julia}
-using LinearAlgebra, Random, Plots
+Let's assume we want to model a noisy function $f$.
+```{r}
+#| message: false
+#| warning: false
 
-"""Kernel provided by authors for example 2.4."""
-function k(x_i::Float64, x_j::Float64)::Float64
-    return exp(-(x_i - x_j)^2 / 2);
-end;
+library(tidyverse)
 
-function rbf(x_i, x_j, gamma)
-    return exp(-norm(x_i, x_j)^2 / gamma^2);
-end;
+f <- function(x) sin(3*x) + sin(7*x)
+k <- function(x_i, x_j, sigma_f = 2, l = 0.4) sigma_f * exp(-(x_i - x_j)^2 / (2 * l^2))
 
-"""The 0 mean function."""
-function m(x)::Float64
-    return 0.0;
-end;
+n <- 200
+x <- seq(-5, 5, length.out = n)
+f_x <- f(x)
 
-function gpDraw(k::Function, m::Function, X::Vector)
-    n = length(X);
-    m_X = m.(X);
-    k_XX = zeros(n, n);
-    for i = 1:n
-        for j = 1:n
-            k_XX[i, j] = k(X[i], X[j]);
-        end
-    end
+sigma <- 0.4
+epsilon <- rnorm(n, 0, sigma)
+y <- f_x + epsilon
 
-    R = cholesky(k_XX);
-    u = [randn() for i = 1:n];
-    return R.U' * u + m_X;
-end;
+d <- tibble(x, f_x, y)
+ggplot(d, aes(x = x)) +
+  geom_line(aes(y = f_x), color = "blue") +
+  geom_point(aes(y = y))
+```
 
-X = sin.(range(0, 2pi, length = 10)) .+ [randn() for i = 1:10];
-Y = [gpDraw(k, m, X) for i = 1:10];
+```{r}
+n_star <- 100
+t_index <- sample(1:200, size = n_star, replace = FALSE)
+x_star <- x[t_index]
+y_star <- y[t_index]
 
-x = range(0, 2pi, length = 10);
+K <- matrix(0, n, n)
+for (i in 1:n) {
+  for (j in 1:n) {
+    K[i, j] <- k(x[i], x[j])
+  }
+}
 
-for i = 2:length(Y)
-    plot!(x, Y[i])
-end
-plot!(x, Y[1])
+K_star2 <- matrix(0, n_star, n_star)
+for (i in 1:n_star) {
+  for (j in 1:n_star) {
+    K_star2[i, j] <- k(x_star[i], x_star[j])
+  }
+}
+
+K_star <- matrix(0, n_star, n)
+for (i in 1:n_star) {
+  for (j in 1:n) {
+    K_star[i, j] <- k(x_star[i], x[j])
+  }
+}
+
+f_post_star <- K_star %*% solve(K + sigma^2 * diag(n)) %*% y
+cov_post_star <- K_star2 - K_star %*% solve(K + sigma^2 * diag(n)) %*% t(K_star)
+
+z_star <- MASS::mvrnorm(50, f_post_star, cov_post_star)
+
+draws <- as_tibble(t(z_star)) |>
+  mutate(x = x_star, y = f(x_star)) |>
+  pivot_longer(V1:V50) 
+
+post_mean <- draws |>
+  group_by(x) |>
+  summarize(post_mean = mean(value))
+
+draws |>
+  ggplot(aes(x = x)) +
+  geom_line(aes(y = value, group = name), alpha = 0.1) +
+  geom_line(aes(y = y), color = "blue", lty = "dashed") +
+  geom_line(data = post_mean, aes(x = x, y = post_mean), color = "orange")
 ```
