@@ -78,6 +78,7 @@ n_star <- 100
 t_index <- sample(1:200, size = n_star, replace = FALSE)
 x_star <- x[t_index]
 y_star <- y[t_index]
+m_x <- rep(0, 200)
 
 K <- matrix(0, n, n)
 for (i in 1:n) {
@@ -100,7 +101,7 @@ for (i in 1:n_star) {
   }
 }
 
-f_post_star <- K_star %*% solve(K + sigma^2 * diag(n)) %*% y
+f_post_star <- K_star %*% solve(K + sigma^2 * diag(n)) %*% (y - m_x)
 cov_post_star <- K_star2 - K_star %*% solve(K + sigma^2 * diag(n)) %*% t(K_star)
 
 z_star <- MASS::mvrnorm(50, f_post_star, cov_post_star)
@@ -117,5 +118,16 @@ draws |>
   ggplot(aes(x = x)) +
   geom_line(aes(y = value, group = name), alpha = 0.1) +
   geom_line(aes(y = y), color = "blue", lty = "dashed") +
-  geom_line(data = post_mean, aes(x = x, y = post_mean), color = "orange")
+  geom_line(data = post_mean, aes(x = x, y = post_mean), color = "orange") +
+  geom_point(data = post_mean, aes(x = x, y = post_mean), color = "orange")
 ```
+
+### Citations (WIP)
+
+- https://juanitorduz.github.io/gaussian_process_reg/
+
+- https://www.cs.toronto.edu/~duvenaud/cookbook/
+
+- https://gregorygundersen.com/blog/2019/06/27/gp-regression/
+
+- https://gregorygundersen.com/blog/2019/09/12/practical-gp-regression/
