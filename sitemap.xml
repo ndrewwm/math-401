@@ -2,14 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://ndrewwm.github.io/math-401/notes/template.html</loc>
-    <lastmod>2025-01-30T06:04:06.101Z</lastmod>
+    <lastmod>2025-01-31T19:11:41.266Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ndrewwm.github.io/math-401/krr/overview.html</loc>
+    <lastmod>2025-01-31T19:11:41.266Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ndrewwm.github.io/math-401/gaussian_processes/v2.html</loc>
+    <lastmod>2025-01-31T19:11:41.266Z</lastmod>
   </url>
   <url>
     <loc>https://ndrewwm.github.io/math-401/gaussian_processes/overview.html</loc>
-    <lastmod>2025-01-30T06:04:06.101Z</lastmod>
+    <lastmod>2025-01-31T19:11:41.265Z</lastmod>
   </url>
   <url>
     <loc>https://ndrewwm.github.io/math-401/index.html</loc>
-    <lastmod>2025-01-30T06:04:06.101Z</lastmod>
+    <lastmod>2025-01-31T19:11:41.266Z</lastmod>
   </url>
 </urlset>
