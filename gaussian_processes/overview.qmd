@@ -2,7 +2,7 @@
 title: Overview of Gaussian Processes
 ---
 
-This page relies heavily on x, y, z, and t (2018).
+This page relies heavily on Kanagawa, Hennig, Sejdinovic, and Sriperumbudur (2018).
 
 ### Definition 2.2: Gaussian Process
 
@@ -49,17 +49,18 @@ This is interesting, because these are closed-form expressions, and notably, we 
 
 ### Drawing from a Gaussian Process
 
-Let's assume we want to model a noisy function $f$.
 ```{r}
 #| message: false
 #| warning: false
+#| out-width: 100%
 
 library(tidyverse)
+set.seed(123)
 
 f <- function(x) sin(3*x) + sin(7*x)
-k <- function(x_i, x_j, sigma_f = 2, l = 0.4) sigma_f * exp(-(x_i - x_j)^2 / (2 * l^2))
+k <- function(x_i, x_j, sigma_f = 0.4, l = 0.4) sigma_f * exp(-(x_i - x_j)^2 / (2 * l^2))
 
-n <- 200
+n <- 400
 x <- seq(-5, 5, length.out = n)
 f_x <- f(x)
 
@@ -73,42 +74,51 @@ ggplot(d, aes(x = x)) +
   geom_point(aes(y = y))
 ```
 
+Here we'll compute the posterior distribution over the whole range $[-5, 5]$, using $n = 100$ training data points.
+
 ```{r}
-n_star <- 100
-t_index <- sample(1:200, size = n_star, replace = FALSE)
-x_star <- x[t_index]
-y_star <- y[t_index]
-m_x <- rep(0, 200)
+#| out-width: 100%
 
-K <- matrix(0, n, n)
-for (i in 1:n) {
-  for (j in 1:n) {
-    K[i, j] <- k(x[i], x[j])
+n <- 100
+ind_train <- sample(1:400, n, replace = FALSE)
+x_train <- x[ind_train]
+y_train <- y[ind_train]
+
+compute_covmat <- function(k, x, y) {
+  n_x <- length(x)
+  n_y <- length(y)
+  K <- matrix(0, n_x, n_y)
+  for (i in 1:n_x) {
+    for (j in 1:n_y) {
+      K[i, j] <- k(x[i], y[j])
+    }
   }
+  return(K)
 }
 
-K_star2 <- matrix(0, n_star, n_star)
-for (i in 1:n_star) {
-  for (j in 1:n_star) {
-    K_star2[i, j] <- k(x_star[i], x_star[j])
-  }
-}
+k_XX <- compute_covmat(k, x_train, x_train)
+k_xx <- compute_covmat(k, x, x)
+k_xX <- compute_covmat(k, x, x_train)
 
-K_star <- matrix(0, n_star, n)
-for (i in 1:n_star) {
-  for (j in 1:n) {
-    K_star[i, j] <- k(x_star[i], x[j])
-  }
-}
+m_post <- k_xX %*% solve(k_XX + sigma^2 * diag(n)) %*% y_train
+cov_post <- k_xx - k_xX %*% solve(k_XX + sigma^2 * diag(n)) %*% t(k_xX)
+```
 
-f_post_star <- K_star %*% solve(K + sigma^2 * diag(n)) %*% (y - m_x)
-cov_post_star <- K_star2 - K_star %*% solve(K + sigma^2 * diag(n)) %*% t(K_star)
+Here `m_post` represents the mean vector of the posterior distibution, and `cov_post` represents the posterior's covariance matrix.
 
-z_star <- MASS::mvrnorm(50, f_post_star, cov_post_star)
+::: {.column-margin}
+In Kanagawa et al. (2018), they note that the final term in the posterior mean function $\bar{m}$ should be something like $(\mathbf{y} - m_\mathbf{x})$ where $m_\mathbf{x} = [m(x_1), \dots, m(x_N)]^\top$. I've omitted the subtraction given that $m(\mathbf{x}) = \mathbf{0}$.
+:::
 
-draws <- as_tibble(t(z_star)) |>
-  mutate(x = x_star, y = f(x_star)) |>
-  pivot_longer(V1:V50) 
+Below in blue is the actual function $f$, with 50 draws (grey) from the posterior distribution. The posterior mean of these draws is plotted as the orange line.
+```{r}
+#| warning: false
+
+f_post <- MASS::mvrnorm(50, m_post, cov_post)
+
+draws <- as_tibble(t(f_post)) |>
+  mutate(x = x, y = f(x)) |>
+  pivot_longer(V1:V50)
 
 post_mean <- draws |>
   group_by(x) |>
@@ -118,8 +128,7 @@ draws |>
   ggplot(aes(x = x)) +
   geom_line(aes(y = value, group = name), alpha = 0.1) +
   geom_line(aes(y = y), color = "blue", lty = "dashed") +
-  geom_line(data = post_mean, aes(x = x, y = post_mean), color = "orange") +
-  geom_point(data = post_mean, aes(x = x, y = post_mean), color = "orange")
+  geom_line(data = post_mean, aes(x = x, y = post_mean), color = "orange")
 ```
 
 ### Citations (WIP)

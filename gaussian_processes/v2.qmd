@@ -1,0 +1,126 @@
+---
+title: Gaussian Process Regression
+---
+
+Assume our sample space is 400 evenly spaced points between -5 and 5. Let $\mathbf{x}$ denote the set of $N$-many points at which we have collected observations, defined as:
+
+$$
+\mathbf{x} = \begin{bmatrix} x_1 \\ x_2 \\ \vdots \\ x_N \end{bmatrix}.
+$$
+
+Let $\mathbf{\epsilon} \sim \mathcal{N}(0, \sigma^2)$ be an $N$-dimensional vector. Let $\mathbf{y}$ denote the values of $f$ observed at each $x_i$, with the addition of noise ($\epsilon_i$):
+$$
+\mathbf{y} = f(\mathbf{x}) + \mathbf{\epsilon} \iff \begin{bmatrix} y_1 \\ y_2 \\ \vdots \\ y_N \end{bmatrix} = \begin{bmatrix} f(x_1) \\ f(x_2) \\ \vdots \\ f(x_N) \end{bmatrix} + \begin{bmatrix} \epsilon_1 \\ \epsilon_2 \\ \vdots \\ \epsilon_N \end{bmatrix}.
+$$
+
+Together, $(\mathbf{x}, \mathbf{y})$ can be referred to as training data. Let $(\mathbf{x_*}, \mathbf{y_*})$ denote test data (i.e., points $x^*_i$ at which we want to predict a value of $y^*_i$). We will use $M$ to denote the size of $\mathbf{x_*}$ and $\mathbf{y_*}$.
+
+We assume that $\mathbf{y}$ can be modeled by a Gaussian process, i.e., $\mathbf{y} \sim \mathcal{N}(\mathbf{m}, \mathbf{\Sigma})$. Let $m: \mathbb{R} \to \mathbb{R}$, and the squared exponential kernel $k: \mathbb{R} \times \mathbb{R} \to \mathbb{R}$ be defined as
+$$
+\begin{align*}
+m(x) &= 0, \\
+k(x, x') &= \sigma \cdot exp\Bigl(-\frac{1}{2l^2}(x - x')^2\Bigr)
+\end{align*}
+$$
+
+with $\sigma$ and $l$ as hyperparameters.
+
+::: {.column-margin}
+To-do: elaborate on what $\sigma$ and $l$ control within $k$.
+:::
+
+The conditional distribution $\mathbf{y_*} | \mathbf{y}$ can be defined as another Gaussian process: $\mathbf{y}_* | \mathbf{y} \sim \mathcal{N}(\bar{m}, \bar{\Sigma})$ with $\bar{m}$ and $\bar{\Sigma}$ are defined as
+
+$$
+\begin{align*}
+\bar{m} &= K(\mathbf{x_*}, \mathbf{x}) (K(\mathbf{x}, \mathbf{x}) + \sigma^2 \mathbf{I})^{-1} \mathbf{y}, \\
+\bar{\Sigma} &= K(\mathbf{x_*}, \mathbf{x_*}) - K(\mathbf{x_*}, \mathbf{x})(K(\mathbf{x}, \mathbf{x}) + \sigma^2 \mathbf{I})^{-1} K(\mathbf{x}, \mathbf{x_*}),
+\end{align*}
+$$
+
+::: {.column-margin}
+In Kanagawa et al. (2018), they note that the final term in $\bar{m}$ should be something like $(\mathbf{y} - m_\mathbf{x})$ where $m_\mathbf{x} = [m(x_1), \dots, m(x_N)]^\top$. I've omitted the subtraction given that $m(\mathbf{x}) = \mathbf{0}$.
+:::
+
+where
+
+$$
+\begin{align*}
+K(\mathbf{x_*}, \mathbf{x}) &= [k(x^*_i, x_j)]_{i,j = 1}^{M,N} \in \mathbb{R}^{M \times N}, \\
+K(\mathbf{x}, \mathbf{x_*}) &= [k(x_i, x^*_j)]_{i,j = 1}^{N,M} \in \mathbb{R}^{N \times M}, \\
+K(\mathbf{x}, \mathbf{x}) &= [k(x_i, x_j)]_{i,j = 1}^{N,N} \in \mathbb{R}^{N \times N}, \text{ and } \\
+K(\mathbf{x_*}, \mathbf{x_*}) &= [k(x^*_i, x^*_j)]_{i,j}^{M,M} \in \mathbb{R}^{M \times M}.
+\end{align*}
+$$
+
+::: {.callout-warning}
+## Non-functional code
+
+I haven't been able to get a comparable implementation in Julia to work. The issue appears to be roundoff errors, with some entries of the posterior covariance matrix being very small, but negative.
+:::
+
+We'll now apply these definitions to simulated data. For this simulation, we'll arbitrarily pick $\sigma = 2$ and $l = 0.4$ as our hyperparameter values.
+
+::: {.column-margin}
+The functions $m$ and $k$ are themselves hyperparameters? So, in the case of $\sigma$ and $l$, are they "sub-hyperparameters"?
+:::
+
+```{julia}
+using LinearAlgebra, Distributions, Random, Plots
+
+σ = 0.4;
+l = 0.4;
+
+f(x) = sin(3x) + sin(7x);
+
+x_all = Vector(range(-5, 5, 400));
+x = sort(rand(x_all, 50));
+x_star = sort(setdiff(x_all, x));
+
+N = length(x);
+M = length(x_star);
+
+ϵ = rand(Normal(0, σ), N);
+ϵ_star = rand(Normal(0, σ), M);
+
+y = f.(x) + ϵ;
+y_star = f.(x_star) + ϵ_star;
+```
+
+```{julia}
+plot(x_all, f.(x_all))
+scatter!(vcat(x, x_star), vcat(y, y_star))
+```
+
+Having defined $(\mathbf{x}, \mathbf{y})$ and $(\mathbf{x_*}, \mathbf{y_*})$, we can now compute each $K$.
+
+```{julia}
+k(x_i, x_j) = σ * exp(-(x_i - x_j)^2 / (2 * l^2));
+
+function compute_covmat(k::Function, X::Vector, Y::Vector)::Matrix
+    n_x = length(X);
+    n_y = length(Y);
+    K = zeros(n_x, n_y);
+    for i = 1:n_x
+        for j = 1:n_y
+            K[i, j] = k(X[i], Y[j]);
+        end
+    end
+    return K;
+end;
+
+K = compute_covmat(k, x, x);
+K_star = compute_covmat(k, x_star, x);
+K_star2 = compute_covmat(k, x_star, x_star);
+```
+
+```{julia}
+m_post = K_star * inv(K + σ^2 * I) * y;
+cov_post = K_star2 - K_star * inv(K + σ^2 * I) * K_star';
+
+display(cov_post)
+
+# cov_post = cov_post - minimum(eigvals(Symmetric(cov_post))) * I;
+
+# rand(MultivariateNormal(m_post, cov_post), 10)
+```

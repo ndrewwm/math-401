@@ -8,6 +8,8 @@ title: "MATH 401"
 ## 1/31/25 (upcoming)
 
 - Working on [an overview of Gaussian processes](/gaussian_processes/overview.qmd)
+  - I have a more formal writeup (in the sense of notation) of GPR [here](/gaussian_processes/v2.qmd)
+- Working on [an overview of KRR](/krr/overview.qmd)
     - todos:
         - [ ] update citations
 
