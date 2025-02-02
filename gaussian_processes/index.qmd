@@ -1,0 +1,34 @@
+---
+title: Gaussian Processes
+---
+
+## The Multivariate Gaussian Distribution
+
+Let $\mathbf{X} \in \mathbb{R}^n$ be a vector whose elements, $X_i$, are random variables (i.e., $\mathbf{X}$ is a *random vector*). Define the vector $\mathbf{\mu}$ and matrix $\mathbf{\Sigma}$ as
+$$
+\begin{align*}
+\mathbf{\mu} &= \begin{bmatrix} \mu_1 \\ \mu_2 \\ \vdots \\ \mu_n \end{bmatrix} \in \mathbb{R}^n \\ \\
+\mathbf{\Sigma} &= \Bigl[Cov(X_i, X_j) \Bigr]_{i, j = 1}^n \in \mathbb{R}^{n \times n}
+\end{align*}
+$$
+
+and suppose $X_i \sim \mathcal{N}(\mu_i, \mathbf{\Sigma}_{i, i})$. Then, we say that $\mathbf{X}$ comes from the multivariate Gaussian distribution parameterized by $\mathbf{\mu}$ and $\mathbf{\Sigma}$, written as
+$$
+\mathbf{X} \sim \mathcal{N}(\mathbf{\mu}, \mathbf{\Sigma}).
+$$
+
+### Probability Density Function
+
+Let $x \in \mathbb{R}^n$. The probability density function (pdf) of the multivariate Gaussian distribution is defined as
+$$
+f(\mathbf{x}) = \frac{1}{2\pi^{-n/2}}\ det(\Sigma)^{-\frac{1}{2}}\ exp\Bigl(-\frac{1}{2} (\mathbf{x} - \mathbf{\mu})^\top\ \Sigma^{-1} (\mathbf{x} - \mathbf{\mu}) \Bigr).
+$$
+
+- What I don't understand:
+    - $(\mathbf{x} - \mathbf{\mu})^\top \in \mathbb{R}^{1 \times n}$
+    - $\mathbf{\Sigma}^{-1} \in \mathbb{R}^{n \times n}$
+    - $\mathbf{x} \in \mathbb{R}^{n \times 1}$
+    - So, the product inside $exp$ is from $\mathbb{R}^{1 \times 1}$, i.e., it's a scalar
+    - Everything else in the expression for $f$ results in a scalar
+    - So, $f: \mathbb{R}^n \to \mathbb{R}$?
+    - But, from what I'm reading, it looks like people treat $f$ as if $f: \mathbb{R}^n \to \mathbb{R}^n$.
