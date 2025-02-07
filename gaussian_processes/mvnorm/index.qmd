@@ -1,0 +1,115 @@
+---
+title: The Multivariate Gaussian Distribution
+---
+
+## Definition
+
+Let $\mathbf{X} \in \mathbb{R}^n$ be a vector whose elements, $X_i$, are random variables (i.e., $\mathbf{X}$ is a *random vector*). Define the vector $\mathbf{\mu}$ and matrix $\mathbf{\Sigma}$ as
+$$
+\begin{align*}
+\mathbf{\mu} &= \begin{bmatrix} \mu_1 \\ \mu_2 \\ \vdots \\ \mu_n \end{bmatrix} \in \mathbb{R}^n \\ \\
+\mathbf{\Sigma} &= \Bigl[Cov(X_i, X_j) \Bigr]_{i, j = 1}^n \in \mathbb{R}^{n \times n}
+\end{align*}
+$$
+
+and suppose $X_i \sim \mathcal{N}(\mu_i, \mathbf{\Sigma}_{i, i})$. Then, we say that $\mathbf{X}$ comes from the multivariate Gaussian distribution parameterized by $\mathbf{\mu}$ and $\mathbf{\Sigma}$, written as
+$$
+\mathbf{X} \sim \mathcal{N}(\mathbf{\mu}, \mathbf{\Sigma}).
+$$
+
+
+## Sampling Algorithm
+
+A commonly used algorithm for sampling from a multivariate Gaussian distribution can be described as the following, given a vector $\mathbf{\mu} \in \mathbb{R}^n$ and a positive-(semi)definite matrix $\mathbf{\Sigma} \in \mathbb{R}^{n \times n}$:
+
+1. Compute the Cholesky decomposition of $\mathbf{\Sigma}$, $R^\top R = \mathbf{\Sigma}$.
+2. Generate $\mathbf{z} = \begin{bmatrix} Z_1 \\ Z_2 \\ \vdots \\ Z_n \end{bmatrix}$ where $Z_1, Z_2, \dots, Z_n \overset{\text{i.i.d.}}{\sim} \mathcal{N}(0, 1)$.
+3. Compute $\mathbf{x} = R\mathbf{z} + \mathbf{\mu}$.
+
+## Why does the algorithm work?
+
+The claim is that $\mathbf{x}$ is a draw from the multivariate Gaussian distribution parameterized by $\mathbf{\mu}$ and $\mathbf{\Sigma}$, i.e., $\mathbf{x} \sim \mathcal{N}(\mathbf{\mu}, \mathbf{\Sigma})$. So, why does this work? First, we can show that $\mathbb{E}(\mathbf{x}) = \mathbf{\mu}$:
+
+$$
+\begin{align*}
+\mathbb{E}(\mathbf{x}) &= \mathbb{E}(R\mathbf{z} + \mathbf{\mu}) \\
+  &= \mathbb{E}(R\mathbf{z}) + \mathbb{E}(\mathbf{\mu}) \\
+  &= R \cdot \mathbb{E}(\mathbf{z}) + \mathbf{\mu} \\
+  &= R \cdot 0 + \mathbf{\mu} \\
+  &= \mathbf{\mu}.
+\end{align*}
+$$
+
+Next, we can see that $Cov(\mathbf{x}) = \mathbf{\Sigma}$:
+
+$$
+\begin{align*}
+Cov(\mathbf{x}) &= \mathbb{E}[(\mathbf{x} - \mathbf{\mu})(\mathbf{x} - \mathbf{\mu})^\top] \\
+  &= \mathbb{E}[R\mathbf{z}\mathbf{z}^\top R^\top] \\
+  &= R\ \mathbb{E}[\mathbf{z}\mathbf{z}^\top]\ R^\top \\
+  &= R^\top I R \tag{why?} \\
+  &= R^\top R \\
+  &= \mathbf{\Sigma}.
+\end{align*}
+$$
+
+::: {.callout-warning}
+## Incomplete proof
+
+In working on this one I drew upon two sources, one from [StackOverflow](https://math.stackexchange.com/a/2691254), the other from an [online textbook/learning reference.](https://predictivesciencelab.github.io/data-analytics-se/lecture06/hands-on-06.2.html#sampling-the-multivariate-normal-with-diagonal-covariance-using-the-standard-normal) However, the former's proof which is essentially what I have above I think must be incorrect. The expectation of two independent normal variables should be 0, not 1. The other reference's proof doesn't elaborate fully.
+:::
+
+This hinges on the definition of covariance and the independence of the $Z_i$'s ($Cov(Z_i, Z_i) = Var(Z_i) = 1$ and $Cov(Z_i, Z_j) = 0$ for $i \neq j$ and $Z_i \perp Z_j$).
+
+Having shown that the expectation and (co)variance of $\mathbf{x}$ are what we'd assume, we need to show that $\mathbf{x}$ qualifies as multivariate normal. A random vector is multivariate normal if any linear combination of its elements are normally distributed. From its construction, we know $\mathbf{x}$ is a linear transformation of a standard normal vector, i.e., $\mathbf{z}$. We can decompose $\mathbf{x}$'s $i$-th element, $X_i$, into the following:
+
+$$
+\begin{align*}
+\sigma_i &= \sum_{j = 0}^n R_{i,j} \\
+X_i &= Z_i \sigma_i + \mu_i.
+\end{align*}
+$$
+
+We can then show that $X_i \sim \mathcal{N}(\sigma_i \cdot 0 + \mu_i, \sigma_i^2) \implies X_i \sim \mathcal{N}(\mu_i, \sigma_i^2)$. This follows from theorems regarding the transformation of random variables (Casella & Berger, 2002). I'll demonstrate it for an arbitrary $Z \sim \mathcal{N}(0, 1)$, $\mu$, and $\sigma > 0$ (omitting the subscript $i$ for brevity). The probability density function (pdf) of the standard normal $f_Z(z)$ is defined as 
+$$
+f_Z(z) = \frac{1}{\sqrt{2\pi}}\ e^{-z^2 / 2}.
+$$
+
+Define $X' = g(Z) = \sigma \cdot f_Z(Z)$. Then, $g^{-1}(x) = \frac{x}{\sigma}$, and $\frac{d}{dx}g^{-1}(x) = \frac{1}{\sigma}$. Thus, the probability density function $f_{X'}(x)$ is
+
+$$
+\begin{align*}
+f_{X'}(x) &= f_Z(g^{-1}(x)) \frac{d}{dx}g^{-1}(x) \\
+  &= f_Z \Bigl(\frac{x}{\sigma} \Bigr) \cdot \frac{1}{\sigma} \\
+  &= \frac{1}{\sqrt{2\pi}}\ e^{-(\frac{x}{\sigma})^2 \cdot \frac{1}{2}} \cdot \frac{1}{\sigma} \\
+  &= \frac{1}{\sqrt{2\pi} \sigma}\ e^{-\frac{x^2}{2\sigma^2}} 
+\end{align*}
+$$
+
+This is the pdf for $\mathcal{N}(0, \sigma^2)$. Now, we find $X = h(X') = f_{X'}(X') + \mu$, where $h^{-1}(x) = x - \mu$ and $\frac{d}{dx}\ h^{-1}(x) = 1$. As with the above, we have
+$$
+f_X(x) = f_{X'}(h^{-1}(x)) \frac{d}{dx}\ h^{-1}(x) = f_{X'}(x - \mu) = \frac{1}{\sqrt{2\pi} \sigma}\ e^{-\frac{(x - \mu)^2}{2\sigma^2}},
+$$
+
+which is the classical definition of the normal distribution's probability density function. This means that scaling a normal variable by a constant, or adding a constant to a normal variable results in another normal variable. So, each $X_i$ is normal. Lastly, as one's intuition might suspect, the sum of two independent normal variables is also normal. I won't go through the proof here, but some versions can be found on [wikipedia.](https://en.wikipedia.org/wiki/Sum_of_normally_distributed_random_variables)
+
+Thus, we can conclude that a linear combination $Y = a_1 X_1 + \cdots + a_n X_n$ is a normal variable, meaning $\mathbf{x}$ is a draw from the multivariate Gaussian distribution.
+
+## R Implementation
+
+```{r}
+mu <- c(1.1, 3, 8)
+Sigma <- matrix(c(1, 0.1, 0.3, 0.1, 1, 0.1, 0.3, 0.1, 1), 3, 3)
+
+mvrnorm <- function(n, mu, Sigma) {
+  L <- chol(Sigma) # this is L', where L'L = Sigma
+  d <- length(mu)
+
+  out <- matrix(0, nrow = n, ncol = d)
+  for (i in 1:n) {
+    u <- rnorm(d)
+    out[i, ] <- t(L %*% u + mu)
+  }
+  return(out)
+}
+```

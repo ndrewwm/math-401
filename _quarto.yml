@@ -7,8 +7,21 @@ website:
     left:
       - href: index.qmd
         text: Home
-      - href: reflections/index.qmd
-        text: Reflections
+  sidebar:
+    style: docked
+    search: true
+    contents:
+      - section: "Gaussian Processes"
+        href: "./gaussian_processes/index.qmd"
+        contents:
+          - "./gaussian_processes/mvnorm/index.qmd"
+      - text: "Kernel Ridge Regression"
+        href: "./krr/index.qmd"
+      - section: "Reflections"
+        href: "./reflections/index.qmd"
+        contents:
+          - "./reflections/reflection_1.qmd"
+
 
 execute:
   freeze: auto
