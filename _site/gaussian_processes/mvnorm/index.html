@@ -54,7 +54,27 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -134,7 +154,7 @@ window.Quarto = {
 <link rel="stylesheet" href="../../styles.css">
 </head>
 
-<body class="nav-sidebar docked nav-fixed">
+<body class="nav-sidebar docked nav-fixed slimcontent">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
@@ -244,7 +264,7 @@ window.Quarto = {
 </nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content">
+<main class="content page-columns page-full" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../gaussian_processes/index.html">Gaussian Processes</a></li><li class="breadcrumb-item"><a href="../../gaussian_processes/mvnorm/index.html">The Multivariate Gaussian Distribution</a></li></ol></nav>
 <div class="quarto-title">
@@ -267,70 +287,66 @@ window.Quarto = {
 
 <section id="definition" class="level2">
 <h2 class="anchored" data-anchor-id="definition">Definition</h2>
-<p>Let <span class="math inline">\(\mathbf{X} \in \mathbb{R}^n\)</span> be a vector whose elements, <span class="math inline">\(X_i\)</span>, are random variables (i.e., <span class="math inline">\(\mathbf{X}\)</span> is a <em>random vector</em>). Define the vector <span class="math inline">\(\mathbf{\mu}\)</span> and matrix <span class="math inline">\(\mathbf{\Sigma}\)</span> as <span class="math display">\[
+<p>Let <span class="math inline">\(\mathbf{x} \in \mathbb{R}^n\)</span> be a vector whose elements, <span class="math inline">\(X_i\)</span>, are random variables (i.e., <span class="math inline">\(\mathbf{x}\)</span> is a <em>random vector</em>). Define the vector <span class="math inline">\(\mathbf{\mu}\)</span> and matrix <span class="math inline">\(\mathbf{\Sigma}\)</span> as <span class="math display">\[
 \begin{align*}
 \mathbf{\mu} &amp;= \begin{bmatrix} \mu_1 \\ \mu_2 \\ \vdots \\ \mu_n \end{bmatrix} \in \mathbb{R}^n \\ \\
-\mathbf{\Sigma} &amp;= \Bigl[Cov(X_i, X_j) \Bigr]_{i, j = 1}^n \in \mathbb{R}^{n \times n}
+\mathbf{\Sigma} &amp;= Cov(\mathbf{x}) = \Bigl[Cov(X_i, X_j) \Bigr]_{i, j = 1}^n \in \mathbb{R}^{n \times n}
 \end{align*}
 \]</span></p>
-<p>and suppose <span class="math inline">\(X_i \sim \mathcal{N}(\mu_i, \mathbf{\Sigma}_{i, i})\)</span>. Then, we say that <span class="math inline">\(\mathbf{X}\)</span> comes from the multivariate Gaussian distribution parameterized by <span class="math inline">\(\mathbf{\mu}\)</span> and <span class="math inline">\(\mathbf{\Sigma}\)</span>, written as <span class="math display">\[
-\mathbf{X} \sim \mathcal{N}(\mathbf{\mu}, \mathbf{\Sigma}).
+<p>and suppose <span class="math inline">\(X_i \sim \mathcal{N}(\mu_i, \mathbf{\Sigma}_{i, i})\)</span>. Then, we say that <span class="math inline">\(\mathbf{x}\)</span> comes from the multivariate Gaussian distribution parameterized by <span class="math inline">\(\mathbf{\mu}\)</span> and <span class="math inline">\(\mathbf{\Sigma}\)</span>, written as <span class="math display">\[
+\mathbf{x} \sim \mathcal{N}(\mathbf{\mu}, \mathbf{\Sigma}).
 \]</span></p>
 </section>
 <section id="sampling-algorithm" class="level2">
 <h2 class="anchored" data-anchor-id="sampling-algorithm">Sampling Algorithm</h2>
 <p>A commonly used algorithm for sampling from a multivariate Gaussian distribution can be described as the following, given a vector <span class="math inline">\(\mathbf{\mu} \in \mathbb{R}^n\)</span> and a positive-(semi)definite matrix <span class="math inline">\(\mathbf{\Sigma} \in \mathbb{R}^{n \times n}\)</span>:</p>
 <ol type="1">
-<li>Compute the Cholesky decomposition of <span class="math inline">\(\mathbf{\Sigma}\)</span>, <span class="math inline">\(R^\top R = \mathbf{\Sigma}\)</span>.</li>
+<li>Compute the Cholesky decomposition of <span class="math inline">\(\mathbf{\Sigma}\)</span>, <span class="math inline">\(L L^\top = \mathbf{\Sigma}\)</span>.</li>
 <li>Generate <span class="math inline">\(\mathbf{z} = \begin{bmatrix} Z_1 \\ Z_2 \\ \vdots \\ Z_n \end{bmatrix}\)</span> where <span class="math inline">\(Z_1, Z_2, \dots, Z_n \overset{\text{i.i.d.}}{\sim} \mathcal{N}(0, 1)\)</span>.</li>
-<li>Compute <span class="math inline">\(\mathbf{x} = R\mathbf{z} + \mathbf{\mu}\)</span>.</li>
+<li>Compute <span class="math inline">\(\mathbf{x} = L\mathbf{z} + \mathbf{\mu}\)</span>.</li>
 </ol>
 </section>
-<section id="why-does-the-algorithm-work" class="level2">
+<section id="why-does-the-algorithm-work" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="why-does-the-algorithm-work">Why does the algorithm work?</h2>
 <p>The claim is that <span class="math inline">\(\mathbf{x}\)</span> is a draw from the multivariate Gaussian distribution parameterized by <span class="math inline">\(\mathbf{\mu}\)</span> and <span class="math inline">\(\mathbf{\Sigma}\)</span>, i.e., <span class="math inline">\(\mathbf{x} \sim \mathcal{N}(\mathbf{\mu}, \mathbf{\Sigma})\)</span>. So, why does this work? First, we can show that <span class="math inline">\(\mathbb{E}(\mathbf{x}) = \mathbf{\mu}\)</span>:</p>
 <p><span class="math display">\[
 \begin{align*}
-\mathbb{E}(\mathbf{x}) &amp;= \mathbb{E}(R\mathbf{z} + \mathbf{\mu}) \\
-  &amp;= \mathbb{E}(R\mathbf{z}) + \mathbb{E}(\mathbf{\mu}) \\
-  &amp;= R \cdot \mathbb{E}(\mathbf{z}) + \mathbf{\mu} \\
-  &amp;= R \cdot 0 + \mathbf{\mu} \\
+\mathbb{E}(\mathbf{x}) &amp;= \mathbb{E}(L\mathbf{z} + \mathbf{\mu}) \\
+  &amp;= \mathbb{E}(L\mathbf{z}) + \mathbb{E}(\mathbf{\mu}) \\
+  &amp;= L \cdot \mathbb{E}(\mathbf{z}) + \mathbf{\mu} \\
+  &amp;= L \cdot 0 + \mathbf{\mu} \\
   &amp;= \mathbf{\mu}.
 \end{align*}
 \]</span></p>
 <p>Next, we can see that <span class="math inline">\(Cov(\mathbf{x}) = \mathbf{\Sigma}\)</span>:</p>
-<p><span class="math display">\[
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p>Reminder that <span class="math inline">\(Cov(\mathbf{x})\)</span> is not a scalar, rather, it is the <em>covariance matrix</em> (or <em>variance-covariance matrix</em>) of <span class="math inline">\(\mathbf{x}\)</span>.</p>
+</div></div><p><span class="math display">\[
 \begin{align*}
 Cov(\mathbf{x}) &amp;= \mathbb{E}[(\mathbf{x} - \mathbf{\mu})(\mathbf{x} - \mathbf{\mu})^\top] \\
-  &amp;= \mathbb{E}[R\mathbf{z}\mathbf{z}^\top R^\top] \\
-  &amp;= R\ \mathbb{E}[\mathbf{z}\mathbf{z}^\top]\ R^\top \\
-  &amp;= R^\top I R \tag{why?} \\
-  &amp;= R^\top R \\
+  &amp;= \mathbb{E}[(L\mathbf{z} + \mathbf{\mu} - \mathbf{\mu})(L\mathbf{z} + \mathbf{\mu} - \mathbf{\mu})^\top] \\
+  &amp;= \mathbb{E}[L\mathbf{z}\mathbf{z}^\top L^\top] \\
+  &amp;= L\ \mathbb{E}[\mathbf{z}\mathbf{z}^\top]\ L^\top \\
+  &amp;= L\ \mathbb{E}[(\mathbf{z} - 0)(\mathbf{z} - 0)^\top]\ L^\top \\
+  &amp;= L\ Cov(\mathbf{z})\ L^\top \\
+  &amp;= L I L^\top \\
+  &amp;= L L^\top \\
   &amp;= \mathbf{\Sigma}.
 \end{align*}
 \]</span></p>
-<div class="callout callout-style-default callout-warning callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Incomplete proof
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>In working on this one I drew upon two sources, one from <a href="https://math.stackexchange.com/a/2691254">StackOverflow</a>, the other from an <a href="https://predictivesciencelab.github.io/data-analytics-se/lecture06/hands-on-06.2.html#sampling-the-multivariate-normal-with-diagonal-covariance-using-the-standard-normal">online textbook/learning reference.</a> However, the former’s proof which is essentially what I have above I think must be incorrect. The expectation of two independent normal variables should be 0, not 1. The other reference’s proof doesn’t elaborate fully.</p>
-</div>
-</div>
-<p>This hinges on the definition of covariance and the independence of the <span class="math inline">\(Z_i\)</span>’s (<span class="math inline">\(Cov(Z_i, Z_i) = Var(Z_i) = 1\)</span> and <span class="math inline">\(Cov(Z_i, Z_j) = 0\)</span> for <span class="math inline">\(i \neq j\)</span> and <span class="math inline">\(Z_i \perp Z_j\)</span>).</p>
-<p>Having shown that the expectation and (co)variance of <span class="math inline">\(\mathbf{x}\)</span> are what we’d assume, we need to show that <span class="math inline">\(\mathbf{x}\)</span> qualifies as multivariate normal. A random vector is multivariate normal if any linear combination of its elements are normally distributed. From its construction, we know <span class="math inline">\(\mathbf{x}\)</span> is a linear transformation of a standard normal vector, i.e., <span class="math inline">\(\mathbf{z}\)</span>. We can decompose <span class="math inline">\(\mathbf{x}\)</span>’s <span class="math inline">\(i\)</span>-th element, <span class="math inline">\(X_i\)</span>, into the following:</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p>This proof hinges on the definition of covariance and the independence of the <span class="math inline">\(Z_i\)</span>’s. Remember, <span class="math inline">\(Cov(Z_i, Z_i) = Var(Z_i) = 1\)</span> and <span class="math inline">\(Cov(Z_i, Z_j) = 0\)</span> when <span class="math inline">\(i \neq j\)</span> and <span class="math inline">\(Z_i \perp Z_j\)</span>.</p>
+</div></div><p>The following references <span class="citation" data-cites="2691254">(<a href="#ref-2691254" role="doc-biblioref">(https://math.stackexchange.com/users/10117/lepidopterist), n.d.</a>)</span>, <span class="citation" data-cites="332722">(<a href="#ref-332722" role="doc-biblioref">(https://math.stackexchange.com/users/21550/hkbattousai), n.d.</a>)</span>, <span class="citation" data-cites="Bilionis">(<a href="#ref-Bilionis" role="doc-biblioref">ibilion[at]purdue.edu 2022</a>)</span> (specifically <a href="https://predictivesciencelab.github.io/data-analytics-se/lecture06/hands-on-06.2.html#sampling-the-multivariate-normal-with-diagonal-covariance-using-the-standard-normal">this section</a>) were helpful to me as I worked through understanding the algorithm and the proofs for the two results above.</p>
+<p>Having shown that the expectation and (co)variance of <span class="math inline">\(\mathbf{x}\)</span> are what we’d assume, we need to show that <span class="math inline">\(\mathbf{x}\)</span> qualifies as multivariate normal. A random vector is multivariate normal if any linear combination of its elements is normally distributed. From its construction, we know <span class="math inline">\(\mathbf{x}\)</span> is a linear transformation of a standard normal vector, i.e., <span class="math inline">\(\mathbf{z}\)</span>. We can decompose <span class="math inline">\(\mathbf{x}\)</span>’s <span class="math inline">\(i\)</span>-th element, <span class="math inline">\(X_i\)</span>, into the following:</p>
 <p><span class="math display">\[
 \begin{align*}
-\sigma_i &amp;= \sum_{j = 0}^n R_{i,j} \\
+\sigma_i &amp;= \sum_{j = 0}^n L_{i,j} \\
 X_i &amp;= Z_i \sigma_i + \mu_i.
 \end{align*}
 \]</span></p>
-<p>We can then show that <span class="math inline">\(X_i \sim \mathcal{N}(\sigma_i \cdot 0 + \mu_i, \sigma_i^2) \implies X_i \sim \mathcal{N}(\mu_i, \sigma_i^2)\)</span>. This follows from theorems regarding the transformation of random variables (Casella &amp; Berger, 2002). I’ll demonstrate it for an arbitrary <span class="math inline">\(Z \sim \mathcal{N}(0, 1)\)</span>, <span class="math inline">\(\mu\)</span>, and <span class="math inline">\(\sigma &gt; 0\)</span> (omitting the subscript <span class="math inline">\(i\)</span> for brevity). The probability density function (pdf) of the standard normal <span class="math inline">\(f_Z(z)\)</span> is defined as <span class="math display">\[
+<p>We can then show that <span class="math inline">\(X_i \sim \mathcal{N}(\sigma_i \cdot 0 + \mu_i, \sigma_i^2) \implies X_i \sim \mathcal{N}(\mu_i, \sigma_i^2)\)</span>. This follows from theorems regarding the transformation of random variables <span class="citation" data-cites="casella2024statistical">(<a href="#ref-casella2024statistical" role="doc-biblioref">Casella and Berger 2024</a>)</span>. I’ll demonstrate it for an arbitrary <span class="math inline">\(Z \sim \mathcal{N}(0, 1)\)</span>, <span class="math inline">\(\mu\)</span>, and <span class="math inline">\(\sigma &gt; 0\)</span> (omitting the subscript <span class="math inline">\(i\)</span> for brevity). The probability density function (pdf) of the standard normal <span class="math inline">\(f_Z(z)\)</span> is defined as <span class="math display">\[
 f_Z(z) = \frac{1}{\sqrt{2\pi}}\ e^{-z^2 / 2}.
 \]</span></p>
 <p>Define <span class="math inline">\(X' = g(Z) = \sigma \cdot f_Z(Z)\)</span>. Then, <span class="math inline">\(g^{-1}(x) = \frac{x}{\sigma}\)</span>, and <span class="math inline">\(\frac{d}{dx}g^{-1}(x) = \frac{1}{\sigma}\)</span>. Thus, the probability density function <span class="math inline">\(f_{X'}(x)\)</span> is</p>
@@ -339,7 +355,7 @@ f_Z(z) = \frac{1}{\sqrt{2\pi}}\ e^{-z^2 / 2}.
 f_{X'}(x) &amp;= f_Z(g^{-1}(x)) \frac{d}{dx}g^{-1}(x) \\
   &amp;= f_Z \Bigl(\frac{x}{\sigma} \Bigr) \cdot \frac{1}{\sigma} \\
   &amp;= \frac{1}{\sqrt{2\pi}}\ e^{-(\frac{x}{\sigma})^2 \cdot \frac{1}{2}} \cdot \frac{1}{\sigma} \\
-  &amp;= \frac{1}{\sqrt{2\pi} \sigma}\ e^{-\frac{x^2}{2\sigma^2}}
+  &amp;= \frac{1}{\sqrt{2\pi} \sigma}\ e^{-\frac{x^2}{2\sigma^2}}.
 \end{align*}
 \]</span></p>
 <p>This is the pdf for <span class="math inline">\(\mathcal{N}(0, \sigma^2)\)</span>. Now, we find <span class="math inline">\(X = h(X') = f_{X'}(X') + \mu\)</span>, where <span class="math inline">\(h^{-1}(x) = x - \mu\)</span> and <span class="math inline">\(\frac{d}{dx}\ h^{-1}(x) = 1\)</span>. As with the above, we have <span class="math display">\[
@@ -351,26 +367,56 @@ f_X(x) = f_{X'}(h^{-1}(x)) \frac{d}{dx}\ h^{-1}(x) = f_{X'}(x - \mu) = \frac{1}{
 <section id="r-implementation" class="level2">
 <h2 class="anchored" data-anchor-id="r-implementation">R Implementation</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">1.1</span>, <span class="dv">3</span>, <span class="dv">8</span>)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>Sigma <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">0.1</span>, <span class="dv">1</span>, <span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">0.1</span>, <span class="dv">1</span>), <span class="dv">3</span>, <span class="dv">3</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>mvrnorm <span class="ot">&lt;-</span> <span class="cf">function</span>(n, mu, Sigma) {</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  L <span class="ot">&lt;-</span> <span class="fu">chol</span>(Sigma) <span class="co"># this is L', where L'L = Sigma</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  d <span class="ot">&lt;-</span> <span class="fu">length</span>(mu)</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  out <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">nrow =</span> n, <span class="at">ncol =</span> d)</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n) {</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    u <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(d)</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    out[i, ] <span class="ot">&lt;-</span> <span class="fu">t</span>(L <span class="sc">%*%</span> u <span class="sc">+</span> mu)</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(out)</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">1.1</span>, <span class="dv">3</span>, <span class="dv">8</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>Sigma <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">0.1</span>, <span class="dv">1</span>, <span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">0.1</span>, <span class="dv">1</span>), <span class="dv">3</span>, <span class="dv">3</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>mvrnorm <span class="ot">&lt;-</span> <span class="cf">function</span>(n, mu, Sigma) {</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  L <span class="ot">&lt;-</span> <span class="fu">chol</span>(Sigma) <span class="co"># this returns L', where LL' = Sigma</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  d <span class="ot">&lt;-</span> <span class="fu">length</span>(mu)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  out <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">nrow =</span> n, <span class="at">ncol =</span> d)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n) {</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    u <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(d)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    out[i, ] <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">t</span>(L) <span class="sc">%*%</span> u <span class="sc">+</span> mu)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(out)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="fu">mvrnorm</span>(<span class="dv">10</span>, mu, Sigma)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>           [,1]     [,2]     [,3]
+ [1,] 0.5395244 2.714929 9.298527
+ [2,] 1.1705084 3.135691 9.661861
+ [3,] 1.5609162 1.787372 7.395843
+ [4,] 0.6543380 4.173380 8.294725
+ [5,] 1.5007715 3.150205 7.599224
+ [6,] 2.8869131 3.674046 6.700175
+ [7,] 1.8013559 2.599714 7.161280
+ [8,] 0.8820251 1.957341 7.169001
+ [9,] 0.4749607 1.259257 8.490846
+[10,] 1.2533731 1.882905 9.158747</code></pre>
 </div>
+</div>
+
 
 
 </section>
 
-</main> <!-- /main -->
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-casella2024statistical" class="csl-entry" role="listitem">
+Casella, G., and R. Berger. 2024. <em>Statistical Inference</em>. Chapman &amp; Hall/CRC Texts in Statistical Science. CRC Press. <a href="https://books.google.com/books?id=cqUIEQAAQBAJ">https://books.google.com/books?id=cqUIEQAAQBAJ</a>.
+</div>
+<div id="ref-2691254" class="csl-entry" role="listitem">
+(https://math.stackexchange.com/users/10117/lepidopterist), Lepidopterist. n.d. <span>“Generating Multivariate Gaussian Samples–Why Does It Work?”</span> Mathematics Stack Exchange. <a href="https://math.stackexchange.com/q/2691254">https://math.stackexchange.com/q/2691254</a>.
+</div>
+<div id="ref-332722" class="csl-entry" role="listitem">
+(https://math.stackexchange.com/users/21550/hkbattousai), hkBattousai. n.d. <span>“Affine Transformation Applied to a Multivariate Gaussian Random Variable - What Is the Mean Vector and Covariance Matrix of the New Variable?”</span> Mathematics Stack Exchange. <a href="https://math.stackexchange.com/q/332722">https://math.stackexchange.com/q/332722</a>.
+</div>
+<div id="ref-Bilionis" class="csl-entry" role="listitem">
+ibilion[at]purdue.edu, Ilias Bilionis. 2022. <em>Introduction to Scientific Machine Learning</em>. Edited by n/a. Self published.
+</div>
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
