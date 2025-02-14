@@ -221,6 +221,12 @@ window.Quarto = {
  <span class="menu-text">The Multivariate Gaussian Distribution</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../gaussian_processes/gaussian_process_regression/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Gaussian Processes and Gaussian Process Regression</span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item">
@@ -287,21 +293,19 @@ window.Quarto = {
 
 <section id="definition" class="level2">
 <h2 class="anchored" data-anchor-id="definition">Definition</h2>
-<p>Let <span class="math inline">\(\mathbf{x} \in \mathbb{R}^n\)</span> be a vector whose elements, <span class="math inline">\(X_i\)</span>, are random variables (i.e., <span class="math inline">\(\mathbf{x}\)</span> is a <em>random vector</em>). Define the vector <span class="math inline">\(\mathbf{\mu}\)</span> and matrix <span class="math inline">\(\mathbf{\Sigma}\)</span> as <span class="math display">\[
+<p>Let <span class="math inline">\(\mathbf{x} \in \mathbb{R}^n\)</span> be a vector whose elements, <span class="math inline">\(X_i\)</span>, are random variables (i.e., <span class="math inline">\(\mathbf{x}\)</span> is a <em>random vector</em>). As elements of <span class="math inline">\(\mathbf{x}\)</span>, we say that <span class="math inline">\(X_1, X_2, \dots, X_n\)</span> are jointly distributed. Define the vector <span class="math inline">\(\mathbf{\mu}\)</span> and matrix <span class="math inline">\(\mathbf{\Sigma}\)</span> as <span class="math display">\[
 \begin{align*}
-\mathbf{\mu} &amp;= \begin{bmatrix} \mu_1 \\ \mu_2 \\ \vdots \\ \mu_n \end{bmatrix} \in \mathbb{R}^n \\ \\
-\mathbf{\Sigma} &amp;= Cov(\mathbf{x}) = \Bigl[Cov(X_i, X_j) \Bigr]_{i, j = 1}^n \in \mathbb{R}^{n \times n}
+\mathbf{\mu} &amp;= \begin{bmatrix} \mu_1 \\ \mu_2 \\ \vdots \\ \mu_n \end{bmatrix} = \begin{bmatrix} \mathbb{E}(X_1) \\ \mathbb{E}(X_2) \\ \vdots \\ \mathbb{E}(X_n) \end{bmatrix} \in \mathbb{R}^n \\ \\
+\mathbf{\Sigma} &amp;= Cov(\mathbf{x}) = \mathbb{E}[(\mathbf{x} - \mathbf{\mu})(\mathbf{x} - \mathbf{\mu})^\top] = \Bigl[Cov(X_i, X_j) \Bigr]_{i, j = 1}^n \in \mathbb{R}^{n \times n}
 \end{align*}
 \]</span></p>
-<p>and suppose <span class="math inline">\(X_i \sim \mathcal{N}(\mu_i, \mathbf{\Sigma}_{i, i})\)</span>. Then, we say that <span class="math inline">\(\mathbf{x}\)</span> comes from the multivariate Gaussian distribution parameterized by <span class="math inline">\(\mathbf{\mu}\)</span> and <span class="math inline">\(\mathbf{\Sigma}\)</span>, written as <span class="math display">\[
-\mathbf{x} \sim \mathcal{N}(\mathbf{\mu}, \mathbf{\Sigma}).
-\]</span></p>
+<p>and suppose <span class="math inline">\(X_i \sim \mathcal{N}(\mu_i, \mathbf{\Sigma}_{i, i})\)</span>. If every linear combination of <span class="math inline">\(\mathbf{x}\)</span>’s elements results in a univariate normal variable, we say that <span class="math inline">\(\mathbf{x}\)</span> comes from the multivariate Gaussian distribution parameterized by <span class="math inline">\(\mathbf{\mu}\)</span> and <span class="math inline">\(\mathbf{\Sigma}\)</span>, written as <span class="math inline">\(\mathbf{x} \sim \mathcal{N}(\mathbf{\mu}, \mathbf{\Sigma}).\)</span></p>
 </section>
 <section id="sampling-algorithm" class="level2">
 <h2 class="anchored" data-anchor-id="sampling-algorithm">Sampling Algorithm</h2>
 <p>A commonly used algorithm for sampling from a multivariate Gaussian distribution can be described as the following, given a vector <span class="math inline">\(\mathbf{\mu} \in \mathbb{R}^n\)</span> and a positive-(semi)definite matrix <span class="math inline">\(\mathbf{\Sigma} \in \mathbb{R}^{n \times n}\)</span>:</p>
 <ol type="1">
-<li>Compute the Cholesky decomposition of <span class="math inline">\(\mathbf{\Sigma}\)</span>, <span class="math inline">\(L L^\top = \mathbf{\Sigma}\)</span>.</li>
+<li>Compute <span class="math inline">\(L L^\top = \mathbf{\Sigma}\)</span>, the Cholesky decomposition of <span class="math inline">\(\mathbf{\Sigma}\)</span>.</li>
 <li>Generate <span class="math inline">\(\mathbf{z} = \begin{bmatrix} Z_1 \\ Z_2 \\ \vdots \\ Z_n \end{bmatrix}\)</span> where <span class="math inline">\(Z_1, Z_2, \dots, Z_n \overset{\text{i.i.d.}}{\sim} \mathcal{N}(0, 1)\)</span>.</li>
 <li>Compute <span class="math inline">\(\mathbf{x} = L\mathbf{z} + \mathbf{\mu}\)</span>.</li>
 </ol>
@@ -361,7 +365,9 @@ f_{X'}(x) &amp;= f_Z(g^{-1}(x)) \frac{d}{dx}g^{-1}(x) \\
 <p>This is the pdf for <span class="math inline">\(\mathcal{N}(0, \sigma^2)\)</span>. Now, we find <span class="math inline">\(X = h(X') = f_{X'}(X') + \mu\)</span>, where <span class="math inline">\(h^{-1}(x) = x - \mu\)</span> and <span class="math inline">\(\frac{d}{dx}\ h^{-1}(x) = 1\)</span>. As with the above, we have <span class="math display">\[
 f_X(x) = f_{X'}(h^{-1}(x)) \frac{d}{dx}\ h^{-1}(x) = f_{X'}(x - \mu) = \frac{1}{\sqrt{2\pi} \sigma}\ e^{-\frac{(x - \mu)^2}{2\sigma^2}},
 \]</span></p>
-<p>which is the classical definition of the normal distribution’s probability density function. This means that scaling a normal variable by a constant, or adding a constant to a normal variable results in another normal variable. So, each <span class="math inline">\(X_i\)</span> is normal. Lastly, as one’s intuition might suspect, the sum of two independent normal variables is also normal. I won’t go through the proof here, but some versions can be found on <a href="https://en.wikipedia.org/wiki/Sum_of_normally_distributed_random_variables">wikipedia.</a></p>
+<p>which is the classical definition of the normal distribution’s probability density function. This means that scaling a normal variable by a constant, or adding a constant to a normal variable results in another normal variable. So, each <span class="math inline">\(X_i\)</span> is normal. Lastly, as one’s intuition might suspect, the sum of jointly distributed normal variables is also normal. I won’t go through the proof here, but some versions can be found on <a href="https://en.wikipedia.org/wiki/Sum_of_normally_distributed_random_variables#Correlated_random_variables">wikipedia.</a></p>
+<!-- We showed that the vector x has cov(x) = Sigma; it's possible that cov(x_i, x_j) > 0 for some i,j -->
+<!-- https://stats.stackexchange.com/a/548360 -->
 <p>Thus, we can conclude that a linear combination <span class="math inline">\(Y = a_1 X_1 + \cdots + a_n X_n\)</span> is a normal variable, meaning <span class="math inline">\(\mathbf{x}\)</span> is a draw from the multivariate Gaussian distribution.</p>
 </section>
 <section id="r-implementation" class="level2">

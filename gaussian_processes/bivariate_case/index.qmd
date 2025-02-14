@@ -1,0 +1,71 @@
+---
+title: Modelling two variables using GPR
+---
+
+```{r}
+library(tidyverse)
+set.seed(123)
+
+x <- MASS::mvrnorm(400, c(0, 0), matrix(c(1, 0.5, 0.5, 1), 2, 2))
+f_x <- sin(5*x[, 1]) + sin(7*x[, 2])
+y <- f_x + rnorm(nrow(x), 0, 0.4)
+
+d <- as_tibble(x) |>
+  rename(x1 = V1, x2 = V2) |>
+  mutate(y = y)
+
+ggplot(d, aes(x1, x2)) +
+  # geom_raster(aes(fill = y), interpolate = TRUE) +
+  geom_contour(aes(z = y))
+```
+
+```{r}
+k <- function(x1, x2, alpha = 1, rho = 0.001) {
+  alpha^2 * exp(-norm(x1 - x2, type = "2")^2 / 2*rho^2)
+}
+
+compute_covmat <- function(k, x1, x2) {
+  N1 <- nrow(x1)
+  N2 <- nrow(x2)
+  K <- matrix(0, N1, N2)
+  for (i in 1:N1) {
+    for (j in 1:N2) {
+      K[i, j] <- k(x1[i, ], x2[j, ])
+    }
+  }
+  return(K)
+}
+```
+
+```{r}
+sigma <- 0.1
+
+train <- slice_sample(d, n = 100)
+
+X <- as.matrix(train[, 1:2])
+Y <- train$y
+
+k_XX <- compute_covmat(k, X, X)
+k_xx <- compute_covmat(k, x, x)
+k_xX <- compute_covmat(k, x, X)
+
+m <- k_xX %*% solve(k_XX + sigma^2 * diag(nrow(X))) %*% Y
+S <- k_xx - k_xX %*% solve(k_XX + sigma^2 * diag(nrow(X))) %*% t(k_xX)
+```
+
+```{r}
+f_post <- MASS::mvrnorm(10000, m, S)
+d$yhat <- colMeans(f_post)
+d$err <- with(d, (yhat - y) / y)
+
+ggplot(d, aes(x1, yhat - y)) +
+  geom_point()
+
+ggplot(d, aes(x2, yhat - y)) +
+  geom_point()
+
+d |>
+  summarise(rmse = sqrt(mean((yhat - y)^2)))
+
+ggplot(d, aes(sample = yhat - y)) + stat_qq() + stat_qq_line()
+```

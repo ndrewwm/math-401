@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>MATH 401 – Math 401</title>
+<title>Gaussian Processes and Gaussian Process Regression – Math 401</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -23,22 +23,22 @@ ul.task-list li input[type="checkbox"] {
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-html/quarto.js"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -67,8 +67,37 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
-<link rel="stylesheet" href="styles.css">
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="../../styles.css">
 </head>
 
 <body class="nav-sidebar docked nav-fixed">
@@ -78,7 +107,7 @@ ul.task-list li input[type="checkbox"] {
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a class="navbar-brand" href="./index.html">
+    <a class="navbar-brand" href="../../index.html">
     <span class="navbar-title">Math 401</span>
     </a>
   </div>
@@ -89,7 +118,7 @@ ul.task-list li input[type="checkbox"] {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
-    <a class="nav-link active" href="./index.html" aria-current="page"> 
+    <a class="nav-link" href="../../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
 </ul>
@@ -103,7 +132,7 @@ ul.task-list li input[type="checkbox"] {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">MATH 401</li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../gaussian_processes/index.html">Gaussian Processes</a></li><li class="breadcrumb-item"><a href="../../gaussian_processes/gaussian_process_regression/index.html">Gaussian Processes and Gaussian Process Regression</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -125,7 +154,7 @@ ul.task-list li input[type="checkbox"] {
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a href="./gaussian_processes/index.html" class="sidebar-item-text sidebar-link">
+            <a href="../../gaussian_processes/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Gaussian Processes</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
@@ -134,13 +163,13 @@ ul.task-list li input[type="checkbox"] {
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./gaussian_processes/mvnorm/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../gaussian_processes/mvnorm/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">The Multivariate Gaussian Distribution</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./gaussian_processes/gaussian_process_regression/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../gaussian_processes/gaussian_process_regression/index.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">Gaussian Processes and Gaussian Process Regression</span></a>
   </div>
 </li>
@@ -148,13 +177,13 @@ ul.task-list li input[type="checkbox"] {
   </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./krr/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../krr/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Kernel Ridge Regression</span></a>
   </div>
 </li>
         <li class="sidebar-item sidebar-item-section">
       <div class="sidebar-item-container"> 
-            <a href="./reflections/index.html" class="sidebar-item-text sidebar-link">
+            <a href="../../reflections/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Reflections</span></a>
           <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
@@ -163,7 +192,7 @@ ul.task-list li input[type="checkbox"] {
       <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./reflections/reflection_1.html" class="sidebar-item-text sidebar-link">
+  <a href="../../reflections/reflection_1.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Reflection 1</span></a>
   </div>
 </li>
@@ -179,21 +208,22 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#meeting-summaries" id="toc-meeting-summaries" class="nav-link active" data-scroll-target="#meeting-summaries">Meeting Summaries</a>
+  <li><a href="#gaussian-processes" id="toc-gaussian-processes" class="nav-link active" data-scroll-target="#gaussian-processes">Gaussian Processes</a>
   <ul class="collapse">
-  <li><a href="#upcoming" id="toc-upcoming" class="nav-link" data-scroll-target="#upcoming">1/31/25 (upcoming)</a></li>
-  <li><a href="#section" id="toc-section" class="nav-link" data-scroll-target="#section">1/23/25</a></li>
-  <li><a href="#section-1" id="toc-section-1" class="nav-link" data-scroll-target="#section-1">1/16/25</a></li>
+  <li><a href="#definition-stochastic-process-or-random-function" id="toc-definition-stochastic-process-or-random-function" class="nav-link" data-scroll-target="#definition-stochastic-process-or-random-function">Definition: Stochastic Process (or, random function)</a></li>
+  <li><a href="#definition-gaussian-process" id="toc-definition-gaussian-process" class="nav-link" data-scroll-target="#definition-gaussian-process">Definition: Gaussian Process</a></li>
+  <li><a href="#remarks" id="toc-remarks" class="nav-link" data-scroll-target="#remarks">Remarks</a></li>
   </ul></li>
+  <li><a href="#gaussian-process-regression" id="toc-gaussian-process-regression" class="nav-link" data-scroll-target="#gaussian-process-regression">Gaussian Process Regression</a></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default">
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../gaussian_processes/index.html">Gaussian Processes</a></li><li class="breadcrumb-item"><a href="../../gaussian_processes/gaussian_process_regression/index.html">Gaussian Processes and Gaussian Process Regression</a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title">MATH 401</h1>
+<h1 class="title">Gaussian Processes and Gaussian Process Regression</h1>
 </div>
 
 
@@ -210,41 +240,29 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="meeting-summaries" class="level1">
-<h1>Meeting Summaries</h1>
-<section id="upcoming" class="level2">
-<h2 class="anchored" data-anchor-id="upcoming">1/31/25 (upcoming)</h2>
-<ul>
-<li>Working on <a href="./gaussian_processes/index.html">an overview of Gaussian processes</a>
-<ul>
-<li>I have a more formal writeup (in the sense of notation) of GPR <a href="./gaussian_processes/v2.html">here</a></li>
-</ul></li>
-<li>Working on <a href="./krr/index.html">an overview of KRR</a>
-<ul>
-<li>todos:
-<ul class="task-list">
-<li><label><input type="checkbox">update citations</label></li>
-</ul></li>
-</ul></li>
-</ul>
+<section id="gaussian-processes" class="level2">
+<h2 class="anchored" data-anchor-id="gaussian-processes">Gaussian Processes</h2>
+<p>Elsewhere, I described <a href="../../gaussian_processes/mvnorm/index.html">the multivariate Gaussian distribution</a>, which can be used to model random vectors of jointly distributed Gaussian random variables. A <em>Gaussian Process</em> (GP) can be used to model functions over arbitrarily sized sets. They’re an extension of the multivariate Gaussian, in which we move from thinking about vectors of a fixed dimension to functions that describe random vectors of any (potentially infinite) size. GPs are parameterized with a <em>mean function</em> and <em>covariance kernel</em>, rather than a fixed mean vector <span class="math inline">\(\mu\)</span> and covariance matrix <span class="math inline">\(\mathbf{\Sigma}\)</span>.</p>
+<section id="definition-stochastic-process-or-random-function" class="level3">
+<h3 class="anchored" data-anchor-id="definition-stochastic-process-or-random-function">Definition: Stochastic Process (or, random function)</h3>
 </section>
-<section id="section" class="level2">
-<h2 class="anchored" data-anchor-id="section">1/23/25</h2>
-<ul>
-<li>Reviewed sections 1-3. Covered the algorithm that auths present on page N.</li>
-<li>Goal: try to have some workable code to demonstrate KRR and GPR on simulated data. Let’s understand what the methods are producing.</li>
-</ul>
+<section id="definition-gaussian-process" class="level3">
+<h3 class="anchored" data-anchor-id="definition-gaussian-process">Definition: Gaussian Process</h3>
+<p>Let <span class="math inline">\(\chi\)</span> be a nonempty set, <span class="math inline">\(k: \chi \times \chi \to \mathbb{R}\)</span> a positive definite kernel and <span class="math inline">\(m: \chi \to \mathbb{R}\)</span> be any real-valued function. Then, a random function <span class="math inline">\(f: \chi \to \mathbb{R}\)</span> is said to be a Gaussian process (GP) with <em>mean function</em> <span class="math inline">\(m\)</span> and <em>covariance kernel</em> <span class="math inline">\(k\)</span>, denoted by <span class="math inline">\(\mathcal{GP}(m, k)\)</span>, if the following holds: For any finite set <span class="math inline">\(X = (x_1, \dots, x_n) \subset \chi\)</span> of any size <span class="math inline">\(n \in \mathbb{N}\)</span>, the random vector</p>
+<p><span class="math display">\[
+f_X = (f(x_1), \dots, f(x_n))^\top \in \mathbb{R}^n
+\]</span></p>
+<p>follows the multivariate normal distribution <span class="math inline">\(\mathcal{N}(m_X, k_{XX})\)</span> with covariance matrix <span class="math inline">\(k_{XX} = [k(x_i, x_j)]_{i, j = 1}^{n} \in \mathbb{R}^{n \times n}\)</span> and mean vector <span class="math inline">\(m_X = (m(x_1), \dots, m(x_n))^\top\)</span>.</p>
 </section>
-<section id="section-1" class="level2">
-<h2 class="anchored" data-anchor-id="section-1">1/16/25</h2>
-<ul>
-<li>Discussion, admin work</li>
-<li>Decided to cover first 3 sections of __ paper</li>
-<li>Mentioned __ textbook.</li>
-</ul>
+<section id="remarks" class="level3">
+<h3 class="anchored" data-anchor-id="remarks">Remarks</h3>
+<p>By convention, the zero function is used for <span class="math inline">\(m(x)\)</span>, allowing the GP to be fully described by the choice of kernel (and any associated hyperparameters).</p>
+</section>
+</section>
+<section id="gaussian-process-regression" class="level2">
+<h2 class="anchored" data-anchor-id="gaussian-process-regression">Gaussian Process Regression</h2>
 
 
-</section>
 </section>
 
 </main> <!-- /main -->
