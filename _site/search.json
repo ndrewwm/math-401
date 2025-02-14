@@ -166,25 +166,32 @@
     "href": "index.html",
     "title": "MATH 401",
     "section": "",
-    "text": "Working on an overview of Gaussian processes\n\nI have a more formal writeup (in the sense of notation) of GPR here\n\nWorking on an overview of KRR\n\ntodos:\n\nupdate citations\n\n\n\n\n\n\n\nReviewed sections 1-3. Covered the algorithm that auths present on page N.\nGoal: try to have some workable code to demonstrate KRR and GPR on simulated data. Let’s understand what the methods are producing.\n\n\n\n\n\nDiscussion, admin work\nDecided to cover first 3 sections of __ paper\nMentioned __ textbook."
-  },
-  {
-    "objectID": "index.html#upcoming",
-    "href": "index.html#upcoming",
-    "title": "MATH 401",
-    "section": "",
-    "text": "Working on an overview of Gaussian processes\n\nI have a more formal writeup (in the sense of notation) of GPR here\n\nWorking on an overview of KRR\n\ntodos:\n\nupdate citations"
+    "text": "Reading and searching for more background information about multi-output Gaussian Processes\n\ne.g., vector-valued GPs (blog post)\nCompleted review of the multivariate Gaussian distribution (link)\nStill working on modeling bivariate data, but not (yet) fruitfully\n\n\n\n\n\n\nWorking on an overview of Gaussian processes\n\nI have a more formal writeup (in the sense of notation) of GPR here\n\nWorking on an overview of KRR\n\ntodos:\n\nupdate citations\n\n\n\n\n\n\n\nReviewed sections 1-3. Covered the algorithm that auths present on page N.\nGoal: try to have some workable code to demonstrate KRR and GPR on simulated data. Let’s understand what the methods are producing.\n\n\n\n\n\nDiscussion, admin work\nDecided to cover first 3 sections of __ paper\nMentioned __ textbook."
   },
   {
     "objectID": "index.html#section",
     "href": "index.html#section",
     "title": "MATH 401",
     "section": "",
-    "text": "Reviewed sections 1-3. Covered the algorithm that auths present on page N.\nGoal: try to have some workable code to demonstrate KRR and GPR on simulated data. Let’s understand what the methods are producing."
+    "text": "Reading and searching for more background information about multi-output Gaussian Processes\n\ne.g., vector-valued GPs (blog post)\nCompleted review of the multivariate Gaussian distribution (link)\nStill working on modeling bivariate data, but not (yet) fruitfully"
   },
   {
     "objectID": "index.html#section-1",
     "href": "index.html#section-1",
+    "title": "MATH 401",
+    "section": "",
+    "text": "Working on an overview of Gaussian processes\n\nI have a more formal writeup (in the sense of notation) of GPR here\n\nWorking on an overview of KRR\n\ntodos:\n\nupdate citations"
+  },
+  {
+    "objectID": "index.html#section-2",
+    "href": "index.html#section-2",
+    "title": "MATH 401",
+    "section": "",
+    "text": "Reviewed sections 1-3. Covered the algorithm that auths present on page N.\nGoal: try to have some workable code to demonstrate KRR and GPR on simulated data. Let’s understand what the methods are producing."
+  },
+  {
+    "objectID": "index.html#section-3",
+    "href": "index.html#section-3",
     "title": "MATH 401",
     "section": "",
     "text": "Discussion, admin work\nDecided to cover first 3 sections of __ paper\nMentioned __ textbook."

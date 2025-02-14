@@ -5,7 +5,14 @@ title: "MATH 401"
 
 # Meeting Summaries
 
-## 1/31/25 (upcoming)
+## 2/14/24
+
+- Reading and searching for more background information about multi-output Gaussian Processes
+  - e.g., *vector-valued* GPs ([blog post](https://invenia.github.io/blog/2021/02/19/OILMM-pt1/))
+  - Completed review of the multivariate Gaussian distribution ([link](./gaussian_processes/mvnorm/index.qmd))
+  - Still working on modeling bivariate data, but not (yet) fruitfully
+
+## 1/31/25
 
 - Working on [an overview of Gaussian processes](/gaussian_processes/index.qmd)
   - I have a more formal writeup (in the sense of notation) of GPR [here](/gaussian_processes/v2.qmd)
