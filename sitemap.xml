@@ -2,34 +2,42 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://ndrewwm.github.io/math-401/reflections/reflection_1.html</loc>
-    <lastmod>2025-02-13T19:47:00.992Z</lastmod>
+    <lastmod>2025-02-14T19:25:20.946Z</lastmod>
   </url>
   <url>
     <loc>https://ndrewwm.github.io/math-401/krr/index.html</loc>
-    <lastmod>2025-02-13T19:47:00.991Z</lastmod>
+    <lastmod>2025-02-14T19:25:20.946Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ndrewwm.github.io/math-401/gaussian_processes/gaussian_process_regression/index.html</loc>
+    <lastmod>2025-02-14T19:25:20.945Z</lastmod>
   </url>
   <url>
     <loc>https://ndrewwm.github.io/math-401/gaussian_processes/mvnorm/index.html</loc>
-    <lastmod>2025-02-13T19:47:00.991Z</lastmod>
+    <lastmod>2025-02-14T19:25:20.945Z</lastmod>
   </url>
   <url>
     <loc>https://ndrewwm.github.io/math-401/gaussian_processes/index.html</loc>
-    <lastmod>2025-02-13T19:47:00.991Z</lastmod>
+    <lastmod>2025-02-14T19:25:20.945Z</lastmod>
   </url>
   <url>
     <loc>https://ndrewwm.github.io/math-401/notes/template.html</loc>
-    <lastmod>2025-02-13T19:47:00.991Z</lastmod>
+    <lastmod>2025-02-14T19:25:20.946Z</lastmod>
   </url>
   <url>
     <loc>https://ndrewwm.github.io/math-401/gaussian_processes/v2.html</loc>
-    <lastmod>2025-02-13T19:47:00.991Z</lastmod>
+    <lastmod>2025-02-14T19:25:20.945Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ndrewwm.github.io/math-401/gaussian_processes/bivariate_case/index.html</loc>
+    <lastmod>2025-02-14T19:25:20.945Z</lastmod>
   </url>
   <url>
     <loc>https://ndrewwm.github.io/math-401/index.html</loc>
-    <lastmod>2025-02-13T19:47:00.991Z</lastmod>
+    <lastmod>2025-02-14T19:25:20.946Z</lastmod>
   </url>
   <url>
     <loc>https://ndrewwm.github.io/math-401/reflections/index.html</loc>
-    <lastmod>2025-02-13T19:47:00.992Z</lastmod>
+    <lastmod>2025-02-14T19:25:20.946Z</lastmod>
   </url>
 </urlset>
