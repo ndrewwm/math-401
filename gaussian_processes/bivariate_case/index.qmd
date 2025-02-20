@@ -1,71 +1,102 @@
 ---
 title: Modelling two variables using GPR
+bibliography: bivariate_case.bib
 ---
 
+Dr. Gramacy's *Surrogates* [@gramacy2020surrogates], particularly chapter 5, was very helpful in putting together the code for this simulation.
+
 ```{r}
+#| message: false
+#| warning: false
+
 library(tidyverse)
+library(patchwork)
+library(lhs)
+library(plotly)
 set.seed(123)
 
-x <- MASS::mvrnorm(400, c(0, 0), matrix(c(1, 0.5, 0.5, 1), 2, 2))
-f_x <- sin(5*x[, 1]) + sin(7*x[, 2])
-y <- f_x + rnorm(nrow(x), 0, 0.4)
+eps <- sqrt(.Machine$double.eps)
 
-d <- as_tibble(x) |>
-  rename(x1 = V1, x2 = V2) |>
-  mutate(y = y)
-
-ggplot(d, aes(x1, x2)) +
-  # geom_raster(aes(fill = y), interpolate = TRUE) +
-  geom_contour(aes(z = y))
-```
-
-```{r}
-k <- function(x1, x2, alpha = 1, rho = 0.001) {
-  alpha^2 * exp(-norm(x1 - x2, type = "2")^2 / 2*rho^2)
+# Our target function
+# x is an N x 2 matrix
+f <- function(x) {
+  x[, 1] * exp(-x[, 1]^2 - x[, 2]^2)
 }
 
-compute_covmat <- function(k, x1, x2) {
-  N1 <- nrow(x1)
-  N2 <- nrow(x2)
-  K <- matrix(0, N1, N2)
-  for (i in 1:N1) {
-    for (j in 1:N2) {
-      K[i, j] <- k(x1[i, ], x2[j, ])
+# x_i and x_j can be vectors or scalars 
+rbf <- function(xi, xj, alpha = 1, rho = 1) {
+  alpha^2 * exp(-norm(xi - xj, type = "2") / (2 * rho^2))
+}
+
+k_XX <- function(X, err = eps) {
+  N <- nrow(X)
+  K <- matrix(0, N, N)
+  for (i in 1:N) {
+    for (j in 1:N) {
+      K[i, j] <- rbf(X[i, ], X[j, ])
     }
   }
-  return(K)
+
+  if (!is.null(err)) {
+    K <- K + diag(err, ncol(K))
+  }
+
+  K
 }
+
+k_xX <- function(x, X) {
+  N <- nrow(x)
+  M <- nrow(X)
+
+  K <- matrix(0, N, M)
+  for (i in 1:N) {
+    for (j in 1:M) {
+      K[i, j] <- rbf(x[i, ], X[j, ])
+    }
+  }
+
+  K
+}
+
+# Training dataset: D = (X, Y)
+X <- randomLHS(100, 2)
+X[, 1] <- -4 + 8*X[, 1]
+X[, 2] <- -4 + 8*X[, 2]
+Y <- f(X)
+
+# Test points: Z
+x <- seq(-4, 4, length.out = 20)
+Z <- expand.grid(x, x) |> as.matrix()
+
+K_XX <- k_XX(X) + diag(eps, nrow(X))
+K_ZX <- k_xX(Z, X)
+K_ZZ <- k_XX(Z)
+
+m_post <- K_ZX %*% solve(K_XX) %*% Y
+s_post <- K_ZZ - K_ZX %*% solve(K_XX) %*% t(K_ZX)
 ```
 
 ```{r}
-sigma <- 0.1
+#| fig.width: 12
+results <- as_tibble(Z) |>
+  rename(x = Var1, y = Var2) |>
+  mutate(z_m = as.vector(m_post), z_sd = sqrt(diag(s_post)))
 
-train <- slice_sample(d, n = 100)
+p1 <- ggplot(results, aes(x, y, fill = z_m)) +
+  geom_tile() +
+  scale_fill_viridis_c(name = expression(mu)) +
+  labs(title = "Posterior mean")
 
-X <- as.matrix(train[, 1:2])
-Y <- train$y
+p2 <- ggplot(results, aes(x, y, fill = z_sd)) +
+  geom_tile() +
+  scale_fill_viridis_c(name = expression(sigma)) +
+  labs(title = "Posterior standard deviation")
 
-k_XX <- compute_covmat(k, X, X)
-k_xx <- compute_covmat(k, x, x)
-k_xX <- compute_covmat(k, x, X)
-
-m <- k_xX %*% solve(k_XX + sigma^2 * diag(nrow(X))) %*% Y
-S <- k_xx - k_xX %*% solve(k_XX + sigma^2 * diag(nrow(X))) %*% t(k_xX)
+p1 | p2
 ```
 
 ```{r}
-f_post <- MASS::mvrnorm(10000, m, S)
-d$yhat <- colMeans(f_post)
-d$err <- with(d, (yhat - y) / y)
+plot_ly(z = ~matrix(f(Z), ncol = 20)) |> add_surface()
 
-ggplot(d, aes(x1, yhat - y)) +
-  geom_point()
-
-ggplot(d, aes(x2, yhat - y)) +
-  geom_point()
-
-d |>
-  summarise(rmse = sqrt(mean((yhat - y)^2)))
-
-ggplot(d, aes(sample = yhat - y)) + stat_qq() + stat_qq_line()
+plot_ly(z = matrix(results$z_m, ncol = 20)) |> add_surface()
 ```

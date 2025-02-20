@@ -67,6 +67,35 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -142,6 +171,12 @@ ul.task-list li input[type="checkbox"] {
   <div class="sidebar-item-container"> 
   <a href="./gaussian_processes/gaussian_process_regression/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Gaussian Processes and Gaussian Process Regression</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./gaussian_processes/bivariate_case/index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Modelling two variables using GPR</span></a>
   </div>
 </li>
       </ul>
@@ -223,6 +258,16 @@ ul.task-list li input[type="checkbox"] {
 <li>Still working on modeling bivariate data, but not (yet) fruitfully</li>
 </ul></li>
 </ul>
+<p>Ideally, we could model position and velocity together as a vector</p>
+<p><span class="math display">\[
+\begin{bmatrix} u \\ v \end{bmatrix} = f(x, y) + \epsilon
+\]</span></p>
+<p>rather than something like <span class="math display">\[
+\begin{align*}
+u &amp;= f_1(x) + \epsilon_1 \\
+v &amp;= f_2(y) + \epsilon_2
+\end{align*}
+\]</span></p>
 </section>
 <section id="section-1" class="level2">
 <h2 class="anchored" data-anchor-id="section-1">1/31/25</h2>

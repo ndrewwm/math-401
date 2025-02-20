@@ -2,7 +2,6 @@
 title: "MATH 401"
 ---
 
-
 # Meeting Summaries
 
 ## 2/14/24
@@ -11,6 +10,20 @@ title: "MATH 401"
   - e.g., *vector-valued* GPs ([blog post](https://invenia.github.io/blog/2021/02/19/OILMM-pt1/))
   - Completed review of the multivariate Gaussian distribution ([link](./gaussian_processes/mvnorm/index.qmd))
   - Still working on modeling bivariate data, but not (yet) fruitfully
+
+Ideally, we could model position and velocity together as a vector
+
+$$
+\begin{bmatrix} u \\ v \end{bmatrix} = f(x, y) + \epsilon
+$$
+
+rather than something like
+$$
+\begin{align*}
+u &= f_1(x) + \epsilon_1 \\
+v &= f_2(y) + \epsilon_2
+\end{align*}
+$$
 
 ## 1/31/25
 

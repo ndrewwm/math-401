@@ -16,6 +16,7 @@ website:
         contents:
           - "./gaussian_processes/mvnorm/index.qmd"
           - "./gaussian_processes/gaussian_process_regression/index.qmd"
+          - "./gaussian_processes/bivariate_case/index.qmd"
       - text: "Kernel Ridge Regression"
         href: "./krr/index.qmd"
       - section: "Reflections"
