@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>The Multivariate Gaussian Distribution – Math 401</title>
+<title>Multioutput GPR – Math 401</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -154,7 +154,7 @@ window.Quarto = {
 <link rel="stylesheet" href="../../styles.css">
 </head>
 
-<body class="nav-sidebar docked nav-fixed slimcontent">
+<body class="nav-sidebar docked nav-fixed">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
@@ -186,7 +186,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../gaussian_processes/index.html">Gaussian Processes</a></li><li class="breadcrumb-item"><a href="../../gaussian_processes/mvnorm/index.html">The Multivariate Gaussian Distribution</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../gaussian_processes/index.html">Gaussian Processes</a></li><li class="breadcrumb-item"><a href="../../gaussian_processes/multioutput/index.html">Multioutput GPR</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -217,7 +217,7 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../gaussian_processes/mvnorm/index.html" class="sidebar-item-text sidebar-link active">
+  <a href="../../gaussian_processes/mvnorm/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">The Multivariate Gaussian Distribution</span></a>
   </div>
 </li>
@@ -235,7 +235,7 @@ window.Quarto = {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../gaussian_processes/multioutput/index.html" class="sidebar-item-text sidebar-link">
+  <a href="../../gaussian_processes/multioutput/index.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">Multioutput GPR</span></a>
   </div>
 </li>
@@ -274,19 +274,17 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#definition" id="toc-definition" class="nav-link active" data-scroll-target="#definition">Definition</a></li>
-  <li><a href="#sampling-algorithm" id="toc-sampling-algorithm" class="nav-link" data-scroll-target="#sampling-algorithm">Sampling Algorithm</a></li>
-  <li><a href="#why-does-the-algorithm-work" id="toc-why-does-the-algorithm-work" class="nav-link" data-scroll-target="#why-does-the-algorithm-work">Why does the algorithm work?</a></li>
-  <li><a href="#r-implementation" id="toc-r-implementation" class="nav-link" data-scroll-target="#r-implementation">R Implementation</a></li>
+  <li><a href="#multitask-gaussian-process-prediction" id="toc-multitask-gaussian-process-prediction" class="nav-link active" data-scroll-target="#multitask-gaussian-process-prediction">Multitask Gaussian Process Prediction</a></li>
+  <li><a href="#visualizing-vector-fields" id="toc-visualizing-vector-fields" class="nav-link" data-scroll-target="#visualizing-vector-fields">Visualizing vector fields</a></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
-<main class="content page-columns page-full" id="quarto-document-content">
+<main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../gaussian_processes/index.html">Gaussian Processes</a></li><li class="breadcrumb-item"><a href="../../gaussian_processes/mvnorm/index.html">The Multivariate Gaussian Distribution</a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../gaussian_processes/index.html">Gaussian Processes</a></li><li class="breadcrumb-item"><a href="../../gaussian_processes/multioutput/index.html">Multioutput GPR</a></li></ol></nav>
 <div class="quarto-title">
-<h1 class="title">The Multivariate Gaussian Distribution</h1>
+<h1 class="title">Multioutput GPR</h1>
 </div>
 
 
@@ -303,118 +301,140 @@ window.Quarto = {
 </header>
 
 
-<section id="definition" class="level2">
-<h2 class="anchored" data-anchor-id="definition">Definition</h2>
-<p>Let <span class="math inline">\(\mathbf{x} \in \mathbb{R}^n\)</span> be a vector whose elements, <span class="math inline">\(X_i\)</span>, are random variables (i.e., <span class="math inline">\(\mathbf{x}\)</span> is a <em>random vector</em>). As elements of <span class="math inline">\(\mathbf{x}\)</span>, we say that <span class="math inline">\(X_1, X_2, \dots, X_n\)</span> are jointly distributed. Define the vector <span class="math inline">\(\mathbf{\mu}\)</span> and matrix <span class="math inline">\(\mathbf{\Sigma}\)</span> as <span class="math display">\[
-\begin{align*}
-\mathbf{\mu} &amp;= \begin{bmatrix} \mu_1 \\ \mu_2 \\ \vdots \\ \mu_n \end{bmatrix} = \begin{bmatrix} \mathbb{E}(X_1) \\ \mathbb{E}(X_2) \\ \vdots \\ \mathbb{E}(X_n) \end{bmatrix} \in \mathbb{R}^n \\ \\
-\mathbf{\Sigma} &amp;= Cov(\mathbf{x}) = \mathbb{E}[(\mathbf{x} - \mathbf{\mu})(\mathbf{x} - \mathbf{\mu})^\top] = \Bigl[Cov(X_i, X_j) \Bigr]_{i, j = 1}^n \in \mathbb{R}^{n \times n}
-\end{align*}
-\]</span></p>
-<p>and suppose <span class="math inline">\(X_i \sim \mathcal{N}(\mu_i, \mathbf{\Sigma}_{i, i})\)</span>. If every linear combination of <span class="math inline">\(\mathbf{x}\)</span>’s elements results in a univariate normal variable, we say that <span class="math inline">\(\mathbf{x}\)</span> comes from the multivariate Gaussian distribution parameterized by <span class="math inline">\(\mathbf{\mu}\)</span> and <span class="math inline">\(\mathbf{\Sigma}\)</span>, written as <span class="math inline">\(\mathbf{x} \sim \mathcal{N}(\mathbf{\mu}, \mathbf{\Sigma}).\)</span></p>
-</section>
-<section id="sampling-algorithm" class="level2">
-<h2 class="anchored" data-anchor-id="sampling-algorithm">Sampling Algorithm</h2>
-<p>A commonly used algorithm for sampling from a multivariate Gaussian distribution can be described as the following, given a vector <span class="math inline">\(\mathbf{\mu} \in \mathbb{R}^n\)</span> and a positive-(semi)definite matrix <span class="math inline">\(\mathbf{\Sigma} \in \mathbb{R}^{n \times n}\)</span>:</p>
-<ol type="1">
-<li>Compute <span class="math inline">\(L L^\top = \mathbf{\Sigma}\)</span>, the Cholesky decomposition of <span class="math inline">\(\mathbf{\Sigma}\)</span>.</li>
-<li>Generate <span class="math inline">\(\mathbf{z} = \begin{bmatrix} Z_1 \\ Z_2 \\ \vdots \\ Z_n \end{bmatrix}\)</span> where <span class="math inline">\(Z_1, Z_2, \dots, Z_n \overset{\text{i.i.d.}}{\sim} \mathcal{N}(0, 1)\)</span>.</li>
-<li>Compute <span class="math inline">\(\mathbf{x} = L\mathbf{z} + \mathbf{\mu}\)</span>.</li>
-</ol>
-</section>
-<section id="why-does-the-algorithm-work" class="level2 page-columns page-full">
-<h2 class="anchored" data-anchor-id="why-does-the-algorithm-work">Why does the algorithm work?</h2>
-<p>The claim is that <span class="math inline">\(\mathbf{x}\)</span> is a draw from the multivariate Gaussian distribution parameterized by <span class="math inline">\(\mathbf{\mu}\)</span> and <span class="math inline">\(\mathbf{\Sigma}\)</span>, i.e., <span class="math inline">\(\mathbf{x} \sim \mathcal{N}(\mathbf{\mu}, \mathbf{\Sigma})\)</span>. So, why does this work? First, we can show that <span class="math inline">\(\mathbb{E}(\mathbf{x}) = \mathbf{\mu}\)</span>:</p>
-<p><span class="math display">\[
-\begin{align*}
-\mathbb{E}(\mathbf{x}) &amp;= \mathbb{E}(L\mathbf{z} + \mathbf{\mu}) \\
-  &amp;= \mathbb{E}(L\mathbf{z}) + \mathbb{E}(\mathbf{\mu}) \\
-  &amp;= L \cdot \mathbb{E}(\mathbf{z}) + \mathbf{\mu} \\
-  &amp;= L \cdot 0 + \mathbf{\mu} \\
-  &amp;= \mathbf{\mu}.
-\end{align*}
-\]</span></p>
-<p>Next, we can see that <span class="math inline">\(Cov(\mathbf{x}) = \mathbf{\Sigma}\)</span>:</p>
+<!--
+- https://proceedings.neurips.cc/paper_files/paper/2007/file/66368270ffd51418ec58bd793f2d9b1b-Paper.pdf
+- https://ruglio.github.io/Web/blog/dkl/s2/
 
-<div class="no-row-height column-margin column-container"><div class="">
-<p>Reminder that <span class="math inline">\(Cov(\mathbf{x})\)</span> is not a scalar, rather, it is the <em>covariance matrix</em> (or <em>variance-covariance matrix</em>) of <span class="math inline">\(\mathbf{x}\)</span>.</p>
-</div></div><p><span class="math display">\[
-\begin{align*}
-Cov(\mathbf{x}) &amp;= \mathbb{E}[(\mathbf{x} - \mathbf{\mu})(\mathbf{x} - \mathbf{\mu})^\top] \\
-  &amp;= \mathbb{E}[(L\mathbf{z} + \mathbf{\mu} - \mathbf{\mu})(L\mathbf{z} + \mathbf{\mu} - \mathbf{\mu})^\top] \\
-  &amp;= \mathbb{E}[L\mathbf{z}\mathbf{z}^\top L^\top] \\
-  &amp;= L\ \mathbb{E}[\mathbf{z}\mathbf{z}^\top]\ L^\top \\
-  &amp;= L\ \mathbb{E}[(\mathbf{z} - 0)(\mathbf{z} - 0)^\top]\ L^\top \\
-  &amp;= L\ Cov(\mathbf{z})\ L^\top \\
-  &amp;= L I L^\top \\
-  &amp;= L L^\top \\
-  &amp;= \mathbf{\Sigma}.
-\end{align*}
-\]</span></p>
+- Liu, Cai, and Ong (2018) https://www.sciencedirect.com/science/article/abs/pii/S0950705117306123
 
-<div class="no-row-height column-margin column-container"><div class="">
-<p>This proof hinges on the definition of covariance and the independence of the <span class="math inline">\(Z_i\)</span>’s. Remember, <span class="math inline">\(Cov(Z_i, Z_i) = Var(Z_i) = 1\)</span> and <span class="math inline">\(Cov(Z_i, Z_j) = 0\)</span> when <span class="math inline">\(i \neq j\)</span> and <span class="math inline">\(Z_i \perp Z_j\)</span>.</p>
-</div></div><p>The following references <span class="citation" data-cites="2691254">(<a href="#ref-2691254" role="doc-biblioref">(https://math.stackexchange.com/users/10117/lepidopterist), n.d.</a>)</span>, <span class="citation" data-cites="332722">(<a href="#ref-332722" role="doc-biblioref">(https://math.stackexchange.com/users/21550/hkbattousai), n.d.</a>)</span>, <span class="citation" data-cites="Bilionis">(<a href="#ref-Bilionis" role="doc-biblioref">ibilion[at]purdue.edu 2022</a>)</span> (specifically <a href="https://predictivesciencelab.github.io/data-analytics-se/lecture06/hands-on-06.2.html#sampling-the-multivariate-normal-with-diagonal-covariance-using-the-standard-normal">this section</a>) were helpful to me as I worked through understanding the algorithm and the proofs for the two results above.</p>
-<p>Having shown that the expectation and (co)variance of <span class="math inline">\(\mathbf{x}\)</span> are what we’d assume, we need to show that <span class="math inline">\(\mathbf{x}\)</span> qualifies as multivariate normal. A random vector is multivariate normal if any linear combination of its elements is normally distributed. From its construction, we know <span class="math inline">\(\mathbf{x}\)</span> is a linear transformation of a standard normal vector, i.e., <span class="math inline">\(\mathbf{z}\)</span>. We can decompose <span class="math inline">\(\mathbf{x}\)</span>’s <span class="math inline">\(i\)</span>-th element, <span class="math inline">\(X_i\)</span>, into the following:</p>
-<p><span class="math display">\[
+> Existing MOGPs can in general be classified into two categories: (1) symmetric MOGPs and (2) asymmetric MOGPs. Symmetric MOGPs use a symmetric dependency structure to capture the output correlations and approximate the T outputs simultaneously. Therefore, these MOGPs usually have an integrated modeling process, i.e., fusing all the information in an entire covariance matrix, which leads to bidirectional information transfer between the outputs. **Typically, the symmetric MOGPs attempt to improve the predictions of all the outputs in symmetric scenarios, where the outputs are of equal importance and have roughly equivalent training information.**
+
+They use the following notation.
+
+Training data, $\mathcal{D} = \{X, \mathbf{y}\}$:
+$$
 \begin{align*}
-\sigma_i &amp;= \sum_{j = 0}^n L_{i,j} \\
-X_i &amp;= Z_i \sigma_i + \mu_i.
+X &= \{ \mathbf{x}_{t,i} | t = 1, \dots, T; i = 1, \dots, n_t \} \in \mathbb{R}^{N \times d} \\
+\mathbf{y} &= \{ y_{t,i} = y_t(\mathbf{x}_{t,i}) | t = 1, \dots, T; i = 1, \dots, n_t \} \in 
 \end{align*}
-\]</span></p>
-<p>We can then show that <span class="math inline">\(X_i \sim \mathcal{N}(\sigma_i \cdot 0 + \mu_i, \sigma_i^2) \implies X_i \sim \mathcal{N}(\mu_i, \sigma_i^2)\)</span>. This follows from theorems regarding the transformation of random variables <span class="citation" data-cites="casella2024statistical">(<a href="#ref-casella2024statistical" role="doc-biblioref">Casella and Berger 2024</a>)</span>. I’ll demonstrate it for an arbitrary <span class="math inline">\(Z \sim \mathcal{N}(0, 1)\)</span>, <span class="math inline">\(\mu\)</span>, and <span class="math inline">\(\sigma &gt; 0\)</span> (omitting the subscript <span class="math inline">\(i\)</span> for brevity). The probability density function (pdf) of the standard normal <span class="math inline">\(f_Z(z)\)</span> is defined as <span class="math display">\[
-f_Z(z) = \frac{1}{\sqrt{2\pi}}\ e^{-z^2 / 2}.
-\]</span></p>
-<p>Define <span class="math inline">\(X' = g(Z) = \sigma \cdot f_Z(Z)\)</span>. Then, <span class="math inline">\(g^{-1}(x) = \frac{x}{\sigma}\)</span>, and <span class="math inline">\(\frac{d}{dx}g^{-1}(x) = \frac{1}{\sigma}\)</span>. Thus, the probability density function <span class="math inline">\(f_{X'}(x)\)</span> is</p>
-<p><span class="math display">\[
-\begin{align*}
-f_{X'}(x) &amp;= f_Z(g^{-1}(x)) \frac{d}{dx}g^{-1}(x) \\
-  &amp;= f_Z \Bigl(\frac{x}{\sigma} \Bigr) \cdot \frac{1}{\sigma} \\
-  &amp;= \frac{1}{\sqrt{2\pi}}\ e^{-(\frac{x}{\sigma})^2 \cdot \frac{1}{2}} \cdot \frac{1}{\sigma} \\
-  &amp;= \frac{1}{\sqrt{2\pi} \sigma}\ e^{-\frac{x^2}{2\sigma^2}}.
-\end{align*}
-\]</span></p>
-<p>This is the pdf for <span class="math inline">\(\mathcal{N}(0, \sigma^2)\)</span>. Now, we find <span class="math inline">\(X = h(X') = f_{X'}(X') + \mu\)</span>, where <span class="math inline">\(h^{-1}(x) = x - \mu\)</span> and <span class="math inline">\(\frac{d}{dx}\ h^{-1}(x) = 1\)</span>. As with the above, we have <span class="math display">\[
-f_X(x) = f_{X'}(h^{-1}(x)) \frac{d}{dx}\ h^{-1}(x) = f_{X'}(x - \mu) = \frac{1}{\sqrt{2\pi} \sigma}\ e^{-\frac{(x - \mu)^2}{2\sigma^2}},
-\]</span></p>
-<p>which is the classical definition of the normal distribution’s probability density function. This means that scaling a normal variable by a constant, or adding a constant to a normal variable results in another normal variable. So, each <span class="math inline">\(X_i\)</span> is normal. Lastly, as one’s intuition might suspect, the sum of jointly distributed normal variables is also normal. I won’t go through the proof here, but some versions can be found on <a href="https://en.wikipedia.org/wiki/Sum_of_normally_distributed_random_variables#Correlated_random_variables">wikipedia.</a></p>
-<!-- We showed that the vector x has cov(x) = Sigma; it's possible that cov(x_i, x_j) > 0 for some i,j -->
-<!-- https://stats.stackexchange.com/a/548360 -->
-<p>Thus, we can conclude that a linear combination <span class="math inline">\(Y = a_1 X_1 + \cdots + a_n X_n\)</span> is a normal variable, meaning <span class="math inline">\(\mathbf{x}\)</span> is a draw from the multivariate Gaussian distribution.</p>
+$$
+
+- $N = \sum.{t = 1}^T n_t$
+
+- $X_t = \{ x_{t,1}, \dots, x_{t, n_t} \}^\top$ is the training data corresponding to output $f_t$
+
+-->
+<section id="multitask-gaussian-process-prediction" class="level2">
+<h2 class="anchored" data-anchor-id="multitask-gaussian-process-prediction">Multitask Gaussian Process Prediction</h2>
+<p>This section draws from a well-cited paper <span class="citation" data-cites="bonilla2007multi">(<a href="#ref-bonilla2007multi" role="doc-biblioref">Bonilla, Chai, and Williams 2007</a>)</span> on the topic of <em>“multitask Gaussian process prediction”.</em> Christopher Williams, along with his coauthor, Carl Rasmussen, is the same behind another well-cited textbook, <em>Gaussian processes for machine learning</em> <span class="citation" data-cites="williams2006gaussian">(<a href="#ref-williams2006gaussian" role="doc-biblioref">Williams and Rasmussen 2006</a>)</span>. Bonilla, Chai, &amp; Williams use the following notation to set up the methodology.</p>
+<p>Let <span class="math inline">\(X\)</span> be a set of <span class="math inline">\(N\)</span> distinct inputs: <span class="math inline">\(X = \mathbf{x}_1, \mathbf{x}_2, \dots, \mathbf{x}_N\)</span>. Let <span class="math inline">\(Y\)</span> be a set of <span class="math inline">\(N\)</span> responses to <span class="math inline">\(M\)</span> tasks: <span class="math inline">\(\mathbf{y} = (y_{11}, \dots, y_{N1}, \dots, y_{N2}, \dots, y_{1M}, \dots, y_{NM} )^\top\)</span>. The variable/value written as <span class="math inline">\(\mathbf{y}_{il}\)</span> is the response for observation <span class="math inline">\(i\)</span> on task <span class="math inline">\(l\)</span>. They also define <span class="math inline">\(Y \in \mathbb{R}^{N \times M}\)</span> such that <span class="math inline">\(\mathbf{y} = \text{vec}\ Y\)</span>. Each <span class="math inline">\(\mathbf{x}_i\)</span> represents the set of inputs corresponding to <span class="math inline">\(\mathbf{y}_i\)</span>.</p>
 </section>
-<section id="r-implementation" class="level2">
-<h2 class="anchored" data-anchor-id="r-implementation">R Implementation</h2>
+<section id="visualizing-vector-fields" class="level2">
+<h2 class="anchored" data-anchor-id="visualizing-vector-fields">Visualizing vector fields</h2>
+<p>This example and dataset is drawn from <em>The R Graphics Cookbook</em> <span class="citation" data-cites="chang2018r">(<a href="#ref-chang2018r" role="doc-biblioref">Chang 2018</a>)</span>, specifically chapter 13.12, on creating vector fields.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">1.1</span>, <span class="dv">3</span>, <span class="dv">8</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>Sigma <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">0.1</span>, <span class="dv">1</span>, <span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">0.1</span>, <span class="dv">1</span>), <span class="dv">3</span>, <span class="dv">3</span>)</span>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gcookbook)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>mvrnorm <span class="ot">&lt;-</span> <span class="cf">function</span>(n, mu, Sigma) {</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  L <span class="ot">&lt;-</span> <span class="fu">chol</span>(Sigma) <span class="co"># this returns L', where LL' = Sigma</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  d <span class="ot">&lt;-</span> <span class="fu">length</span>(mu)</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  out <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">nrow =</span> n, <span class="at">ncol =</span> d)</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n) {</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    u <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(d)</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    out[i, ] <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">t</span>(L) <span class="sc">%*%</span> u <span class="sc">+</span> mu)</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(out)</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="fu">mvrnorm</span>(<span class="dv">10</span>, mu, Sigma)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>eps <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(.Machine<span class="sc">$</span>double.eps)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(isabel)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>           [,1]     [,2]     [,3]
- [1,] 0.5395244 2.714929 9.298527
- [2,] 1.1705084 3.135691 9.661861
- [3,] 1.5609162 1.787372 7.395843
- [4,] 0.6543380 4.173380 8.294725
- [5,] 1.5007715 3.150205 7.599224
- [6,] 2.8869131 3.674046 6.700175
- [7,] 1.8013559 2.599714 7.161280
- [8,] 0.8820251 1.957341 7.169001
- [9,] 0.4749607 1.259257 8.490846
-[10,] 1.2533731 1.882905 9.158747</code></pre>
+<pre><code>Rows: 156,250
+Columns: 8
+$ x     &lt;dbl&gt; -83, -83, -83, -83, -83, -83, -83, -83, -83, -83, -83, -83, -83,…
+$ y     &lt;dbl&gt; 41.70000, 41.55571, 41.41142, 41.26713, 41.12285, 40.97856, 40.8…
+$ z     &lt;dbl&gt; 0.035, 0.035, 0.035, 0.035, 0.035, 0.035, 0.035, 0.035, 0.035, 0…
+$ vx    &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ vy    &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ vz    &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ t     &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …
+$ speed &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …</code></pre>
 </div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Keep a subset in the middle of the the z-axis</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> isabel <span class="sc">|&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(z <span class="sc">==</span> <span class="fl">10.035</span>) <span class="sc">|&gt;</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>()</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Keep 1 out of every 'by' values in vector x</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>every_n <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">by =</span> <span class="dv">4</span>) {</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  x <span class="ot">&lt;-</span> <span class="fu">sort</span>(x)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  x[<span class="fu">seq</span>(<span class="dv">1</span>, <span class="fu">length</span>(x), <span class="at">by =</span> by)]</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Keep 1 of every 4 values in x and y</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>keep_x <span class="ot">&lt;-</span> <span class="fu">every_n</span>(<span class="fu">unique</span>(isabel<span class="sc">$</span>x))</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>keep_y <span class="ot">&lt;-</span> <span class="fu">every_n</span>(<span class="fu">unique</span>(isabel<span class="sc">$</span>y))</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Keep only those rows where x value is in keepx and y value is in keepy</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>d_sub <span class="ot">&lt;-</span> <span class="fu">filter</span>(d, x <span class="sc">%in%</span> keep_x, y <span class="sc">%in%</span> keep_y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Need to load grid for arrow() function</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(grid)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Make the plot with the subset, and use an arrowhead 0.1 cm long</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(d_sub, <span class="fu">aes</span>(x, y)) <span class="sc">+</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">xend =</span> x <span class="sc">+</span> vx<span class="sc">/</span><span class="dv">50</span>, <span class="at">yend =</span> y <span class="sc">+</span> vy<span class="sc">/</span><span class="dv">50</span>),</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">arrow =</span> <span class="fu">arrow</span>(<span class="at">length =</span> <span class="fu">unit</span>(<span class="fl">0.1</span>, <span class="st">"cm"</span>)),</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="fl">0.25</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+ℹ Please use `linewidth` instead.</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>d_sub <span class="ot">&lt;-</span> <span class="fu">mutate</span>(d_sub, <span class="at">index =</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">n</span>())</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> d_sub <span class="sc">|&gt;</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_sample</span>(<span class="at">n =</span> <span class="dv">200</span>) <span class="sc">|&gt;</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(x, y, vx, vy, index)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>rbf <span class="ot">&lt;-</span> <span class="cf">function</span>(xi, xj, <span class="at">alpha =</span> <span class="dv">1</span>, <span class="at">rho =</span> <span class="dv">1</span>) {</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  alpha<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fu">norm</span>(xi <span class="sc">-</span> xj, <span class="at">type =</span> <span class="st">"2"</span>) <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> rho<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>k_XX <span class="ot">&lt;-</span> <span class="cf">function</span>(X, <span class="at">err =</span> eps) {</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  N <span class="ot">&lt;-</span> <span class="fu">nrow</span>(X)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  K <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, N, N)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>N) {</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>N) {</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>      K[i, j] <span class="ot">&lt;-</span> <span class="fu">rbf</span>(X[i, ], X[j, ])</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(err)) {</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    K <span class="ot">&lt;-</span> K <span class="sc">+</span> <span class="fu">diag</span>(err, <span class="fu">ncol</span>(K))</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  K</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>k_xX <span class="ot">&lt;-</span> <span class="cf">function</span>(x, X) {</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>  N <span class="ot">&lt;-</span> <span class="fu">nrow</span>(x)</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>  M <span class="ot">&lt;-</span> <span class="fu">nrow</span>(X)</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>  K <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, N, M)</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>N) {</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>M) {</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>      K[i, j] <span class="ot">&lt;-</span> <span class="fu">rbf</span>(x[i, ], X[j, ])</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>  K</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 
@@ -422,17 +442,14 @@ f_X(x) = f_{X'}(h^{-1}(x)) \frac{d}{dx}\ h^{-1}(x) = f_{X'}(x - \mu) = \frac{1}{
 </section>
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
-<div id="ref-casella2024statistical" class="csl-entry" role="listitem">
-Casella, G., and R. Berger. 2024. <em>Statistical Inference</em>. Chapman &amp; Hall/CRC Texts in Statistical Science. CRC Press. <a href="https://books.google.com/books?id=cqUIEQAAQBAJ">https://books.google.com/books?id=cqUIEQAAQBAJ</a>.
+<div id="ref-bonilla2007multi" class="csl-entry" role="listitem">
+Bonilla, Edwin V, Kian Chai, and Christopher Williams. 2007. <span>“Multi-Task Gaussian Process Prediction.”</span> <em>Advances in Neural Information Processing Systems</em> 20.
 </div>
-<div id="ref-2691254" class="csl-entry" role="listitem">
-(https://math.stackexchange.com/users/10117/lepidopterist), Lepidopterist. n.d. <span>“Generating Multivariate Gaussian Samples–Why Does It Work?”</span> Mathematics Stack Exchange. <a href="https://math.stackexchange.com/q/2691254">https://math.stackexchange.com/q/2691254</a>.
+<div id="ref-chang2018r" class="csl-entry" role="listitem">
+Chang, Winston. 2018. <em>R Graphics Cookbook: Practical Recipes for Visualizing Data</em>. O’Reilly Media.
 </div>
-<div id="ref-332722" class="csl-entry" role="listitem">
-(https://math.stackexchange.com/users/21550/hkbattousai), hkBattousai. n.d. <span>“Affine Transformation Applied to a Multivariate Gaussian Random Variable - What Is the Mean Vector and Covariance Matrix of the New Variable?”</span> Mathematics Stack Exchange. <a href="https://math.stackexchange.com/q/332722">https://math.stackexchange.com/q/332722</a>.
-</div>
-<div id="ref-Bilionis" class="csl-entry" role="listitem">
-ibilion[at]purdue.edu, Ilias Bilionis. 2022. <em>Introduction to Scientific Machine Learning</em>. Edited by n/a. Self published.
+<div id="ref-williams2006gaussian" class="csl-entry" role="listitem">
+Williams, Christopher KI, and Carl Edward Rasmussen. 2006. <em>Gaussian Processes for Machine Learning</em>. Vol. 2. 3. MIT press Cambridge, MA.
 </div>
 </div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
