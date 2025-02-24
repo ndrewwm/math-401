@@ -1,0 +1,127 @@
+---
+title: Multioutput GPR
+bibliography: multioutput.bib
+---
+
+<!--
+- https://proceedings.neurips.cc/paper_files/paper/2007/file/66368270ffd51418ec58bd793f2d9b1b-Paper.pdf
+- https://ruglio.github.io/Web/blog/dkl/s2/
+
+- Liu, Cai, and Ong (2018) https://www.sciencedirect.com/science/article/abs/pii/S0950705117306123
+
+> Existing MOGPs can in general be classified into two categories: (1) symmetric MOGPs and (2) asymmetric MOGPs. Symmetric MOGPs use a symmetric dependency structure to capture the output correlations and approximate the T outputs simultaneously. Therefore, these MOGPs usually have an integrated modeling process, i.e., fusing all the information in an entire covariance matrix, which leads to bidirectional information transfer between the outputs. **Typically, the symmetric MOGPs attempt to improve the predictions of all the outputs in symmetric scenarios, where the outputs are of equal importance and have roughly equivalent training information.**
+
+They use the following notation.
+
+Training data, $\mathcal{D} = \{X, \mathbf{y}\}$:
+$$
+\begin{align*}
+X &= \{ \mathbf{x}_{t,i} | t = 1, \dots, T; i = 1, \dots, n_t \} \in \mathbb{R}^{N \times d} \\
+\mathbf{y} &= \{ y_{t,i} = y_t(\mathbf{x}_{t,i}) | t = 1, \dots, T; i = 1, \dots, n_t \} \in 
+\end{align*}
+$$
+
+- $N = \sum.{t = 1}^T n_t$
+
+- $X_t = \{ x_{t,1}, \dots, x_{t, n_t} \}^\top$ is the training data corresponding to output $f_t$
+
+-->
+
+## Multitask Gaussian Process Prediction
+
+This section draws from a well-cited paper [@bonilla2007multi] on the topic of *"multitask Gaussian process prediction".* Christopher Williams, along with his coauthor, Carl Rasmussen, is the same behind another well-cited textbook, *Gaussian processes for machine learning* [@williams2006gaussian]. Bonilla, Chai, & Williams use the following notation to set up the methodology.
+
+Let $X$ be a set of $N$ distinct inputs: $X = \mathbf{x}_1, \mathbf{x}_2, \dots, \mathbf{x}_N$. Let $Y$ be a set of $N$ responses to $M$ tasks: $\mathbf{y} = (y_{11}, \dots, y_{N1}, \dots, y_{N2}, \dots, y_{1M}, \dots, y_{NM} )^\top$. The variable/value written as $\mathbf{y}_{il}$ is the response for observation $i$ on task $l$. They also define $Y \in \mathbb{R}^{N \times M}$ such that $\mathbf{y} = \text{vec}\ Y$. Each $\mathbf{x}_i$ represents the set of inputs corresponding to $\mathbf{y}_i$.
+
+## Visualizing vector fields
+
+This example and dataset is drawn from *The R Graphics Cookbook* [@chang2018r], specifically chapter 13.12, on creating vector fields.
+
+```{r}
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(gcookbook)
+set.seed(123)
+
+eps <- sqrt(.Machine$double.eps)
+glimpse(isabel)
+```
+
+```{r}
+# Keep a subset in the middle of the the z-axis
+d <- isabel |>
+  filter(z == 10.035) |>
+  as_tibble()
+
+# Keep 1 out of every 'by' values in vector x
+every_n <- function(x, by = 4) {
+  x <- sort(x)
+  x[seq(1, length(x), by = by)]
+}
+
+# Keep 1 of every 4 values in x and y
+keep_x <- every_n(unique(isabel$x))
+keep_y <- every_n(unique(isabel$y))
+
+# Keep only those rows where x value is in keepx and y value is in keepy
+d_sub <- filter(d, x %in% keep_x, y %in% keep_y)
+```
+
+```{r}
+# Need to load grid for arrow() function
+library(grid)
+
+# Make the plot with the subset, and use an arrowhead 0.1 cm long
+ggplot(d_sub, aes(x, y)) +
+  geom_segment(
+    aes(xend = x + vx/50, yend = y + vy/50),
+    arrow = arrow(length = unit(0.1, "cm")),
+    size = 0.25
+  )
+```
+
+```{r}
+d_sub <- mutate(d_sub, index = 1:n())
+
+X <- d_sub |>
+  slice_sample(n = 200) |>
+  select(x, y, vx, vy, index)
+```
+
+```{r}
+rbf <- function(xi, xj, alpha = 1, rho = 1) {
+  alpha^2 * exp(-norm(xi - xj, type = "2") / (2 * rho^2))
+}
+
+k_XX <- function(X, err = eps) {
+  N <- nrow(X)
+  K <- matrix(0, N, N)
+  for (i in 1:N) {
+    for (j in 1:N) {
+      K[i, j] <- rbf(X[i, ], X[j, ])
+    }
+  }
+
+  if (!is.null(err)) {
+    K <- K + diag(err, ncol(K))
+  }
+
+  K
+}
+
+k_xX <- function(x, X) {
+  N <- nrow(x)
+  M <- nrow(X)
+
+  K <- matrix(0, N, M)
+  for (i in 1:N) {
+    for (j in 1:M) {
+      K[i, j] <- rbf(x[i, ], X[j, ])
+    }
+  }
+
+  K
+}
+```

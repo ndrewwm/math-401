@@ -3,7 +3,7 @@ title: Modelling two variables using GPR
 bibliography: bivariate_case.bib
 ---
 
-Dr. Gramacy's *Surrogates* [@gramacy2020surrogates], particularly chapter 5, was very helpful in putting together the code for this simulation.
+Dr. Gramacy's textbook, *Surrogates* [@gramacy2020surrogates], particularly chapter 5, was very helpful in putting together the code for this simulation.
 
 ```{r}
 #| message: false
@@ -68,7 +68,7 @@ Y <- f(X)
 x <- seq(-4, 4, length.out = 20)
 Z <- expand.grid(x, x) |> as.matrix()
 
-K_XX <- k_XX(X) + diag(eps, nrow(X))
+K_XX <- k_XX(X)
 K_ZX <- k_xX(Z, X)
 K_ZZ <- k_XX(Z)
 
