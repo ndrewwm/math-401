@@ -4,7 +4,14 @@ title: "MATH 401"
 
 # Meeting Summaries
 
-## 2/14/24
+## 2/24/25
+
+- Reading [Bonilla, Chai, & Williams (2007)](https://proceedings.neurips.cc/paper_files/paper/2007/file/66368270ffd51418ec58bd793f2d9b1b-Paper.pdf)
+- Working towards implementing a simulation of [multi-task GPR](/gaussian_processes/multioutput/index.qmd)
+- Last week, I completed a basic simulation of bivariate GPR, which can be viewed [here](/gaussian_processes/bivariate_case/index.qmd). It's light on theory/notation, but I think it follows fairly straightforwardly from the univariate case.
+  - I need to actually start doing more formal parameter estimation for the kernel/covariance functions. Currently, I've just been using arbitrary values for $\alpha$, $\rho$ and $\sigma$ in the RBF kernel. These are fine for demonstration purposes, but aren't representative of what a fully application would entail.
+
+## 2/14/25
 
 - Reading and searching for more background information about multi-output Gaussian Processes
   - e.g., *vector-valued* GPs ([blog post](https://invenia.github.io/blog/2021/02/19/OILMM-pt1/))
