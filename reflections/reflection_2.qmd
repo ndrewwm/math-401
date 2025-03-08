@@ -1,0 +1,15 @@
+---
+title: Reflection 2
+author: Andrew Moore
+date: "3/7/2025"
+format:
+  pdf:
+    margin-top: 30mm
+    margin-bottom: 30mm
+    margin-left: 30mm
+    margin-right: 30mm
+  html: default
+description: |
+  In this reflection, you will consider ways you can apply your unique skills and knowledge in the world, as you research potential next steps in your career.
+---
+

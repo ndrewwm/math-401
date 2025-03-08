@@ -33,6 +33,43 @@ This section draws from a well-cited paper [@bonilla2007multi] on the topic of *
 
 Let $X$ be a set of $N$ distinct inputs: $X = \mathbf{x}_1, \mathbf{x}_2, \dots, \mathbf{x}_N$. Let $Y$ be a set of $N$ responses to $M$ tasks: $\mathbf{y} = (y_{11}, \dots, y_{N1}, \dots, y_{N2}, \dots, y_{1M}, \dots, y_{NM} )^\top$. The variable/value written as $\mathbf{y}_{il}$ is the response for observation $i$ on task $l$. They also define $Y \in \mathbb{R}^{N \times M}$ such that $\mathbf{y} = \text{vec}\ Y$. Each $\mathbf{x}_i$ represents the set of inputs corresponding to $\mathbf{y}_i$.
 
+----
+
+We are working in the space of the two-dimensional real numbers, $\mathbb{R}^2$. Let $S = (\mathbf{X}, \mathbf{Y}) = (x_1, y_1), \dots, (x_N, y_N)$ be our set of *training data*, where $x_i, y_i \in \mathbb{R}^2$. Let $k: \mathbb{R}^2 \times \mathbb{R}^2 \to \mathbb{R}$ be the (scalar) kernel function, defined as
+$$
+k(x_i, x_j) = \alpha^2 \cdot \exp\Bigl(\frac{1}{2\rho^2} \| x_i - x_j \|_2 \Bigl),
+$$
+
+where $\alpha, \rho > 0$, and $x_i, x_j \in \mathbb{R}^2$. This is also known as the squared exponential function, or the radial basis function. Let the covariance matrix between all points in $\mathbf{X}$, $K_{XX} \in \mathbb{R}^{N \times N}$, be defined as
+$$
+K_{XX} = K(\mathbf{X}, \mathbf{X}) = (k(x_i, x_j))_{i,j} = \begin{bmatrix}
+  k(x_1, x_1) & \cdots & k(x_1, x_N) \\
+  \vdots & \ddots & \vdots \\
+  k(x_N, x_1) & \cdots & k(x_N, x_N)
+\end{bmatrix}.
+$$
+
+Let the matrix of similarities between the outputs $\mathbf{Y}$, $B \in \mathbb{R}^{2 \times 2}$ be defined as
+$$
+B = cor(Y) = \begin{bmatrix}
+  r_{y_1, y_1} & r_{y_1, y_2} \\
+  r_{y_2, y_1} & r_{y_2, y_2}.
+\end{bmatrix}
+$$
+
+Let $\mathbf{\Sigma} \in \mathbb{R}^{2N \times 2N}$ be defined as
+$$
+\mathbf{\Sigma} = B \otimes K_{XX} + \begin{bmatrix}
+  \sigma^2_1 & 0 \\
+  0 & \sigma^2_2
+\end{bmatrix} \otimes I_N,
+$$
+
+where $\otimes$ denotes the Kronecker product, and $\sigma^2_1, \sigma^2_2 > 0$ represent the variances of the noise for each component of $Y$.
+
+For a single new vector, $x_*$
+
+
 ## Visualizing vector fields
 
 This example and dataset is drawn from *The R Graphics Cookbook* [@chang2018r], specifically chapter 13.12, on creating vector fields.
@@ -85,9 +122,12 @@ ggplot(d_sub, aes(x, y)) +
 ```{r}
 d_sub <- mutate(d_sub, index = 1:n())
 
-X <- d_sub |>
-  slice_sample(n = 200) |>
+D <- d_sub |>
+  slice_sample(n = 500) |>
   select(x, y, vx, vy, index)
+
+X <- D |> select(x, y) |> as.matrix()
+Y <- D |> select(vx, vy) |> as.matrix()
 ```
 
 ```{r}
@@ -125,3 +165,28 @@ k_xX <- function(x, X) {
   K
 }
 ```
+
+
+```{r}
+K_XX <- k_XX(X)
+B <- cor(Y)
+
+R <- data.frame()
+for (i in 1:nrow(K_XX)) {
+  r <- K_XX[i, ]
+  r_B <- r |> map(~. * B) |> reduce(cbind)
+  R <- rbind(R, r_B)
+}
+
+D_Z <- d_sub |>
+  anti_join(D, by = "index") |>
+  select(x, y, vx, vy, index)
+
+Z <- D_Z |> select(x, y) |> as.matrix()
+K_ZZ <- k_XX(Z)
+K_ZX <- k_xX(Z, X)
+
+S <- as.matrix(R) + diag(eps, nrow(R))
+SY <- S %*% as.vector(Y)
+```
+

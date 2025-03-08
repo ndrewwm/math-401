@@ -328,6 +328,31 @@ $$
 <h2 class="anchored" data-anchor-id="multitask-gaussian-process-prediction">Multitask Gaussian Process Prediction</h2>
 <p>This section draws from a well-cited paper <span class="citation" data-cites="bonilla2007multi">(<a href="#ref-bonilla2007multi" role="doc-biblioref">Bonilla, Chai, and Williams 2007</a>)</span> on the topic of <em>“multitask Gaussian process prediction”.</em> Christopher Williams, along with his coauthor, Carl Rasmussen, is the same behind another well-cited textbook, <em>Gaussian processes for machine learning</em> <span class="citation" data-cites="williams2006gaussian">(<a href="#ref-williams2006gaussian" role="doc-biblioref">Williams and Rasmussen 2006</a>)</span>. Bonilla, Chai, &amp; Williams use the following notation to set up the methodology.</p>
 <p>Let <span class="math inline">\(X\)</span> be a set of <span class="math inline">\(N\)</span> distinct inputs: <span class="math inline">\(X = \mathbf{x}_1, \mathbf{x}_2, \dots, \mathbf{x}_N\)</span>. Let <span class="math inline">\(Y\)</span> be a set of <span class="math inline">\(N\)</span> responses to <span class="math inline">\(M\)</span> tasks: <span class="math inline">\(\mathbf{y} = (y_{11}, \dots, y_{N1}, \dots, y_{N2}, \dots, y_{1M}, \dots, y_{NM} )^\top\)</span>. The variable/value written as <span class="math inline">\(\mathbf{y}_{il}\)</span> is the response for observation <span class="math inline">\(i\)</span> on task <span class="math inline">\(l\)</span>. They also define <span class="math inline">\(Y \in \mathbb{R}^{N \times M}\)</span> such that <span class="math inline">\(\mathbf{y} = \text{vec}\ Y\)</span>. Each <span class="math inline">\(\mathbf{x}_i\)</span> represents the set of inputs corresponding to <span class="math inline">\(\mathbf{y}_i\)</span>.</p>
+<hr>
+<p>We are working in the space of the two-dimensional real numbers, <span class="math inline">\(\mathbb{R}^2\)</span>. Let <span class="math inline">\(S = (\mathbf{X}, \mathbf{Y}) = (x_1, y_1), \dots, (x_N, y_N)\)</span> be our set of <em>training data</em>, where <span class="math inline">\(x_i, y_i \in \mathbb{R}^2\)</span>. Let <span class="math inline">\(k: \mathbb{R}^2 \times \mathbb{R}^2 \to \mathbb{R}\)</span> be the (scalar) kernel function, defined as <span class="math display">\[
+k(x_i, x_j) = \alpha^2 \cdot \exp\Bigl(\frac{1}{2\rho^2} \| x_i - x_j \|_2 \Bigl),
+\]</span></p>
+<p>where <span class="math inline">\(\alpha, \rho &gt; 0\)</span>, and <span class="math inline">\(x_i, x_j \in \mathbb{R}^2\)</span>. This is also known as the squared exponential function, or the radial basis function. Let the covariance matrix between all points in <span class="math inline">\(\mathbf{X}\)</span>, <span class="math inline">\(K_{XX} \in \mathbb{R}^{N \times N}\)</span>, be defined as <span class="math display">\[
+K_{XX} = K(\mathbf{X}, \mathbf{X}) = (k(x_i, x_j))_{i,j} = \begin{bmatrix}
+  k(x_1, x_1) &amp; \cdots &amp; k(x_1, x_N) \\
+  \vdots &amp; \ddots &amp; \vdots \\
+  k(x_N, x_1) &amp; \cdots &amp; k(x_N, x_N)
+\end{bmatrix}.
+\]</span></p>
+<p>Let the matrix of similarities between the outputs <span class="math inline">\(\mathbf{Y}\)</span>, <span class="math inline">\(B \in \mathbb{R}^{2 \times 2}\)</span> be defined as <span class="math display">\[
+B = cor(Y) = \begin{bmatrix}
+  r_{y_1, y_1} &amp; r_{y_1, y_2} \\
+  r_{y_2, y_1} &amp; r_{y_2, y_2}.
+\end{bmatrix}
+\]</span></p>
+<p>Let <span class="math inline">\(\mathbf{\Sigma} \in \mathbb{R}^{2N \times 2N}\)</span> be defined as <span class="math display">\[
+\mathbf{\Sigma} = B \otimes K_{XX} + \begin{bmatrix}
+  \sigma^2_1 &amp; 0 \\
+  0 &amp; \sigma^2_2
+\end{bmatrix} \otimes I_N,
+\]</span></p>
+<p>where <span class="math inline">\(\otimes\)</span> denotes the Kronecker product, and <span class="math inline">\(\sigma^2_1, \sigma^2_2 &gt; 0\)</span> represent the variances of the noise for each component of <span class="math inline">\(Y\)</span>.</p>
+<p>For a single new vector, <span class="math inline">\(x_*\)</span></p>
 </section>
 <section id="visualizing-vector-fields" class="level2">
 <h2 class="anchored" data-anchor-id="visualizing-vector-fields">Visualizing vector fields</h2>
@@ -397,9 +422,12 @@ $ speed &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, 
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>d_sub <span class="ot">&lt;-</span> <span class="fu">mutate</span>(d_sub, <span class="at">index =</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">n</span>())</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> d_sub <span class="sc">|&gt;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>D <span class="ot">&lt;-</span> d_sub <span class="sc">|&gt;</span></span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_sample</span>(<span class="at">n =</span> <span class="dv">200</span>) <span class="sc">|&gt;</span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(x, y, vx, vy, index)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(x, y, vx, vy, index)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> D <span class="sc">|&gt;</span> <span class="fu">select</span>(x, y) <span class="sc">|&gt;</span> <span class="fu">as.matrix</span>()</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>Y <span class="ot">&lt;-</span> D <span class="sc">|&gt;</span> <span class="fu">select</span>(vx, vy) <span class="sc">|&gt;</span> <span class="fu">as.matrix</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>rbf <span class="ot">&lt;-</span> <span class="cf">function</span>(xi, xj, <span class="at">alpha =</span> <span class="dv">1</span>, <span class="at">rho =</span> <span class="dv">1</span>) {</span>
@@ -435,6 +463,28 @@ $ speed &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, 
 <span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>  K</span>
 <span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>K_XX <span class="ot">&lt;-</span> <span class="fu">k_XX</span>(X)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>B <span class="ot">&lt;-</span> <span class="fu">cor</span>(Y)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>R <span class="ot">&lt;-</span> <span class="fu">data.frame</span>()</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(K_XX)) {</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  r <span class="ot">&lt;-</span> K_XX[i, ]</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  r_B <span class="ot">&lt;-</span> r <span class="sc">|&gt;</span> <span class="fu">map</span>(<span class="sc">~</span>. <span class="sc">*</span> B) <span class="sc">|&gt;</span> <span class="fu">reduce</span>(cbind)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  R <span class="ot">&lt;-</span> <span class="fu">rbind</span>(R, r_B)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>D_Z <span class="ot">&lt;-</span> d_sub <span class="sc">|&gt;</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(D, <span class="at">by =</span> <span class="st">"index"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(x, y, vx, vy, index)</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>Z <span class="ot">&lt;-</span> D_Z <span class="sc">|&gt;</span> <span class="fu">select</span>(x, y) <span class="sc">|&gt;</span> <span class="fu">as.matrix</span>()</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>K_ZZ <span class="ot">&lt;-</span> <span class="fu">k_XX</span>(Z)</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>K_ZX <span class="ot">&lt;-</span> <span class="fu">k_xX</span>(Z, X)</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>S <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(R) <span class="sc">+</span> <span class="fu">diag</span>(eps, <span class="fu">nrow</span>(R))</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>SY <span class="ot">&lt;-</span> S <span class="sc">%*%</span> <span class="fu">as.vector</span>(Y)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 

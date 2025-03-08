@@ -1,0 +1,118 @@
+---
+title: cv
+author: Andrew Moore
+date: "3/7/2025"
+format:
+  pdf:
+    margin-top: 30mm
+    margin-bottom: 30mm
+    margin-left: 30mm
+    margin-right: 30mm
+  html: default
+---
+
+# Technical Skills
+
+- Python (pandas, prefect, flask, fastapi)
+- SQL (dbt, Oracle, Snowflake, MS SQL-Server)
+- R (dplyr/tidyverse, devtools)
+- JS (Svelte, SvelteKit)
+- Statistical analysis (R, SAS, SPSS)
+- Data visualization (Tableau, ggplot2/shiny, Observable)
+- Git/GitHub, Google Apps Suite, Qualtrics
+
+# Professional Experience
+  
+
+### Senior Data Engineer
+
+University of Colorado-Boulder, Office of Information Technology
+
+April 2024 to present
+
+### Data Engineer
+
+University of Colorado-Boulder, Office of Information Technology
+
+January 2023 to April 2024
+
+### Data Warehouse Developer
+
+Boise State University, Office of Information Technology
+
+July 2021 to December 2022
+
+### Institutional Research Analyst
+
+Boise State University, Office of Institutional Research
+
+January 2020 to July 2021
+
+### Data Analyst
+
+University of Michigan, School of Social Work
+
+November 2015 to December 2019
+
+### Lab Manager & Research Technician
+
+University of Michigan, Department of Psychology
+
+June 2014 to November 2015
+
+### Survey Technician
+
+University of Michigan, Survey Research Center
+
+May 2013 to June 2014
+
+# Education
+
+<ul>
+  <li>
+    <strong>B.S. Applied Mathematics,</strong> Statistics Emphasis
+    <br />
+    Boise State University, 2021 - 2025 (anticipated)
+  </li>
+  <br />
+  <li>
+    <strong>B.A. Psychology</strong>
+    <br />
+    The College of Idaho, 2009 - 2013, <em>cum laude</em>
+  </li>
+</ul>
+
+# Selected Publications
+
+<ul>
+  <li>
+    Perron, B.E., Victor, B.G., Bushman, G., <strong>Moore, A.,</strong> Ryan,
+    J.P., Lu, A.J., & Piellusch, E.K. (2019). Detecting substance-related
+    problems in narrative investigation summaries of child abuse and neglect
+    using text mining and machine learning. <em>Child Abuse & Neglect,</em> 98,
+    104180. doi:10.1016/j.chiabu.2019.104180
+  </li>
+  <br />
+  <li>
+    Ryan J.P., Jacob B.A., Gross M., Perron B.E., <strong>Moore A.,</strong> &
+    Ferguson S.M. (2018). Early exposure to child maltreatment and academic
+    outcomes. <em>Child Maltreatment.</em> Advance online publication. doi:10.1177/1077559518786815
+  </li>
+</ul>
+
+# Community Engagement
+
+<ul>
+  <li>
+    <strong>Co-Organizer,</strong> Ann Arbor R-Users Group
+    <br />
+    2017-2019
+  </li>
+  <br />
+  <li>
+    <strong>Workshop Instructor,</strong> Ann Arbor R-Users Group
+    <br />
+    2016
+  </li>
+</ul>
+
