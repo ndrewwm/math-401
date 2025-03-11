@@ -3,92 +3,49 @@ title: Multioutput GPR
 bibliography: multioutput.bib
 ---
 
-<!--
-- https://proceedings.neurips.cc/paper_files/paper/2007/file/66368270ffd51418ec58bd793f2d9b1b-Paper.pdf
-- https://ruglio.github.io/Web/blog/dkl/s2/
+# Multioutput Gaussian Process Regression (GPR)
 
-- Liu, Cai, and Ong (2018) https://www.sciencedirect.com/science/article/abs/pii/S0950705117306123
+## Motivation: visualizing vector fields
 
-> Existing MOGPs can in general be classified into two categories: (1) symmetric MOGPs and (2) asymmetric MOGPs. Symmetric MOGPs use a symmetric dependency structure to capture the output correlations and approximate the T outputs simultaneously. Therefore, these MOGPs usually have an integrated modeling process, i.e., fusing all the information in an entire covariance matrix, which leads to bidirectional information transfer between the outputs. **Typically, the symmetric MOGPs attempt to improve the predictions of all the outputs in symmetric scenarios, where the outputs are of equal importance and have roughly equivalent training information.**
-
-They use the following notation.
-
-Training data, $\mathcal{D} = \{X, \mathbf{y}\}$:
+Elsewhere, I've discussed the multivariate normal distribution, and Gaussian processes. Introductory materials discussing Gaussian Processes (GPs) typically focus on univariate outcomes. In more formal notation, input data $\mathbf{X} \in \mathbb{R}^{N \times P}$ is used to model $\mathbf{y} \in \mathbb{R}^N$:
 $$
 \begin{align*}
-X &= \{ \mathbf{x}_{t,i} | t = 1, \dots, T; i = 1, \dots, n_t \} \in \mathbb{R}^{N \times d} \\
-\mathbf{y} &= \{ y_{t,i} = y_t(\mathbf{x}_{t,i}) | t = 1, \dots, T; i = 1, \dots, n_t \} \in 
+\mathbf{y} &= f(\mathbf{X}) + \mathbf{\epsilon} \text{ where } \\
+f(\mathbf{X}) &\sim \mathcal{N}(\mathbf{0}, \mathbf{K}), \\
+\mathbf{\epsilon} &\overset{\text{i.i.d.}}{\sim} \mathcal{N}(0, \sigma_y), \text{ and } \\
+\mathbf{K} &= [k(x_i, x_j)]_{ij}^N.
 \end{align*}
 $$
 
-- $N = \sum.{t = 1}^T n_t$
+While interesting univariate outcomes can be found in abundance, many physical systems and processes are better understood and represented as vectors. In this page, we'll use the example of the velocity field of hurricane Isabel, which made landfall in 2003. Here is the description of the dataset, from the `gcookbook` package:
 
-- $X_t = \{ x_{t,1}, \dots, x_{t, n_t} \}^\top$ is the training data corresponding to output $f_t$
-
--->
-
-## Multitask Gaussian Process Prediction
-
-This section draws from a well-cited paper [@bonilla2007multi] on the topic of *"multitask Gaussian process prediction".* Christopher Williams, along with his coauthor, Carl Rasmussen, is the same behind another well-cited textbook, *Gaussian processes for machine learning* [@williams2006gaussian]. Bonilla, Chai, & Williams use the following notation to set up the methodology.
-
-Let $X$ be a set of $N$ distinct inputs: $X = \mathbf{x}_1, \mathbf{x}_2, \dots, \mathbf{x}_N$. Let $Y$ be a set of $N$ responses to $M$ tasks: $\mathbf{y} = (y_{11}, \dots, y_{N1}, \dots, y_{N2}, \dots, y_{1M}, \dots, y_{NM} )^\top$. The variable/value written as $\mathbf{y}_{il}$ is the response for observation $i$ on task $l$. They also define $Y \in \mathbb{R}^{N \times M}$ such that $\mathbf{y} = \text{vec}\ Y$. Each $\mathbf{x}_i$ represents the set of inputs corresponding to $\mathbf{y}_i$.
-
-----
-
-We are working in the space of the two-dimensional real numbers, $\mathbb{R}^2$. Let $S = (\mathbf{X}, \mathbf{Y}) = (x_1, y_1), \dots, (x_N, y_N)$ be our set of *training data*, where $x_i, y_i \in \mathbb{R}^2$. Let $k: \mathbb{R}^2 \times \mathbb{R}^2 \to \mathbb{R}$ be the (scalar) kernel function, defined as
-$$
-k(x_i, x_j) = \alpha^2 \cdot \exp\Bigl(\frac{1}{2\rho^2} \| x_i - x_j \|_2 \Bigl),
-$$
-
-where $\alpha, \rho > 0$, and $x_i, x_j \in \mathbb{R}^2$. This is also known as the squared exponential function, or the radial basis function. Let the covariance matrix between all points in $\mathbf{X}$, $K_{XX} \in \mathbb{R}^{N \times N}$, be defined as
-$$
-K_{XX} = K(\mathbf{X}, \mathbf{X}) = (k(x_i, x_j))_{i,j} = \begin{bmatrix}
-  k(x_1, x_1) & \cdots & k(x_1, x_N) \\
-  \vdots & \ddots & \vdots \\
-  k(x_N, x_1) & \cdots & k(x_N, x_N)
-\end{bmatrix}.
-$$
-
-Let the matrix of similarities between the outputs $\mathbf{Y}$, $B \in \mathbb{R}^{2 \times 2}$ be defined as
-$$
-B = cor(Y) = \begin{bmatrix}
-  r_{y_1, y_1} & r_{y_1, y_2} \\
-  r_{y_2, y_1} & r_{y_2, y_2}.
-\end{bmatrix}
-$$
-
-Let $\mathbf{\Sigma} \in \mathbb{R}^{2N \times 2N}$ be defined as
-$$
-\mathbf{\Sigma} = B \otimes K_{XX} + \begin{bmatrix}
-  \sigma^2_1 & 0 \\
-  0 & \sigma^2_2
-\end{bmatrix} \otimes I_N,
-$$
-
-where $\otimes$ denotes the Kronecker product, and $\sigma^2_1, \sigma^2_2 > 0$ represent the variances of the noise for each component of $Y$.
-
-For a single new vector, $x_*$
-
-
-## Visualizing vector fields
-
+::: {.column-margin}
 This example and dataset is drawn from *The R Graphics Cookbook* [@chang2018r], specifically chapter 13.12, on creating vector fields.
+:::
+
+> This data is from a simulation of hurricane Isabel in 2003. It includes temperature and wind data for a 2139km (east-west) x 2004km (north-south) x 19.8km (vertical) volume. The simluation data is from the National Center for Atmospheric Research, and it was used in the IEEE Visualization 2004 Contest.
+
+Below I've plotted the x and y components of the storm's velocity field, viewed at approximately 10km above sea-level. Each arrow shows the velocity of the storm's winds at a given point in the x-y plane. In mathematical notation, we denote the velocity for a particular x-y point as a vector:
+$$
+\mathbf{v} = \begin{bmatrix} v_x \\ v_y \end{bmatrix}.
+$$
+
+Velocity captures both the *direction* of the wind, and its *magnitude* (or strength). Here, longer arrows indicate higher measured speeds. If we wanted, we could plot wind-speed by itself over the area. However, looking only at speed would cause us to miss key dynamics of the phenomena we're looking at, such as the storm's spiral shape.
 
 ```{r}
 #| message: false
 #| warning: false
+#| code-fold: true
 
 library(tidyverse)
 library(gcookbook)
+library(scico)
 set.seed(123)
 
 eps <- sqrt(.Machine$double.eps)
-glimpse(isabel)
-```
 
-```{r}
 # Keep a subset in the middle of the the z-axis
-d <- isabel |>
+d_isabel <- isabel |>
   filter(z == 10.035) |>
   as_tibble()
 
@@ -103,44 +60,173 @@ keep_x <- every_n(unique(isabel$x))
 keep_y <- every_n(unique(isabel$y))
 
 # Keep only those rows where x value is in keepx and y value is in keepy
-d_sub <- filter(d, x %in% keep_x, y %in% keep_y)
-```
+d <- d_isabel |>
+  filter(x %in% keep_x, y %in% keep_y) |>
+  mutate(index = 1:n())
 
-```{r}
 # Need to load grid for arrow() function
 library(grid)
 
-# Make the plot with the subset, and use an arrowhead 0.1 cm long
-ggplot(d_sub, aes(x, y)) +
+# Set a consistent plotting theme
+theme_set(theme_minimal(base_size = 15))
+
+# Make a plot with the subset, and use an arrowhead 0.1 cm long
+p0 <- ggplot(d, aes(x, y)) +
   geom_segment(
     aes(xend = x + vx/50, yend = y + vy/50),
     arrow = arrow(length = unit(0.1, "cm")),
-    size = 0.25
-  )
+    linewidth = 0.25
+  ) +
+  labs(x = "Longitude", y = "Latitude")
+
+p0
 ```
 
-```{r}
-d_sub <- mutate(d_sub, index = 1:n())
+A similar consideration applies to the task of predicting velocity using statistical models. A "naive" approach might be to build a model for each component of velocity. In our case, that would mean finding two functions, $f_1: \mathbb{R}^2 \to \mathbb{R}$ and $f_2: \mathbb{R}^2 \to \mathbb{R}$. This amounts to treating $v_x$ and $v_y$ as being independent of each other. Depending on context, this may be true according to scientific theory. However, when working with data provided via sensors and instruments, measurement error may move us away from the theoretical ideal.
 
-D <- d_sub |>
-  slice_sample(n = 500) |>
+An improved approach would allow us to incorporate natural information on how our observed target values (each $v_x$ and $v_y$) might interrelate. The approach should also (ideally) account for the fact that we're trying to predict a vector at a specific point. In other words, we'd like a single function, whose outputs are vector-valued:
+
+$$
+\underbrace{\begin{aligned}[c]
+v_x = f_1\Bigl((x, y)^\top \Bigr) + \epsilon \\
+v_y = f_2\Bigl((x, y)^\top \Bigr) + \epsilon
+\end{aligned}}_{\text{Naive approach}}
+\qquad\longrightarrow\qquad
+\underbrace{\begin{aligned}[c]
+\begin{bmatrix}v_x \\ v_y\end{bmatrix} = f\Bigl((x, y)^\top \Bigr) + \epsilon
+\end{aligned}}_{\text{Vector-valued approach}}
+$$
+
+These characteristics are possible within the framework of Gaussian Process Regression, with the goal of modeling multiple outputs simultaneously being referred to as "multioutput", "multitask", "cokriging", or "vector-valued" GP regression. Alvarez, Rosasco, & Lawrence (2012) provides a technical introduction to some of these topics [@alvarez2012kernels]. In the following section, we'll cover the theory behind the approach as it applies to our example data.
+
+## Theory and notation
+
+We are working in the space of the two-dimensional real numbers, $\mathbb{R}^2$. Let $S = (\mathbf{X}, \mathbf{Y}) = (x_1, y_1), \dots, (x_N, y_N)$ be our set of *training data*, where $x_i, y_i \in \mathbb{R}^2$. It may be convenient to note $\mathbf{X}, \mathbf{Y} \in \mathbb{R}^{N \times 2}$, and we may refer to $\mathbf{y} = \text{vec}\ Y \in \mathbb{R}^{2N}$ and $\mathbf{x} = \text{vec}\ X \in \mathbb{R}^{2N}$. We will use $\mathbf{X}_* \in \mathbb{R}^{M \times 2}$ to denote a set of *test points*, for which we want to generate predictions. As with the conventions for the training data, we will use $\mathbf{x}_* = \text{vec}\ \mathbf{X}_* \in \mathbb{R}^{2M}$.
+
+We are engaged in a *regression* task, i.e., we're attempting to learn the functional relationship $f$ between $\mathbf{X}$ and $\mathbf{Y}$, with an assumption that this relationship has been corrupted to some degree by noise. To set up the problem, we have
+$$
+\begin{align*}
+\mathbf{y} &= f(\mathbf{x}) + \epsilon \\
+f &\sim \mathcal{GP}(m, K) \\
+f(\mathbf{x}) &\sim \mathcal{N}_{2N}(\mathbf{0}, \mathbf{K}_{XX})
+\end{align*}
+$$
+
+To parse these statements, we assume $f$ is drawn from a Gaussian Process with mean function $m$ and covariance (kernel) function $K$. Thus, our observations $\mathbf{y} = f(\mathbf{x})$ have a multivariate normal probability distribution, parameterized by a *covariance matrix* $\mathbf{K}_{XX}$. By convention, we assume the mean vector is $\mathbf{0}$.
+
+$$
+\begin{align*}
+\begin{bmatrix}
+  \mathbf{y} \\
+  \mathbf{f_*}
+\end{bmatrix} &\sim \mathcal{N}_{2N + 2M}\Biggl( \mathbf{0}, \begin{bmatrix} 
+  \mathbf{K}_{XX} & \mathbf{K}_{XX_*} \\
+  \mathbf{K}_{X_*X} & \mathbf{K}_{X_* X_*}
+\end{bmatrix} \Biggr) \\
+\mathbf{f}_* | \mathbf{X}, \mathbf{y}, \mathbf{X_*} &\sim \mathcal{N}_{2M}(\bar{\mathbf{f}}_*,\ \text{cov}(\mathbf{f}_*)) \\
+\bar{\mathbf{f}}_* &= \mathbb{E}[\mathbf{f}_* | \mathbf{X}, \mathbf{y}, \mathbf{X_*}] = \mathbf{K}_{X_*X}(\mathbf{K}_{XX} + \mathbf{V} \otimes \mathbf{I}_N)^{-1} \mathbf{y} \\
+\text{cov}(\mathbf{f}_*) &= \mathbf{K}_{X_*X_*} - \mathbf{K}_{X_*X}(\mathbf{K}_{XX} + \mathbf{V} \otimes \mathbf{I}_N)^{-1}\mathbf{K}_{XX_*} \\
+\mathbf{V} &= \begin{bmatrix} \sigma^2_1 & 0 \\ 0 & \sigma^2_2 \end{bmatrix}
+\end{align*}
+$$
+
+Here I'm trying to apply the function-space notation from Williams & Rasmussen, applied to the multi-dimensional nature of $\mathbf{Y}$ [@williams2006gaussian].
+
+<!-- We start with the assumption that $\mathbf{f}$ comes from a Gaussian Process, written as $\mathbf{f} \sim \mathcal{GP}(\mathbf{m}, \mathbf{K})$, where $\mathbf{m}$ is a *mean* function and $\mathbf{K}$ is a *covariance* (or kernel) function. This assumption means that we believe for a (finite) set $\mathbf{X}$ of $N$ observations, $\mathbf{f}(\mathbf{X}) \in \mathbb{R}^{2N}$ is described by the multivariate normal distribution $\mathbf{f}(\mathbf{X}) \sim \mathcal{N}(\mathbf{m}, \mathbf{\Sigma})$. Here, $\mathbf{m}$ is a *mean* function, and $\mathbf{\Sigma}$ is a *covariance* (or kernel) function. -->
+
+We will now work through how each component of our distribution is defined. Let $k: \mathbb{R}^2 \times \mathbb{R}^2 \to \mathbb{R}$ be the (scalar) kernel function, defined as
+$$
+k(x_i, x_j) = \alpha^2 \cdot \exp\Bigl(-\frac{1}{2\rho^2} \| x_i - x_j \|_2 \Bigl),
+$$ {#eq-k}
+
+where $\alpha, \rho > 0$; again, $x_i, x_j \in \mathbb{R}^2$. This is also known as the squared exponential function, or the radial basis function. The parameter $\alpha$ controls ..., while $\rho$ controls the length-scale. Let $\mathbf{k}_{XX} \in \mathbb{R}^{N \times N}$, the covariance matrix between all points in $\mathbf{X}$, be defined as
+$$
+\mathbf{k}_{XX} = (k(x_i, x_j))_{i,j}^N = \begin{bmatrix}
+  k(x_1, x_1) & \cdots & k(x_1, x_N) \\
+  \vdots & \ddots & \vdots \\
+  k(x_N, x_1) & \cdots & k(x_N, x_N)
+\end{bmatrix}.
+$$ {#eq-kXX}
+
+Let the matrix of similarities between the outputs $\mathbf{Y}$, $\mathbf{B} \in \mathbb{R}^{2 \times 2}$ be defined as
+$$
+\mathbf{B} = \begin{bmatrix}
+  b_{11} & b_{12} \\
+  b_{21} & b_{22}
+\end{bmatrix} = \frac{1}{N} \mathbf{Y}^\top \mathbf{k}_{XX} \mathbf{Y}.
+$$ {#eq-B}
+
+The expression for $\mathbf{B}$ comes from Bonilla et al. [@bonilla2007multi], in section 2.3 (the authors use the notation $K^f$ and $K^x$ instead of $\mathbf{B}$ and $\mathbf{k}_{XX}$, respectively).
+
+Let $\mathbf{K}_{XX} \in \mathbb{R}^{2N \times 2N}$ be defined as
+$$
+\mathbf{K}_{XX} = \mathbf{B} \otimes \mathbf{K}_{XX}
+$$ {#eq-Sigma}
+
+where $\otimes$ is the Kronecker product, $\mathbf{I}$ is the identity matrix, and $\sigma^2_1, \sigma^2_2 > 0$ represent the variances of the noise for each component of $\mathbf{Y}$.
+
+<!-- FIXME: may not be needed -->
+For a single new vector, $x' \in \mathbb{R}^2$, the predicted value for $y' \in \mathbb{R}^2$ is given by
+$$
+y' = (\mathbf{B} \otimes \mathbf{k}_{x'})^\top \mathbf{\Sigma}^{-1} \mathbf{y},
+$$ {#eq-yprime}
+
+where $\mathbf{k}_{x'} \in \mathbb{R}^{N}$ is defined as
+$$
+\mathbf{k}_{x'} = \begin{bmatrix}
+  k(x', x_1) \\
+  k(x', x_2) \\
+  \vdots \\
+  k(x', x_N)
+\end{bmatrix}.
+$$ {#eq-k_xprime}
+
+# Training and test data
+
+Here, using the Hurricane Isabel data visualized above, we generate $S$, defined as a 30% random sample of observations.
+
+```{r}
+# Set up the training data
+S <- d |>
+  slice_sample(n = floor(0.3 * nrow(d))) |>
   select(x, y, vx, vy, index)
 
-X <- D |> select(x, y) |> as.matrix()
-Y <- D |> select(vx, vy) |> as.matrix()
+X <- S |> select(x, y) |> as.matrix()
+Y <- S |> select(vx, vy) |> as.matrix()
+y <- as.vector(Y)
 ```
 
+# Kernel functions
+
+This section defines R functions used to compute $\mathbf{K}_{XX}$.
+
 ```{r}
-rbf <- function(xi, xj, alpha = 1, rho = 1) {
+#| code-fold: true
+
+#' Squared exponential (scalar) kernel function
+#' 
+#' @param xi numeric vector
+#' @param xj numeric vector
+#' @param alpha scale, alpha > 0
+#' @param rho length-scale, rho > 0
+#' @return numeric
+k <- function(xi, xj, alpha = 1, rho = 1) {
   alpha^2 * exp(-norm(xi - xj, type = "2") / (2 * rho^2))
 }
 
-k_XX <- function(X, err = eps) {
+#' Compute the kernel matrix, given a set of input vectors
+#' 
+#' @param X numeric matrix of dimensions N x P, where N is observations and P is components
+#' @param alpha numeric, variance scale, alpha > 0
+#' @param rho numeric, length-scale, rho > 0
+#' @param err numeric, err > 0
+#' @return N x N matrix
+k_XX <- function(X, alpha = 1, rho = 1, err = eps) {
   N <- nrow(X)
   K <- matrix(0, N, N)
   for (i in 1:N) {
     for (j in 1:N) {
-      K[i, j] <- rbf(X[i, ], X[j, ])
+      K[i, j] <- k(X[i, ], X[j, ], alpha, rho)
     }
   }
 
@@ -151,14 +237,21 @@ k_XX <- function(X, err = eps) {
   K
 }
 
-k_xX <- function(x, X) {
+#' Compute the covariance between two sets of vectors
+#'
+#' @param x numeric matrix, N x P
+#' @param X numeric matrix, M x P
+#' @param alpha numeric, variance scale, alpha > 0
+#' @param rho numeric, length-scale, rho > 0
+#' @return A numeric matrix, N x M
+k_xX <- function(x, X, alpha = 1, rho = 1) {
   N <- nrow(x)
   M <- nrow(X)
 
   K <- matrix(0, N, M)
   for (i in 1:N) {
     for (j in 1:M) {
-      K[i, j] <- rbf(x[i, ], X[j, ])
+      K[i, j] <- k(x[i, ], X[j, ], alpha, rho)
     }
   }
 
@@ -166,27 +259,78 @@ k_xX <- function(x, X) {
 }
 ```
 
+# Estimation
+
+$$
+\ln p(y | X, \alpha, \rho) = -\frac{1}{2}(N \ln 2\pi + \ln |K| + y^\top K^{-1}y)
+$$
+
+```{r}
+#| eval: false
+
+ll <- function(theta) {
+  alpha <- theta[1]
+  rho <- theta[2]
+  N <- nrow(X)
+
+  K_XX <- k_XX(X, alpha, rho)
+  B <- 1/N * t(Y) %*% solve(K_XX) %*% Y
+  K <- kronecker(K_XX, B)
+
+  invK <- solve(K)
+  detK <- det(K)
+  print(detK)
+  t(y) %*% invK %*% y - log(detK)
+}
+theta <- optim(c(1, 1), ll, control = list(trace = 1))
+```
+
+# Evaluation
 
 ```{r}
 K_XX <- k_XX(X)
-B <- cor(Y)
+B <- 1/nrow(X) * t(Y) %*% solve(K_XX) %*% Y
+Sigma <- kronecker(B, K_XX) + kronecker(diag(c(0.001, 0.001)), diag(1, nrow = nrow(X)))
+Si <- solve(Sigma) %*% y
 
-R <- data.frame()
-for (i in 1:nrow(K_XX)) {
-  r <- K_XX[i, ]
-  r_B <- r |> map(~. * B) |> reduce(cbind)
-  R <- rbind(R, r_B)
+f <- data.frame()
+for (i in 1:nrow(d)) {
+  x_star <- as.matrix(d[i, 1:2])
+  K_star <- apply(X[, 1:2], 1, function(x) k(x_star, x))
+  f_star <- t(kronecker(B, K_star)) %*% Si |> t()
+  f <- rbind(f, f_star)
 }
-
-D_Z <- d_sub |>
-  anti_join(D, by = "index") |>
-  select(x, y, vx, vy, index)
-
-Z <- D_Z |> select(x, y) |> as.matrix()
-K_ZZ <- k_XX(Z)
-K_ZX <- k_xX(Z, X)
-
-S <- as.matrix(R) + diag(eps, nrow(R))
-SY <- S %*% as.vector(Y)
 ```
 
+```{r}
+f <- f |>
+  tibble() |>
+  set_names(c("vx_h", "vy_h")) |>
+  bind_cols(d) |>
+  mutate(col = factor(as.numeric(index %in% S$index), levels = 0:1, labels = c("Test", "Train")))
+
+p1 <- p0 +
+  geom_segment(
+    data = f,
+    aes(x, y, xend = x + vx_h/50, yend = y + vy_h/50, color = col),
+    arrow = arrow(length = unit(0.1, "cm")),
+    linewidth = 0.25,
+    alpha = 0.8
+  ) +
+  scale_color_scico_d(palette = "imola", name = "") +
+  labs(x = "Longitude", y = "Latitude") +
+  theme(legend.position = "bottom")
+
+p1
+
+rmse <- function(y, yhat) {
+  sqrt(1/length(y) * sum((yhat - y)^2))
+}
+
+f |>
+  group_by(col) |>
+  summarize(
+    rmse_vx = rmse(vx, vx_h),
+    rmse_vy = rmse(vy, vy_h)
+  )
+```
