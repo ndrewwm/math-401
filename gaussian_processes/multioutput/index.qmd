@@ -11,11 +11,15 @@ Elsewhere, I've discussed the multivariate normal distribution, and Gaussian pro
 $$
 \begin{align*}
 \mathbf{y} &= f(\mathbf{X}) + \mathbf{\epsilon} \text{ where } \\
-f(\mathbf{X}) &\sim \mathcal{N}(\mathbf{0}, \mathbf{K}), \\
+f(\mathbf{X}) &\sim \mathcal{N}_N(\mathbf{0}, \mathbf{K}), \\
 \mathbf{\epsilon} &\overset{\text{i.i.d.}}{\sim} \mathcal{N}(0, \sigma_y), \text{ and } \\
 \mathbf{K} &= [k(x_i, x_j)]_{ij}^N.
 \end{align*}
 $$
+
+::: {.column-margin}
+Throughout this page, I'll be using the subscript after $\mathcal{N}$ to indicate we're looking at a multivariate normal distribution, and to show the dimension of the vectors that the distribution produces.
+:::
 
 While interesting univariate outcomes can be found in abundance, many physical systems and processes are better understood and represented as vectors. In this page, we'll use the example of the velocity field of hurricane Isabel, which made landfall in 2003. Here is the description of the dataset, from the `gcookbook` package:
 
@@ -103,43 +107,47 @@ These characteristics are possible within the framework of Gaussian Process Regr
 
 We are working in the space of the two-dimensional real numbers, $\mathbb{R}^2$. Let $S = (\mathbf{X}, \mathbf{Y}) = (x_1, y_1), \dots, (x_N, y_N)$ be our set of *training data*, where $x_i, y_i \in \mathbb{R}^2$. It may be convenient to note $\mathbf{X}, \mathbf{Y} \in \mathbb{R}^{N \times 2}$, and we may refer to $\mathbf{y} = \text{vec}\ Y \in \mathbb{R}^{2N}$ and $\mathbf{x} = \text{vec}\ X \in \mathbb{R}^{2N}$. We will use $\mathbf{X}_* \in \mathbb{R}^{M \times 2}$ to denote a set of *test points*, for which we want to generate predictions. As with the conventions for the training data, we will use $\mathbf{x}_* = \text{vec}\ \mathbf{X}_* \in \mathbb{R}^{2M}$.
 
-We are engaged in a *regression* task, i.e., we're attempting to learn the functional relationship $f$ between $\mathbf{X}$ and $\mathbf{Y}$, with an assumption that this relationship has been corrupted to some degree by noise. To set up the problem, we have
+We are engaged in a *regression* task, i.e., we're attempting to learn the functional relationship $f$ between $\mathbf{X}$ and $\mathbf{Y}$, with an assumption that this relationship has been corrupted to some degree by noise. For the following, I've adapted notation from Chapter 2.2 in the well-known Rasmussen and Williams text to the context of our multidimensional $\mathbf{Y}$ [@williams2006gaussian]. Setting up the problem, we have
 $$
 \begin{align*}
 \mathbf{y} &= f(\mathbf{x}) + \epsilon \\
-f &\sim \mathcal{GP}(m, K) \\
+f &\sim \mathcal{GP}(m, k) \\
 f(\mathbf{x}) &\sim \mathcal{N}_{2N}(\mathbf{0}, \mathbf{K}_{XX})
 \end{align*}
 $$
 
-To parse these statements, we assume $f$ is drawn from a Gaussian Process with mean function $m$ and covariance (kernel) function $K$. Thus, our observations $\mathbf{y} = f(\mathbf{x})$ have a multivariate normal probability distribution, parameterized by a *covariance matrix* $\mathbf{K}_{XX}$. By convention, we assume the mean vector is $\mathbf{0}$.
+To parse these statements, we assume $f$ is drawn from a Gaussian Process with mean function $m$ and covariance (kernel) function $k$. Thus, our observations $\mathbf{y} = f(\mathbf{x})$ have a multivariate normal probability distribution, parameterized by a *covariance matrix* $\mathbf{K}_{XX}$. By convention, we assume the mean vector is $\mathbf{0}$ (implying that $m$ is the zero function).
 
+The joint distribution of $\mathbf{y}$ and our predictions for the test point(s) $\mathbf{y}_*$ is also described by a multivariate normal distribution, specified as:
 $$
 \begin{align*}
 \begin{bmatrix}
   \mathbf{y} \\
-  \mathbf{f_*}
+  \mathbf{y_*}
 \end{bmatrix} &\sim \mathcal{N}_{2N + 2M}\Biggl( \mathbf{0}, \begin{bmatrix} 
-  \mathbf{K}_{XX} & \mathbf{K}_{XX_*} \\
+  \mathbf{K}_{XX} + \mathbf{V} \otimes \mathbf{I}_N & \mathbf{K}_{XX_*} \\
   \mathbf{K}_{X_*X} & \mathbf{K}_{X_* X_*}
 \end{bmatrix} \Biggr) \\
-\mathbf{f}_* | \mathbf{X}, \mathbf{y}, \mathbf{X_*} &\sim \mathcal{N}_{2M}(\bar{\mathbf{f}}_*,\ \text{cov}(\mathbf{f}_*)) \\
-\bar{\mathbf{f}}_* &= \mathbb{E}[\mathbf{f}_* | \mathbf{X}, \mathbf{y}, \mathbf{X_*}] = \mathbf{K}_{X_*X}(\mathbf{K}_{XX} + \mathbf{V} \otimes \mathbf{I}_N)^{-1} \mathbf{y} \\
-\text{cov}(\mathbf{f}_*) &= \mathbf{K}_{X_*X_*} - \mathbf{K}_{X_*X}(\mathbf{K}_{XX} + \mathbf{V} \otimes \mathbf{I}_N)^{-1}\mathbf{K}_{XX_*} \\
 \mathbf{V} &= \begin{bmatrix} \sigma^2_1 & 0 \\ 0 & \sigma^2_2 \end{bmatrix}
 \end{align*}
 $$
 
-Here I'm trying to apply the function-space notation from Williams & Rasmussen, applied to the multi-dimensional nature of $\mathbf{Y}$ [@williams2006gaussian].
+Here, $\sigma^2_1, \sigma^2_2 > 0$ represent the independent and additive noise associated with each of our outcome's components. The $\otimes$ symbol denotes the Kronecker product. From this joint distribution, we can derive the conditional distribution for $\mathbf{y}_*$:
 
-<!-- We start with the assumption that $\mathbf{f}$ comes from a Gaussian Process, written as $\mathbf{f} \sim \mathcal{GP}(\mathbf{m}, \mathbf{K})$, where $\mathbf{m}$ is a *mean* function and $\mathbf{K}$ is a *covariance* (or kernel) function. This assumption means that we believe for a (finite) set $\mathbf{X}$ of $N$ observations, $\mathbf{f}(\mathbf{X}) \in \mathbb{R}^{2N}$ is described by the multivariate normal distribution $\mathbf{f}(\mathbf{X}) \sim \mathcal{N}(\mathbf{m}, \mathbf{\Sigma})$. Here, $\mathbf{m}$ is a *mean* function, and $\mathbf{\Sigma}$ is a *covariance* (or kernel) function. -->
+$$
+\begin{align*}
+\mathbf{y}_* | \mathbf{X}, \mathbf{y}, \mathbf{X_*} &\sim \mathcal{N}_{2M}(\bar{\mathbf{f}}_*,\ \text{cov}(\mathbf{f}_*)) \\
+\bar{\mathbf{f}}_* &= \mathbb{E}[\mathbf{y}_* | \mathbf{X}, \mathbf{y}, \mathbf{X_*}] = \mathbf{K}_{X_*X}(\mathbf{K}_{XX} + \mathbf{V} \otimes \mathbf{I}_N)^{-1} \mathbf{y} \\
+\text{cov}(\mathbf{f}_*) &= \mathbf{K}_{X_*X_*} - \mathbf{K}_{X_*X}(\mathbf{K}_{XX} + \mathbf{V} \otimes \mathbf{I}_N)^{-1}\mathbf{K}_{XX_*} \\
+\end{align*}
+$$
 
-We will now work through how each component of our distribution is defined. Let $k: \mathbb{R}^2 \times \mathbb{R}^2 \to \mathbb{R}$ be the (scalar) kernel function, defined as
+We will now work through how each piece of our distribution is defined. Let $k: \mathbb{R}^2 \times \mathbb{R}^2 \to \mathbb{R}$ be a (scalar) kernel function, defined as
 $$
 k(x_i, x_j) = \alpha^2 \cdot \exp\Bigl(-\frac{1}{2\rho^2} \| x_i - x_j \|_2 \Bigl),
 $$ {#eq-k}
 
-where $\alpha, \rho > 0$; again, $x_i, x_j \in \mathbb{R}^2$. This is also known as the squared exponential function, or the radial basis function. The parameter $\alpha$ controls ..., while $\rho$ controls the length-scale. Let $\mathbf{k}_{XX} \in \mathbb{R}^{N \times N}$, the covariance matrix between all points in $\mathbf{X}$, be defined as
+where $\alpha, \rho > 0$, and $\| \cdot \|_2$ is the Euclidean norm. This is also known as the squared exponential function, or the radial basis function. The parameter $\alpha$ controls ..., while $\rho$ controls the length-scale. Let $\mathbf{k}_{XX} \in \mathbb{R}^{N \times N}$, the covariance matrix between all points in $\mathbf{X}$, be defined as
 $$
 \mathbf{k}_{XX} = (k(x_i, x_j))_{i,j}^N = \begin{bmatrix}
   k(x_1, x_1) & \cdots & k(x_1, x_N) \\
@@ -148,7 +156,7 @@ $$
 \end{bmatrix}.
 $$ {#eq-kXX}
 
-Let the matrix of similarities between the outputs $\mathbf{Y}$, $\mathbf{B} \in \mathbb{R}^{2 \times 2}$ be defined as
+Let $\mathbf{B} \in \mathbb{R}^{2 \times 2}$, the matrix of similarities between the outputs $\mathbf{Y}$, be defined as
 $$
 \mathbf{B} = \begin{bmatrix}
   b_{11} & b_{12} \\
@@ -160,26 +168,18 @@ The expression for $\mathbf{B}$ comes from Bonilla et al. [@bonilla2007multi], i
 
 Let $\mathbf{K}_{XX} \in \mathbb{R}^{2N \times 2N}$ be defined as
 $$
-\mathbf{K}_{XX} = \mathbf{B} \otimes \mathbf{K}_{XX}
-$$ {#eq-Sigma}
+\mathbf{K}_{XX} = \mathbf{B} \otimes \mathbf{k}_{XX}.
+$$ {#eq-KXX}
 
-where $\otimes$ is the Kronecker product, $\mathbf{I}$ is the identity matrix, and $\sigma^2_1, \sigma^2_2 > 0$ represent the variances of the noise for each component of $\mathbf{Y}$.
+We can now define the other pieces needed to establish the covariance matrix used for the joint distribution of $\begin{bmatrix} \mathbf{y} \\ \mathbf{y}_* \end{bmatrix}$:
 
-<!-- FIXME: may not be needed -->
-For a single new vector, $x' \in \mathbb{R}^2$, the predicted value for $y' \in \mathbb{R}^2$ is given by
 $$
-y' = (\mathbf{B} \otimes \mathbf{k}_{x'})^\top \mathbf{\Sigma}^{-1} \mathbf{y},
-$$ {#eq-yprime}
-
-where $\mathbf{k}_{x'} \in \mathbb{R}^{N}$ is defined as
-$$
-\mathbf{k}_{x'} = \begin{bmatrix}
-  k(x', x_1) \\
-  k(x', x_2) \\
-  \vdots \\
-  k(x', x_N)
-\end{bmatrix}.
-$$ {#eq-k_xprime}
+\begin{align*}
+  \mathbf{K}_{X_*X} &= \mathbf{B} \otimes (k(x_{*i}, x_j))_{i,j=1}^{M,N} \in \mathbb{R}^{2M \times 2N} \\
+  \mathbf{K}_{XX_*} &= \mathbf{K}_{X_*X}^\top \in \mathbb{R}^{2N \times 2M} \\
+  \mathbf{K}_{X_*X_*} &= \mathbf{B} \otimes (k(x_{*i}, x_{*j}))_{i,j=1}^{M} \in \mathbb{R}^{2M \times 2M}.
+\end{align*}
+$$ {#eq-KxX}
 
 # Training and test data
 
@@ -194,6 +194,7 @@ S <- d |>
 X <- S |> select(x, y) |> as.matrix()
 Y <- S |> select(vx, vy) |> as.matrix()
 y <- as.vector(Y)
+N <- nrow(X)
 ```
 
 # Kernel functions
@@ -261,36 +262,43 @@ k_xX <- function(x, X, alpha = 1, rho = 1) {
 
 # Estimation
 
-$$
-\ln p(y | X, \alpha, \rho) = -\frac{1}{2}(N \ln 2\pi + \ln |K| + y^\top K^{-1}y)
-$$
+<!-- requires: quarto add quarto-ext/include-code-files -->
+<!-- ```{.stan include="estimate_params.stan"}
+``` -->
+
+::: {.callout-caution collapse="true"}
+
+```{r}
+#| cache: true
+#| eval: false
+
+library(rstan)
+
+fit <- stan(
+  file = "./estimate_params.stan",
+  model_name = "Parameter estimation, Isabel GPR",
+  data = lst(N, X, Y),
+  chains = 2,
+  iter = 1000,
+  warmup = 400,
+  seed = 123
+)
+```
+
+:::
 
 ```{r}
 #| eval: false
 
-ll <- function(theta) {
-  alpha <- theta[1]
-  rho <- theta[2]
-  N <- nrow(X)
-
-  K_XX <- k_XX(X, alpha, rho)
-  B <- 1/N * t(Y) %*% solve(K_XX) %*% Y
-  K <- kronecker(K_XX, B)
-
-  invK <- solve(K)
-  detK <- det(K)
-  print(detK)
-  t(y) %*% invK %*% y - log(detK)
-}
-theta <- optim(c(1, 1), ll, control = list(trace = 1))
+fit
 ```
 
 # Evaluation
 
 ```{r}
-K_XX <- k_XX(X)
+K_XX <- k_XX(X, 1.21, 0.85, eps) #theta$par[1], theta$par[2], theta$par[3])
 B <- 1/nrow(X) * t(Y) %*% solve(K_XX) %*% Y
-Sigma <- kronecker(B, K_XX) + kronecker(diag(c(0.001, 0.001)), diag(1, nrow = nrow(X)))
+Sigma <- kronecker(B, K_XX)
 Si <- solve(Sigma) %*% y
 
 f <- data.frame()
