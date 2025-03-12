@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.6.42">
+<meta name="generator" content="quarto-1.5.57">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>The Multivariate Gaussian Distribution – Math 401</title>
+<title>Multioutput GPR – Math 401</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -89,10 +89,10 @@ div.csl-indent {
 <script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="../../site_libs/quarto-html/anchor.min.js"></script>
 <link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-c55491ef36bbbc1896d0375eee332cfe.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -186,7 +186,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../gaussian_processes/index.html">Gaussian Processes</a></li><li class="breadcrumb-item"><a href="../../gaussian_processes/mvnorm/index.html">The Multivariate Gaussian Distribution</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">Multioutput GPR</li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -217,7 +217,7 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../gaussian_processes/mvnorm/index.html" class="sidebar-item-text sidebar-link active">
+  <a href="../../gaussian_processes/mvnorm/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">The Multivariate Gaussian Distribution</span></a>
   </div>
 </li>
@@ -274,19 +274,21 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#definition" id="toc-definition" class="nav-link active" data-scroll-target="#definition">Definition</a></li>
-  <li><a href="#sampling-algorithm" id="toc-sampling-algorithm" class="nav-link" data-scroll-target="#sampling-algorithm">Sampling Algorithm</a></li>
-  <li><a href="#why-does-the-algorithm-work" id="toc-why-does-the-algorithm-work" class="nav-link" data-scroll-target="#why-does-the-algorithm-work">Why does the algorithm work?</a></li>
-  <li><a href="#r-implementation" id="toc-r-implementation" class="nav-link" data-scroll-target="#r-implementation">R Implementation</a></li>
+  <li><a href="#multioutput-gaussian-process-regression-gpr" id="toc-multioutput-gaussian-process-regression-gpr" class="nav-link active" data-scroll-target="#multioutput-gaussian-process-regression-gpr">Multioutput Gaussian Process Regression (GPR)</a>
+  <ul class="collapse">
+  <li><a href="#motivation-visualizing-vector-fields" id="toc-motivation-visualizing-vector-fields" class="nav-link" data-scroll-target="#motivation-visualizing-vector-fields">Motivation: visualizing vector fields</a></li>
+  <li><a href="#theory-and-notation" id="toc-theory-and-notation" class="nav-link" data-scroll-target="#theory-and-notation">Theory and notation</a></li>
+  </ul></li>
+  <li><a href="#training-and-test-data" id="toc-training-and-test-data" class="nav-link" data-scroll-target="#training-and-test-data">Training and test data</a></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
 <main class="content page-columns page-full" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../gaussian_processes/index.html">Gaussian Processes</a></li><li class="breadcrumb-item"><a href="../../gaussian_processes/mvnorm/index.html">The Multivariate Gaussian Distribution</a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">The Multivariate Gaussian Distribution</h1>
+<h1 class="title">Multioutput GPR</h1>
 </div>
 
 
@@ -303,136 +305,182 @@ window.Quarto = {
 </header>
 
 
-<section id="definition" class="level2">
-<h2 class="anchored" data-anchor-id="definition">Definition</h2>
-<p>Let <span class="math inline">\(\mathbf{x} \in \mathbb{R}^n\)</span> be a vector whose elements, <span class="math inline">\(X_i\)</span>, are random variables (i.e., <span class="math inline">\(\mathbf{x}\)</span> is a <em>random vector</em>). As elements of <span class="math inline">\(\mathbf{x}\)</span>, we say that <span class="math inline">\(X_1, X_2, \dots, X_n\)</span> are jointly distributed. Define the vector <span class="math inline">\(\mathbf{\mu}\)</span> and matrix <span class="math inline">\(\mathbf{\Sigma}\)</span> as <span class="math display">\[
+<section id="multioutput-gaussian-process-regression-gpr" class="level1 page-columns page-full">
+<h1>Multioutput Gaussian Process Regression (GPR)</h1>
+<section id="motivation-visualizing-vector-fields" class="level2 page-columns page-full">
+<h2 class="anchored" data-anchor-id="motivation-visualizing-vector-fields">Motivation: visualizing vector fields</h2>
+<p>Elsewhere, I’ve discussed the multivariate normal distribution, and Gaussian processes. Introductory materials discussing Gaussian Processes (GPs) typically focus on univariate outcomes. In more formal notation, input data <span class="math inline">\(\mathbf{X} \in \mathbb{R}^{N \times P}\)</span> is used to model <span class="math inline">\(\mathbf{y} \in \mathbb{R}^N\)</span>: <span class="math display">\[
 \begin{align*}
-\mathbf{\mu} &amp;= \begin{bmatrix} \mu_1 \\ \mu_2 \\ \vdots \\ \mu_n \end{bmatrix} = \begin{bmatrix} \mathbb{E}(X_1) \\ \mathbb{E}(X_2) \\ \vdots \\ \mathbb{E}(X_n) \end{bmatrix} \in \mathbb{R}^n \\ \\
-\mathbf{\Sigma} &amp;= Cov(\mathbf{x}) = \mathbb{E}[(\mathbf{x} - \mathbf{\mu})(\mathbf{x} - \mathbf{\mu})^\top] = \Bigl[Cov(X_i, X_j) \Bigr]_{i, j = 1}^n \in \mathbb{R}^{n \times n}
-\end{align*}
-\]</span></p>
-<p>and suppose <span class="math inline">\(X_i \sim \mathcal{N}(\mu_i, \mathbf{\Sigma}_{i, i})\)</span>. If every linear combination of <span class="math inline">\(\mathbf{x}\)</span>’s elements results in a univariate normal variable, we say that <span class="math inline">\(\mathbf{x}\)</span> comes from the multivariate Gaussian distribution parameterized by <span class="math inline">\(\mathbf{\mu}\)</span> and <span class="math inline">\(\mathbf{\Sigma}\)</span>, written as <span class="math inline">\(\mathbf{x} \sim \mathcal{N}(\mathbf{\mu}, \mathbf{\Sigma}).\)</span></p>
-</section>
-<section id="sampling-algorithm" class="level2">
-<h2 class="anchored" data-anchor-id="sampling-algorithm">Sampling Algorithm</h2>
-<p>A commonly used algorithm for sampling from a multivariate Gaussian distribution can be described as the following, given a vector <span class="math inline">\(\mathbf{\mu} \in \mathbb{R}^n\)</span> and a positive-(semi)definite matrix <span class="math inline">\(\mathbf{\Sigma} \in \mathbb{R}^{n \times n}\)</span>:</p>
-<ol type="1">
-<li>Compute <span class="math inline">\(L L^\top = \mathbf{\Sigma}\)</span>, the Cholesky decomposition of <span class="math inline">\(\mathbf{\Sigma}\)</span>.</li>
-<li>Generate <span class="math inline">\(\mathbf{z} = \begin{bmatrix} Z_1 \\ Z_2 \\ \vdots \\ Z_n \end{bmatrix}\)</span> where <span class="math inline">\(Z_1, Z_2, \dots, Z_n \overset{\text{i.i.d.}}{\sim} \mathcal{N}(0, 1)\)</span>.</li>
-<li>Compute <span class="math inline">\(\mathbf{x} = L\mathbf{z} + \mathbf{\mu}\)</span>.</li>
-</ol>
-</section>
-<section id="why-does-the-algorithm-work" class="level2 page-columns page-full">
-<h2 class="anchored" data-anchor-id="why-does-the-algorithm-work">Why does the algorithm work?</h2>
-<p>The claim is that <span class="math inline">\(\mathbf{x}\)</span> is a draw from the multivariate Gaussian distribution parameterized by <span class="math inline">\(\mathbf{\mu}\)</span> and <span class="math inline">\(\mathbf{\Sigma}\)</span>, i.e., <span class="math inline">\(\mathbf{x} \sim \mathcal{N}(\mathbf{\mu}, \mathbf{\Sigma})\)</span>. So, why does this work? First, we can show that <span class="math inline">\(\mathbb{E}(\mathbf{x}) = \mathbf{\mu}\)</span>:</p>
-<p><span class="math display">\[
-\begin{align*}
-\mathbb{E}(\mathbf{x}) &amp;= \mathbb{E}(L\mathbf{z} + \mathbf{\mu}) \\
-  &amp;= \mathbb{E}(L\mathbf{z}) + \mathbb{E}(\mathbf{\mu}) \\
-  &amp;= L \cdot \mathbb{E}(\mathbf{z}) + \mathbf{\mu} \\
-  &amp;= L \cdot 0 + \mathbf{\mu} \\
-  &amp;= \mathbf{\mu}.
-\end{align*}
-\]</span></p>
-<p>Next, we can see that <span class="math inline">\(Cov(\mathbf{x}) = \mathbf{\Sigma}\)</span>:</p>
-
-<div class="no-row-height column-margin column-container"><div class="">
-<p>Reminder that <span class="math inline">\(Cov(\mathbf{x})\)</span> is not a scalar, rather, it is the <em>covariance matrix</em> (or <em>variance-covariance matrix</em>) of <span class="math inline">\(\mathbf{x}\)</span>.</p>
-</div></div><p><span class="math display">\[
-\begin{align*}
-Cov(\mathbf{x}) &amp;= \mathbb{E}[(\mathbf{x} - \mathbf{\mu})(\mathbf{x} - \mathbf{\mu})^\top] \\
-  &amp;= \mathbb{E}[(L\mathbf{z} + \mathbf{\mu} - \mathbf{\mu})(L\mathbf{z} + \mathbf{\mu} - \mathbf{\mu})^\top] \\
-  &amp;= \mathbb{E}[L\mathbf{z}\mathbf{z}^\top L^\top] \\
-  &amp;= L\ \mathbb{E}[\mathbf{z}\mathbf{z}^\top]\ L^\top \\
-  &amp;= L\ \mathbb{E}[(\mathbf{z} - 0)(\mathbf{z} - 0)^\top]\ L^\top \\
-  &amp;= L\ Cov(\mathbf{z})\ L^\top \\
-  &amp;= L I L^\top \\
-  &amp;= L L^\top \\
-  &amp;= \mathbf{\Sigma}.
+\mathbf{y} &amp;= f(\mathbf{X}) + \mathbf{\epsilon} \text{ where } \\
+f(\mathbf{X}) &amp;\sim \mathcal{N}_N(\mathbf{0}, \mathbf{K}), \\
+\mathbf{\epsilon} &amp;\overset{\text{i.i.d.}}{\sim} \mathcal{N}(0, \sigma_y), \text{ and } \\
+\mathbf{K} &amp;= [k(x_i, x_j)]_{ij}^N.
 \end{align*}
 \]</span></p>
 
 <div class="no-row-height column-margin column-container"><div class="">
-<p>This proof hinges on the definition of covariance and the independence of the <span class="math inline">\(Z_i\)</span>’s. Remember, <span class="math inline">\(Cov(Z_i, Z_i) = Var(Z_i) = 1\)</span> and <span class="math inline">\(Cov(Z_i, Z_j) = 0\)</span> when <span class="math inline">\(i \neq j\)</span> and <span class="math inline">\(Z_i \perp Z_j\)</span>.</p>
-</div></div><p>The following references <span class="citation" data-cites="2691254">(<a href="#ref-2691254" role="doc-biblioref">(https://math.stackexchange.com/users/10117/lepidopterist), n.d.</a>)</span>, <span class="citation" data-cites="332722">(<a href="#ref-332722" role="doc-biblioref">(https://math.stackexchange.com/users/21550/hkbattousai), n.d.</a>)</span>, <span class="citation" data-cites="Bilionis">(<a href="#ref-Bilionis" role="doc-biblioref">ibilion[at]purdue.edu 2022</a>)</span> (specifically <a href="https://predictivesciencelab.github.io/data-analytics-se/lecture06/hands-on-06.2.html#sampling-the-multivariate-normal-with-diagonal-covariance-using-the-standard-normal">this section</a>) were helpful to me as I worked through understanding the algorithm and the proofs for the two results above.</p>
-<p>Having shown that the expectation and (co)variance of <span class="math inline">\(\mathbf{x}\)</span> are what we’d assume, we need to show that <span class="math inline">\(\mathbf{x}\)</span> qualifies as multivariate normal. A random vector is multivariate normal if any linear combination of its elements is normally distributed. From its construction, we know <span class="math inline">\(\mathbf{x}\)</span> is a linear transformation of a standard normal vector, i.e., <span class="math inline">\(\mathbf{z}\)</span>. We can decompose <span class="math inline">\(\mathbf{x}\)</span>’s <span class="math inline">\(i\)</span>-th element, <span class="math inline">\(X_i\)</span>, into the following:</p>
-<p><span class="math display">\[
-\begin{align*}
-\sigma_i &amp;= \sum_{j = 0}^n L_{i,j} \\
-X_i &amp;= Z_i \sigma_i + \mu_i.
-\end{align*}
+<p>Throughout this page, I’ll be using the subscript after <span class="math inline">\(\mathcal{N}\)</span> to indicate we’re looking at a multivariate normal distribution, and to show the dimension of the vectors that the distribution produces.</p>
+</div></div><p>While interesting univariate outcomes can be found in abundance, many physical systems and processes are better understood and represented as vectors. In this page, we’ll use the example of the velocity field of hurricane Isabel, which made landfall in 2003. Here is the description of the dataset, from the <code>gcookbook</code> package:</p>
+
+<div class="no-row-height column-margin column-container"><div class="">
+<p>This example and dataset is drawn from <em>The R Graphics Cookbook</em> <span class="citation" data-cites="chang2018r">(<a href="#ref-chang2018r" role="doc-biblioref">Chang 2018</a>)</span>, specifically chapter 13.12, on creating vector fields.</p>
+</div></div><blockquote class="blockquote">
+<p>This data is from a simulation of hurricane Isabel in 2003. It includes temperature and wind data for a 2139km (east-west) x 2004km (north-south) x 19.8km (vertical) volume. The simluation data is from the National Center for Atmospheric Research, and it was used in the IEEE Visualization 2004 Contest.</p>
+</blockquote>
+<p>Below I’ve plotted the x and y components of the storm’s velocity field, viewed at approximately 10km above sea-level. Each arrow shows the velocity of the storm’s winds at a given point in the x-y plane. In mathematical notation, we denote the velocity for a particular x-y point as a vector: <span class="math display">\[
+\mathbf{v} = \begin{bmatrix} v_x \\ v_y \end{bmatrix}.
 \]</span></p>
-<p>We can then show that <span class="math inline">\(X_i \sim \mathcal{N}(\sigma_i \cdot 0 + \mu_i, \sigma_i^2) \implies X_i \sim \mathcal{N}(\mu_i, \sigma_i^2)\)</span>. This follows from theorems regarding the transformation of random variables <span class="citation" data-cites="casella2024statistical">(<a href="#ref-casella2024statistical" role="doc-biblioref">Casella and Berger 2024</a>)</span>. I’ll demonstrate it for an arbitrary <span class="math inline">\(Z \sim \mathcal{N}(0, 1)\)</span>, <span class="math inline">\(\mu\)</span>, and <span class="math inline">\(\sigma &gt; 0\)</span> (omitting the subscript <span class="math inline">\(i\)</span> for brevity). The probability density function (pdf) of the standard normal <span class="math inline">\(f_Z(z)\)</span> is defined as <span class="math display">\[
-f_Z(z) = \frac{1}{\sqrt{2\pi}}\ e^{-z^2 / 2}.
-\]</span></p>
-<p>Define <span class="math inline">\(X' = g(Z) = \sigma \cdot f_Z(Z)\)</span>. Then, <span class="math inline">\(g^{-1}(x) = \frac{x}{\sigma}\)</span>, and <span class="math inline">\(\frac{d}{dx}g^{-1}(x) = \frac{1}{\sigma}\)</span>. Thus, the probability density function <span class="math inline">\(f_{X'}(x)\)</span> is</p>
-<p><span class="math display">\[
-\begin{align*}
-f_{X'}(x) &amp;= f_Z(g^{-1}(x)) \frac{d}{dx}g^{-1}(x) \\
-  &amp;= f_Z \Bigl(\frac{x}{\sigma} \Bigr) \cdot \frac{1}{\sigma} \\
-  &amp;= \frac{1}{\sqrt{2\pi}}\ e^{-(\frac{x}{\sigma})^2 \cdot \frac{1}{2}} \cdot \frac{1}{\sigma} \\
-  &amp;= \frac{1}{\sqrt{2\pi} \sigma}\ e^{-\frac{x^2}{2\sigma^2}}.
-\end{align*}
-\]</span></p>
-<p>This is the pdf for <span class="math inline">\(\mathcal{N}(0, \sigma^2)\)</span>. Now, we find <span class="math inline">\(X = h(X') = f_{X'}(X') + \mu\)</span>, where <span class="math inline">\(h^{-1}(x) = x - \mu\)</span> and <span class="math inline">\(\frac{d}{dx}\ h^{-1}(x) = 1\)</span>. As with the above, we have <span class="math display">\[
-f_X(x) = f_{X'}(h^{-1}(x)) \frac{d}{dx}\ h^{-1}(x) = f_{X'}(x - \mu) = \frac{1}{\sqrt{2\pi} \sigma}\ e^{-\frac{(x - \mu)^2}{2\sigma^2}},
-\]</span></p>
-<p>which is the classical definition of the normal distribution’s probability density function. This means that scaling a normal variable by a constant, or adding a constant to a normal variable results in another normal variable. So, each <span class="math inline">\(X_i\)</span> is normal. Lastly, as one’s intuition might suspect, the sum of jointly distributed normal variables is also normal. I won’t go through the proof here, but some versions can be found on <a href="https://en.wikipedia.org/wiki/Sum_of_normally_distributed_random_variables#Correlated_random_variables">wikipedia.</a></p>
-<!-- We showed that the vector x has cov(x) = Sigma; it's possible that cov(x_i, x_j) > 0 for some i,j -->
-<!-- https://stats.stackexchange.com/a/548360 -->
-<p>Thus, we can conclude that a linear combination <span class="math inline">\(Y = a_1 X_1 + \cdots + a_n X_n\)</span> is a normal variable, meaning <span class="math inline">\(\mathbf{x}\)</span> is a draw from the multivariate Gaussian distribution.</p>
-</section>
-<section id="r-implementation" class="level2">
-<h2 class="anchored" data-anchor-id="r-implementation">R Implementation</h2>
+<p>Velocity captures both the <em>direction</em> of the wind, and its <em>magnitude</em> (or strength). Here, longer arrows indicate higher measured speeds. If we wanted, we could plot wind-speed by itself over the area. However, looking only at speed would cause us to miss key dynamics of the phenomena we’re looking at, such as the storm’s spiral shape.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>mu <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">1.1</span>, <span class="dv">3</span>, <span class="dv">8</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>Sigma <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">0.1</span>, <span class="dv">1</span>, <span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">0.1</span>, <span class="dv">1</span>), <span class="dv">3</span>, <span class="dv">3</span>)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>mvrnorm <span class="ot">&lt;-</span> <span class="cf">function</span>(n, mu, Sigma) {</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  L <span class="ot">&lt;-</span> <span class="fu">chol</span>(Sigma) <span class="co"># this returns L', where LL' = Sigma</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  d <span class="ot">&lt;-</span> <span class="fu">length</span>(mu)</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  out <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, <span class="at">nrow =</span> n, <span class="at">ncol =</span> d)</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n) {</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    u <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(d)</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    out[i, ] <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">t</span>(L) <span class="sc">%*%</span> u <span class="sc">+</span> mu)</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(out)</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="fu">mvrnorm</span>(<span class="dv">10</span>, mu, Sigma)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>           [,1]     [,2]     [,3]
- [1,] 0.5395244 2.714929 9.298527
- [2,] 1.1705084 3.135691 9.661861
- [3,] 1.5609162 1.787372 7.395843
- [4,] 0.6543380 4.173380 8.294725
- [5,] 1.5007715 3.150205 7.599224
- [6,] 2.8869131 3.674046 6.700175
- [7,] 1.8013559 2.599714 7.161280
- [8,] 0.8820251 1.957341 7.169001
- [9,] 0.4749607 1.259257 8.490846
-[10,] 1.2533731 1.882905 9.158747</code></pre>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gcookbook)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(scico)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>eps <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(.Machine<span class="sc">$</span>double.eps)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Keep a subset in the middle of the the z-axis</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>d_isabel <span class="ot">&lt;-</span> isabel <span class="sc">|&gt;</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(z <span class="sc">==</span> <span class="fl">10.035</span>) <span class="sc">|&gt;</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>()</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Keep 1 out of every 'by' values in vector x</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>every_n <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">by =</span> <span class="dv">4</span>) {</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  x <span class="ot">&lt;-</span> <span class="fu">sort</span>(x)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  x[<span class="fu">seq</span>(<span class="dv">1</span>, <span class="fu">length</span>(x), <span class="at">by =</span> by)]</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Keep 1 of every 4 values in x and y</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>keep_x <span class="ot">&lt;-</span> <span class="fu">every_n</span>(<span class="fu">unique</span>(isabel<span class="sc">$</span>x))</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>keep_y <span class="ot">&lt;-</span> <span class="fu">every_n</span>(<span class="fu">unique</span>(isabel<span class="sc">$</span>y))</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Keep only those rows where x value is in keepx and y value is in keepy</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> d_isabel <span class="sc">|&gt;</span></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(x <span class="sc">%in%</span> keep_x, y <span class="sc">%in%</span> keep_y) <span class="sc">|&gt;</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">index =</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">n</span>())</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Need to load grid for arrow() function</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(grid)</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="co"># Set a consistent plotting theme</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a><span class="fu">theme_set</span>(<span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">15</span>))</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Make a plot with the subset, and use an arrowhead 0.1 cm long</span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>p0 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(d, <span class="fu">aes</span>(x, y)) <span class="sc">+</span></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">xend =</span> x <span class="sc">+</span> vx<span class="sc">/</span><span class="dv">50</span>, <span class="at">yend =</span> y <span class="sc">+</span> vy<span class="sc">/</span><span class="dv">50</span>),</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">arrow =</span> <span class="fu">arrow</span>(<span class="at">length =</span> <span class="fu">unit</span>(<span class="fl">0.1</span>, <span class="st">"cm"</span>)),</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>    <span class="at">linewidth =</span> <span class="fl">0.25</span></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Longitude"</span>, <span class="at">y =</span> <span class="st">"Latitude"</span>)</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>p0</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
 </div>
 </div>
+</div>
+<p>A similar consideration applies to the task of predicting velocity using statistical models. A “naive” approach might be to build a model for each component of velocity. In our case, that would mean finding two functions, <span class="math inline">\(f_1: \mathbb{R}^2 \to \mathbb{R}\)</span> and <span class="math inline">\(f_2: \mathbb{R}^2 \to \mathbb{R}\)</span>. This amounts to treating <span class="math inline">\(v_x\)</span> and <span class="math inline">\(v_y\)</span> as being independent of each other. Depending on context, this may be true according to scientific theory. However, when working with data provided via sensors and instruments, measurement error may move us away from the theoretical ideal.</p>
+<p>An improved approach would allow us to incorporate natural information on how our observed target values (each <span class="math inline">\(v_x\)</span> and <span class="math inline">\(v_y\)</span>) might interrelate. The approach should also (ideally) account for the fact that we’re trying to predict a vector at a specific point. In other words, we’d like a single function, whose outputs are vector-valued:</p>
+<p><span class="math display">\[
+\underbrace{\begin{aligned}[c]
+v_x = f_1\Bigl((x, y)^\top \Bigr) + \epsilon \\
+v_y = f_2\Bigl((x, y)^\top \Bigr) + \epsilon
+\end{aligned}}_{\text{Naive approach}}
+\qquad\longrightarrow\qquad
+\underbrace{\begin{aligned}[c]
+\begin{bmatrix}v_x \\ v_y\end{bmatrix} = f\Bigl((x, y)^\top \Bigr) + \epsilon
+\end{aligned}}_{\text{Vector-valued approach}}
+\]</span></p>
+<p>These characteristics are possible within the framework of Gaussian Process Regression, with the goal of modeling multiple outputs simultaneously being referred to as “multioutput”, “multitask”, “cokriging”, or “vector-valued” GP regression. Alvarez, Rosasco, &amp; Lawrence (2012) provides a technical introduction to some of these topics <span class="citation" data-cites="alvarez2012kernels">(<a href="#ref-alvarez2012kernels" role="doc-biblioref">Alvarez et al. 2012</a>)</span>. In the following section, we’ll cover the theory behind the approach as it applies to our example data.</p>
+</section>
+<section id="theory-and-notation" class="level2">
+<h2 class="anchored" data-anchor-id="theory-and-notation">Theory and notation</h2>
+<p>We are working in the space of the two-dimensional real numbers, <span class="math inline">\(\mathbb{R}^2\)</span>. Let <span class="math inline">\(S = (\mathbf{X}, \mathbf{Y}) = (x_1, y_1), \dots, (x_N, y_N)\)</span> be our set of <em>training data</em>, where <span class="math inline">\(x_i, y_i \in \mathbb{R}^2\)</span>. It may be convenient to note <span class="math inline">\(\mathbf{X}, \mathbf{Y} \in \mathbb{R}^{N \times 2}\)</span>, and we may refer to <span class="math inline">\(\mathbf{y} = \text{vec}\ Y \in \mathbb{R}^{2N}\)</span> and <span class="math inline">\(\mathbf{x} = \text{vec}\ X \in \mathbb{R}^{2N}\)</span>. We will use <span class="math inline">\(\mathbf{X}_* \in \mathbb{R}^{M \times 2}\)</span> to denote a set of <em>test points</em>, for which we want to generate predictions. As with the conventions for the training data, we will use <span class="math inline">\(\mathbf{x}_* = \text{vec}\ \mathbf{X}_* \in \mathbb{R}^{2M}\)</span>.</p>
+<p>We are engaged in a <em>regression</em> task, i.e., we’re attempting to learn the functional relationship <span class="math inline">\(f\)</span> between <span class="math inline">\(\mathbf{X}\)</span> and <span class="math inline">\(\mathbf{Y}\)</span>, with an assumption that this relationship has been corrupted to some degree by noise. For the following, I’ve adapted notation from Chapter 2.2 in the well-known Rasmussen and Williams text to the context of our multidimensional <span class="math inline">\(\mathbf{Y}\)</span> <span class="citation" data-cites="williams2006gaussian">(<a href="#ref-williams2006gaussian" role="doc-biblioref">Williams and Rasmussen 2006</a>)</span>. Setting up the problem, we have <span class="math display">\[
+\begin{align*}
+\mathbf{y} &amp;= f(\mathbf{x}) + \epsilon \\
+f &amp;\sim \mathcal{GP}(m, k) \\
+f(\mathbf{x}) &amp;\sim \mathcal{N}_{2N}(\mathbf{0}, \mathbf{K}_{XX})
+\end{align*}
+\]</span></p>
+<p>To parse these statements, we assume <span class="math inline">\(f\)</span> is drawn from a Gaussian Process with mean function <span class="math inline">\(m\)</span> and covariance (kernel) function <span class="math inline">\(k\)</span>. Thus, our observations <span class="math inline">\(\mathbf{y} = f(\mathbf{x})\)</span> have a multivariate normal probability distribution, parameterized by a <em>covariance matrix</em> <span class="math inline">\(\mathbf{K}_{XX}\)</span>. By convention, we assume the mean vector is <span class="math inline">\(\mathbf{0}\)</span> (implying that <span class="math inline">\(m\)</span> is the zero function).</p>
+<p>The joint distribution of <span class="math inline">\(\mathbf{y}\)</span> and our predictions for the test point(s) <span class="math inline">\(\mathbf{y}_*\)</span> is also described by a multivariate normal distribution, specified as: <span class="math display">\[
+\begin{align*}
+\begin{bmatrix}
+  \mathbf{y} \\
+  \mathbf{y_*}
+\end{bmatrix} &amp;\sim \mathcal{N}_{2N + 2M}\Biggl( \mathbf{0}, \begin{bmatrix}
+  \mathbf{K}_{XX} + \mathbf{V} \otimes \mathbf{I}_N &amp; \mathbf{K}_{XX_*} \\
+  \mathbf{K}_{X_*X} &amp; \mathbf{K}_{X_* X_*}
+\end{bmatrix} \Biggr) \\
+\mathbf{V} &amp;= \begin{bmatrix} \sigma^2_1 &amp; 0 \\ 0 &amp; \sigma^2_2 \end{bmatrix}
+\end{align*}
+\]</span></p>
+<p>Here, <span class="math inline">\(\sigma^2_1, \sigma^2_2 &gt; 0\)</span> represent the independent and additive noise associated with each of our outcome’s components. The <span class="math inline">\(\otimes\)</span> symbol denotes the Kronecker product. From this joint distribution, we can derive the conditional distribution for <span class="math inline">\(\mathbf{y}_*\)</span>:</p>
+<p><span class="math display">\[
+\begin{align*}
+\mathbf{y}_* | \mathbf{X}, \mathbf{y}, \mathbf{X_*} &amp;\sim \mathcal{N}_{2M}(\bar{\mathbf{f}}_*,\ \text{cov}(\mathbf{f}_*)) \\
+\bar{\mathbf{f}}_* &amp;= \mathbb{E}[\mathbf{y}_* | \mathbf{X}, \mathbf{y}, \mathbf{X_*}] = \mathbf{K}_{X_*X}(\mathbf{K}_{XX} + \mathbf{V} \otimes \mathbf{I}_N)^{-1} \mathbf{y} \\
+\text{cov}(\mathbf{f}_*) &amp;= \mathbf{K}_{X_*X_*} - \mathbf{K}_{X_*X}(\mathbf{K}_{XX} + \mathbf{V} \otimes \mathbf{I}_N)^{-1}\mathbf{K}_{XX_*} \\
+\end{align*}
+\]</span></p>
+<p>We will now work through how each piece of our distribution is defined. Let <span class="math inline">\(k: \mathbb{R}^2 \times \mathbb{R}^2 \to \mathbb{R}\)</span> be a (scalar) kernel function, defined as <span id="eq-k"><span class="math display">\[
+k(x_i, x_j) = \alpha^2 \cdot \exp\Bigl(-\frac{1}{2\rho^2} \| x_i - x_j \|_2 \Bigl),
+\tag{1}\]</span></span></p>
+<p>where <span class="math inline">\(\alpha, \rho &gt; 0\)</span>, and <span class="math inline">\(\| \cdot \|_2\)</span> is the Euclidean norm. This is also known as the squared exponential function, or the radial basis function. The parameter <span class="math inline">\(\alpha\)</span> controls …, while <span class="math inline">\(\rho\)</span> controls the length-scale. Let <span class="math inline">\(\mathbf{k}_{XX} \in \mathbb{R}^{N \times N}\)</span>, the covariance matrix between all points in <span class="math inline">\(\mathbf{X}\)</span>, be defined as <span id="eq-kXX"><span class="math display">\[
+\mathbf{k}_{XX} = (k(x_i, x_j))_{i,j}^N = \begin{bmatrix}
+  k(x_1, x_1) &amp; \cdots &amp; k(x_1, x_N) \\
+  \vdots &amp; \ddots &amp; \vdots \\
+  k(x_N, x_1) &amp; \cdots &amp; k(x_N, x_N)
+\end{bmatrix}.
+\tag{2}\]</span></span></p>
+<p>Let <span class="math inline">\(\mathbf{B} \in \mathbb{R}^{2 \times 2}\)</span>, the matrix of similarities between the outputs <span class="math inline">\(\mathbf{Y}\)</span>, be defined as <span id="eq-B"><span class="math display">\[
+\mathbf{B} = \begin{bmatrix}
+  b_{11} &amp; b_{12} \\
+  b_{21} &amp; b_{22}
+\end{bmatrix} = \frac{1}{N} \mathbf{Y}^\top \mathbf{k}_{XX} \mathbf{Y}.
+\tag{3}\]</span></span></p>
+<p>The expression for <span class="math inline">\(\mathbf{B}\)</span> comes from Bonilla et al. <span class="citation" data-cites="bonilla2007multi">(<a href="#ref-bonilla2007multi" role="doc-biblioref">Bonilla, Chai, and Williams 2007</a>)</span>, in section 2.3 (the authors use the notation <span class="math inline">\(K^f\)</span> and <span class="math inline">\(K^x\)</span> instead of <span class="math inline">\(\mathbf{B}\)</span> and <span class="math inline">\(\mathbf{k}_{XX}\)</span>, respectively).</p>
+<p>Let <span class="math inline">\(\mathbf{K}_{XX} \in \mathbb{R}^{2N \times 2N}\)</span> be defined as <span id="eq-KXX"><span class="math display">\[
+\mathbf{K}_{XX} = \mathbf{B} \otimes \mathbf{k}_{XX}.
+\tag{4}\]</span></span></p>
+<p>We can now define the other pieces needed to establish the covariance matrix used for the joint distribution of <span class="math inline">\(\begin{bmatrix} \mathbf{y} \\ \mathbf{y}_* \end{bmatrix}\)</span>:</p>
+<p><span id="eq-KxX"><span class="math display">\[
+\begin{align*}
+  \mathbf{K}_{X_*X} &amp;= \mathbf{B} \otimes (k(x_{*i}, x_j))_{i,j=1}^{M,N} \in \mathbb{R}^{2M \times 2N} \\
+  \mathbf{K}_{XX_*} &amp;= \mathbf{K}_{X_*X}^\top \in \mathbb{R}^{2N \times 2M} \\
+  \mathbf{K}_{X_*X_*} &amp;= \mathbf{B} \otimes (k(x_{*i}, x_{*j}))_{i,j=1}^{M} \in \mathbb{R}^{2M \times 2M}.
+\end{align*}
+\tag{5}\]</span></span></p>
+</section>
+</section>
+<section id="training-and-test-data" class="level1">
+<h1>Training and test data</h1>
+<p>Here, using the Hurricane Isabel data visualized above, we generate <span class="math inline">\(S\)</span>, defined as a 30% random sample of observations.</p>
 
 
 
 </section>
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
-<div id="ref-casella2024statistical" class="csl-entry" role="listitem">
-Casella, G., and R. Berger. 2024. <em>Statistical Inference</em>. Chapman &amp; Hall/CRC Texts in Statistical Science. CRC Press. <a href="https://books.google.com/books?id=cqUIEQAAQBAJ">https://books.google.com/books?id=cqUIEQAAQBAJ</a>.
+<div id="ref-alvarez2012kernels" class="csl-entry" role="listitem">
+Alvarez, Mauricio A, Lorenzo Rosasco, Neil D Lawrence, et al. 2012. <span>“Kernels for Vector-Valued Functions: A Review.”</span> <em>Foundations and Trends<span></span> in Machine Learning</em> 4 (3): 195–266.
 </div>
-<div id="ref-2691254" class="csl-entry" role="listitem">
-(https://math.stackexchange.com/users/10117/lepidopterist), Lepidopterist. n.d. <span>“Generating Multivariate Gaussian Samples–Why Does It Work?”</span> Mathematics Stack Exchange. <a href="https://math.stackexchange.com/q/2691254">https://math.stackexchange.com/q/2691254</a>.
+<div id="ref-bonilla2007multi" class="csl-entry" role="listitem">
+Bonilla, Edwin V, Kian Chai, and Christopher Williams. 2007. <span>“Multi-Task Gaussian Process Prediction.”</span> <em>Advances in Neural Information Processing Systems</em> 20.
 </div>
-<div id="ref-332722" class="csl-entry" role="listitem">
-(https://math.stackexchange.com/users/21550/hkbattousai), hkBattousai. n.d. <span>“Affine Transformation Applied to a Multivariate Gaussian Random Variable - What Is the Mean Vector and Covariance Matrix of the New Variable?”</span> Mathematics Stack Exchange. <a href="https://math.stackexchange.com/q/332722">https://math.stackexchange.com/q/332722</a>.
+<div id="ref-chang2018r" class="csl-entry" role="listitem">
+Chang, Winston. 2018. <em>R Graphics Cookbook: Practical Recipes for Visualizing Data</em>. O’Reilly Media.
 </div>
-<div id="ref-Bilionis" class="csl-entry" role="listitem">
-ibilion[at]purdue.edu, Ilias Bilionis. 2022. <em>Introduction to Scientific Machine Learning</em>. Edited by n/a. Self published.
+<div id="ref-williams2006gaussian" class="csl-entry" role="listitem">
+Williams, Christopher KI, and Carl Edward Rasmussen. 2006. <em>Gaussian Processes for Machine Learning</em>. Vol. 2. 3. MIT press Cambridge, MA.
 </div>
 </div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -517,6 +565,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   });
   clipboard.on('success', onCopySuccess);
   if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
     const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
       text: getTextToCopy,
       container: window.document.getElementById('quarto-embedded-source-code-modal')
@@ -525,7 +575,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   }
     var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
     var mailtoRegex = new RegExp(/^mailto:/);
-      var filterRegex = new RegExp("https:\/\/ndrewwm\.github\.io\/math-401\/");
+      var filterRegex = new RegExp('/' + window.location.host + '/');
     var isInternal = (href) => {
         return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
     }
@@ -627,6 +677,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       if (window.Quarto?.typesetMath) {
         window.Quarto.typesetMath(note);
       }
+      // TODO in 1.5, we should make sure this works without a callout special case
       if (note.classList.contains("callout")) {
         return note.outerHTML;
       } else {
