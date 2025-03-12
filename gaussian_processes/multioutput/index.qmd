@@ -269,7 +269,6 @@ k_xX <- function(x, X, alpha = 1, rho = 1) {
 ::: {.callout-caution collapse="true"}
 
 ```{r}
-#| cache: true
 #| eval: false
 
 library(rstan)
