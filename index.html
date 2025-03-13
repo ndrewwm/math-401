@@ -182,7 +182,7 @@ window.Quarto = {
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./gaussian_processes/multioutput/index.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Multioutput GPR</span></a>
+ <span class="menu-text">Multioutput Gaussian Process Regression (GPR)</span></a>
   </div>
 </li>
       </ul>
@@ -208,6 +208,9 @@ window.Quarto = {
  <span class="menu-text">Reflection 1</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+ <span class="menu-text">./reflections/cv/cv.qmd</span>
+  </li>
       </ul>
   </li>
     </ul>
@@ -222,11 +225,14 @@ window.Quarto = {
   <ul>
   <li><a href="#meeting-summaries" id="toc-meeting-summaries" class="nav-link active" data-scroll-target="#meeting-summaries">Meeting Summaries</a>
   <ul class="collapse">
-  <li><a href="#section" id="toc-section" class="nav-link" data-scroll-target="#section">2/24/25</a></li>
-  <li><a href="#section-1" id="toc-section-1" class="nav-link" data-scroll-target="#section-1">2/14/25</a></li>
-  <li><a href="#section-2" id="toc-section-2" class="nav-link" data-scroll-target="#section-2">1/31/25</a></li>
-  <li><a href="#section-3" id="toc-section-3" class="nav-link" data-scroll-target="#section-3">1/23/25</a></li>
-  <li><a href="#section-4" id="toc-section-4" class="nav-link" data-scroll-target="#section-4">1/16/25</a></li>
+  <li><a href="#section" id="toc-section" class="nav-link" data-scroll-target="#section">3/14/25</a></li>
+  <li><a href="#section-1" id="toc-section-1" class="nav-link" data-scroll-target="#section-1">3/10/25</a></li>
+  <li><a href="#section-2" id="toc-section-2" class="nav-link" data-scroll-target="#section-2">3/3/25</a></li>
+  <li><a href="#section-3" id="toc-section-3" class="nav-link" data-scroll-target="#section-3">2/24/25</a></li>
+  <li><a href="#section-4" id="toc-section-4" class="nav-link" data-scroll-target="#section-4">2/14/25</a></li>
+  <li><a href="#section-5" id="toc-section-5" class="nav-link" data-scroll-target="#section-5">1/31/25</a></li>
+  <li><a href="#section-6" id="toc-section-6" class="nav-link" data-scroll-target="#section-6">1/23/25</a></li>
+  <li><a href="#section-7" id="toc-section-7" class="nav-link" data-scroll-target="#section-7">1/16/25</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -256,7 +262,36 @@ window.Quarto = {
 <section id="meeting-summaries" class="level1">
 <h1>Meeting Summaries</h1>
 <section id="section" class="level2">
-<h2 class="anchored" data-anchor-id="section">2/24/25</h2>
+<h2 class="anchored" data-anchor-id="section">3/14/25</h2>
+<ul>
+<li>Writeup of <a href="./gaussian_processes/multioutput/index.html">multioutput GPR</a> is close to finished. Used data from a simulation of hurricane Isabel to test out the approach.</li>
+<li>I’ve been working on parameter estimation for multioutput GPR.
+<ul>
+<li>I’ve been using R.M.S.E. to measure performance on unseen test data.</li>
+<li>My attempts to optimize the log-likelihood function were not giving better performance over naive defaults of <span class="math inline">\(\alpha = 1\)</span> and <span class="math inline">\(\rho = 1\)</span>.</li>
+<li>Due to this, I began testing out the Stan programming language for estimation, which appears to work a bit better (but not improving over the defaults).</li>
+</ul></li>
+<li>Multioutput GPR appears to relate to the idea of the <em>Matrix Normal</em> distribution. In some circumstances, it may be equivalent?</li>
+</ul>
+</section>
+<section id="section-1" class="level2">
+<h2 class="anchored" data-anchor-id="section-1">3/10/25</h2>
+<ul>
+<li>I needed to cancel due to a conflict. We’ll postpone until 3/14.</li>
+</ul>
+</section>
+<section id="section-2" class="level2">
+<h2 class="anchored" data-anchor-id="section-2">3/3/25</h2>
+<ul>
+<li>Still working on code for multioutput GPR.</li>
+<li>Reviewed my CV and discussed topics related to Reflection 2.
+<ul>
+<li>Learned that Tukey was involved in a landmark implementation of the Fast Fourier Transform (FFT).</li>
+</ul></li>
+</ul>
+</section>
+<section id="section-3" class="level2">
+<h2 class="anchored" data-anchor-id="section-3">2/24/25</h2>
 <ul>
 <li>Reading <a href="https://proceedings.neurips.cc/paper_files/paper/2007/file/66368270ffd51418ec58bd793f2d9b1b-Paper.pdf">Bonilla, Chai, &amp; Williams (2007)</a></li>
 <li>Working towards implementing a simulation of <a href="./gaussian_processes/multioutput/index.html">multi-task GPR</a></li>
@@ -266,8 +301,8 @@ window.Quarto = {
 </ul></li>
 </ul>
 </section>
-<section id="section-1" class="level2">
-<h2 class="anchored" data-anchor-id="section-1">2/14/25</h2>
+<section id="section-4" class="level2">
+<h2 class="anchored" data-anchor-id="section-4">2/14/25</h2>
 <ul>
 <li>Reading and searching for more background information about multi-output Gaussian Processes
 <ul>
@@ -287,8 +322,8 @@ v &amp;= f_2(y) + \epsilon_2
 \end{align*}
 \]</span></p>
 </section>
-<section id="section-2" class="level2">
-<h2 class="anchored" data-anchor-id="section-2">1/31/25</h2>
+<section id="section-5" class="level2">
+<h2 class="anchored" data-anchor-id="section-5">1/31/25</h2>
 <ul>
 <li>Working on <a href="./gaussian_processes/index.html">an overview of Gaussian processes</a>
 <ul>
@@ -303,15 +338,15 @@ v &amp;= f_2(y) + \epsilon_2
 </ul></li>
 </ul>
 </section>
-<section id="section-3" class="level2">
-<h2 class="anchored" data-anchor-id="section-3">1/23/25</h2>
+<section id="section-6" class="level2">
+<h2 class="anchored" data-anchor-id="section-6">1/23/25</h2>
 <ul>
 <li>Reviewed sections 1-3. Covered the algorithm that auths present on page N.</li>
 <li>Goal: try to have some workable code to demonstrate KRR and GPR on simulated data. Let’s understand what the methods are producing.</li>
 </ul>
 </section>
-<section id="section-4" class="level2">
-<h2 class="anchored" data-anchor-id="section-4">1/16/25</h2>
+<section id="section-7" class="level2">
+<h2 class="anchored" data-anchor-id="section-7">1/16/25</h2>
 <ul>
 <li>Discussion, admin work</li>
 <li>Decided to cover first 3 sections of __ paper</li>
