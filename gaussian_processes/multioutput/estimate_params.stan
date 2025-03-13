@@ -1,4 +1,8 @@
 functions {
+  // This is an embarrassingly manual implementation.
+  // Stan's maintainers appear to encourage authors to avoid
+  // evaluating Kronecker products as much as possible, to the
+  // point where there isn't a built-in version of this operation.
   matrix kronecker_prod(matrix B, matrix K) {
     int N = rows(K);
     int N2 = N * 2;
@@ -21,7 +25,7 @@ data {
 }
 
 transformed data {
-  real delta = 1e-9;
+  real delta = 1e-9;  // TODO: convert this to a parameter for estimation
   int N2 = 2*N;
   vector[N2] y = to_vector(Y);
   vector[N2] mu = rep_vector(0, N2);

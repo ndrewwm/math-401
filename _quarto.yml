@@ -24,7 +24,7 @@ website:
         href: "./reflections/index.qmd"
         contents:
           - "./reflections/reflection_1.qmd"
-
+          - "./reflections/cv/cv.qmd"
 
 execute:
   freeze: auto

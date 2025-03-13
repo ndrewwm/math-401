@@ -4,6 +4,25 @@ title: "MATH 401"
 
 # Meeting Summaries
 
+## 3/14/25
+
+- Writeup of [multioutput GPR](/gaussian_processes/multioutput/index.qmd) is close to finished. Used data from a simulation of hurricane Isabel to test out the approach.
+- I've been working on parameter estimation for multioutput GPR.
+  - I've been using R.M.S.E. to measure performance on unseen test data.
+  - My attempts to optimize the log-likelihood function were not giving better performance over naive defaults of $\alpha = 1$ and $\rho = 1$.
+  - Due to this, I began testing out the Stan programming language for estimation, which appears to work a bit better (but not improving over the defaults).
+- Multioutput GPR appears to relate to the idea of the *Matrix Normal* distribution. In some circumstances, it may be equivalent?
+
+## 3/10/25
+
+- I needed to cancel due to a conflict. We'll postpone until 3/14.
+
+## 3/3/25
+
+- Still working on code for multioutput GPR.
+- Reviewed my CV and discussed topics related to Reflection 2.
+  - Learned that Tukey was involved in a landmark implementation of the Fast Fourier Transform (FFT).
+
 ## 2/24/25
 
 - Reading [Bonilla, Chai, & Williams (2007)](https://proceedings.neurips.cc/paper_files/paper/2007/file/66368270ffd51418ec58bd793f2d9b1b-Paper.pdf)

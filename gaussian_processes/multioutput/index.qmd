@@ -1,9 +1,9 @@
 ---
-title: Multioutput GPR
+title: Multioutput Gaussian Process Regression (GPR)
 bibliography: multioutput.bib
+filters:
+  - include-code-files
 ---
-
-# Multioutput Gaussian Process Regression (GPR)
 
 ## Motivation: visualizing vector fields
 
@@ -105,16 +105,16 @@ These characteristics are possible within the framework of Gaussian Process Regr
 
 ## Theory and notation
 
-We are working in the space of the two-dimensional real numbers, $\mathbb{R}^2$. Let $S = (\mathbf{X}, \mathbf{Y}) = (x_1, y_1), \dots, (x_N, y_N)$ be our set of *training data*, where $x_i, y_i \in \mathbb{R}^2$. It may be convenient to note $\mathbf{X}, \mathbf{Y} \in \mathbb{R}^{N \times 2}$, and we may refer to $\mathbf{y} = \text{vec}\ Y \in \mathbb{R}^{2N}$ and $\mathbf{x} = \text{vec}\ X \in \mathbb{R}^{2N}$. We will use $\mathbf{X}_* \in \mathbb{R}^{M \times 2}$ to denote a set of *test points*, for which we want to generate predictions. As with the conventions for the training data, we will use $\mathbf{x}_* = \text{vec}\ \mathbf{X}_* \in \mathbb{R}^{2M}$.
+We are working in the space of the two-dimensional real numbers, $\mathbb{R}^2$. Let $S = (\mathbf{X}, \mathbf{Y}) = (x_1, y_1), \dots, (x_N, y_N)$ be our set of *training data*, where $x_i, y_i \in \mathbb{R}^2$. It may be convenient to note $\mathbf{X}, \mathbf{Y} \in \mathbb{R}^{N \times 2}$, and we may refer to $\mathbf{y} = \text{vec}\ Y \in \mathbb{R}^{2N}$ and $\mathbf{x} = \text{vec}\ X \in \mathbb{R}^{2N}$. We will use $\mathbf{X}_* \in \mathbb{R}^{M \times 2}$ to denote a set of *test points*, for which we want to generate predictions.
 
-We are engaged in a *regression* task, i.e., we're attempting to learn the functional relationship $f$ between $\mathbf{X}$ and $\mathbf{Y}$, with an assumption that this relationship has been corrupted to some degree by noise. For the following, I've adapted notation from Chapter 2.2 in the well-known Rasmussen and Williams text to the context of our multidimensional $\mathbf{Y}$ [@williams2006gaussian]. Setting up the problem, we have
+We are engaged in a *regression* task, i.e., we're attempting to learn the functional relationship $f$ between $\mathbf{X}$ and $\mathbf{Y}$, with an assumption that this relationship has been corrupted to some degree by noise. For the following, I've adapted notation from Chapter 2.2 in the well-known Williams and Rasmussen text to the context of our multidimensional $\mathbf{Y}$ [@williams2006gaussian]. Setting up the problem, we have
 $$
 \begin{align*}
 \mathbf{y} &= f(\mathbf{x}) + \epsilon \\
 f &\sim \mathcal{GP}(m, k) \\
 f(\mathbf{x}) &\sim \mathcal{N}_{2N}(\mathbf{0}, \mathbf{K}_{XX})
 \end{align*}
-$$
+$$ {#eq-problem-stmt}
 
 To parse these statements, we assume $f$ is drawn from a Gaussian Process with mean function $m$ and covariance (kernel) function $k$. Thus, our observations $\mathbf{y} = f(\mathbf{x})$ have a multivariate normal probability distribution, parameterized by a *covariance matrix* $\mathbf{K}_{XX}$. By convention, we assume the mean vector is $\mathbf{0}$ (implying that $m$ is the zero function).
 
@@ -130,9 +130,9 @@ $$
 \end{bmatrix} \Biggr) \\
 \mathbf{V} &= \begin{bmatrix} \sigma^2_1 & 0 \\ 0 & \sigma^2_2 \end{bmatrix}
 \end{align*}
-$$
+$$ {#eq-joint-distribution-for-y-and-ystar}
 
-Here, $\sigma^2_1, \sigma^2_2 > 0$ represent the independent and additive noise associated with each of our outcome's components. The $\otimes$ symbol denotes the Kronecker product. From this joint distribution, we can derive the conditional distribution for $\mathbf{y}_*$:
+Here, $\sigma^2_1, \sigma^2_2 > 0$ represent the independent and additive noise associated with each of our outcome's components. The $\otimes$ symbol denotes the Kronecker product. Each of the sub-matrices, such as $\mathbf{K}_{XX_*}$, are defined below in @eq-KxX. From this joint distribution, we can derive the conditional distribution for $\mathbf{y}_*$:
 
 $$
 \begin{align*}
@@ -140,7 +140,7 @@ $$
 \bar{\mathbf{f}}_* &= \mathbb{E}[\mathbf{y}_* | \mathbf{X}, \mathbf{y}, \mathbf{X_*}] = \mathbf{K}_{X_*X}(\mathbf{K}_{XX} + \mathbf{V} \otimes \mathbf{I}_N)^{-1} \mathbf{y} \\
 \text{cov}(\mathbf{f}_*) &= \mathbf{K}_{X_*X_*} - \mathbf{K}_{X_*X}(\mathbf{K}_{XX} + \mathbf{V} \otimes \mathbf{I}_N)^{-1}\mathbf{K}_{XX_*} \\
 \end{align*}
-$$
+$$ {#eq-conditional-distribution-for-ystar}
 
 We will now work through how each piece of our distribution is defined. Let $k: \mathbb{R}^2 \times \mathbb{R}^2 \to \mathbb{R}$ be a (scalar) kernel function, defined as
 $$
@@ -171,6 +171,8 @@ $$
 \mathbf{K}_{XX} = \mathbf{B} \otimes \mathbf{k}_{XX}.
 $$ {#eq-KXX}
 
+Alvarez et al. identifies this approach of combining the kernel matrix with a similarity matrix via a Kronecker product as the "Intrinsic Coregionalization Model"; see equation (21) in section 4.2.2 [@alvarez2012kernels]. They describe this approach as being more restrictive, but simpler (to implement, I assume).
+
 We can now define the other pieces needed to establish the covariance matrix used for the joint distribution of $\begin{bmatrix} \mathbf{y} \\ \mathbf{y}_* \end{bmatrix}$:
 
 $$
@@ -181,9 +183,9 @@ $$
 \end{align*}
 $$ {#eq-KxX}
 
-# Training and test data
+## Training and test data
 
-Here, using the Hurricane Isabel data visualized above, we generate $S$, defined as a 30% random sample of observations.
+Here, using the Hurricane Isabel data visualized above, we generate $S$, defined as a 30% random sample of observations. Here `d` is our subset of the `isabel` dataset, at `z = 10.035`.
 
 ```{r}
 # Set up the training data
@@ -197,7 +199,7 @@ y <- as.vector(Y)
 N <- nrow(X)
 ```
 
-# Kernel functions
+## Kernel functions
 
 This section defines R functions used to compute $\mathbf{K}_{XX}$.
 
@@ -260,13 +262,27 @@ k_xX <- function(x, X, alpha = 1, rho = 1) {
 }
 ```
 
-# Estimation
+## Estimation
+
+::: {.callout-note collapse="true"}
+
+### Estimation of $\alpha$ and $\rho$, via Stan
+
+This section contains the Stan code used to estimate hyperparameter values using the probabilistic programming language, [Stan](https://mc-stan.org/). Within the scoped blocks of the Stan program we establish the model for $f(x)$ discussed in @eq-problem-stmt, and attempt to find plausible values for $\rho$ and $\alpha$ via Hamiltonian Monte-Carlo (HMC). We place prior distributions on each hyperparameter. At this time, they are set to be
+$$
+\begin{align*}
+  \rho &\sim \mathcal{N}(\mu = 0.8, \sigma = 0.5) \\
+  \alpha &\sim \mathcal{N}(\mu = 1, \sigma = 1).
+\end{align*}
+$$
+
+Constraints are used within Stan to require these parameters be > 0.
 
 <!-- requires: quarto add quarto-ext/include-code-files -->
-<!-- ```{.stan include="estimate_params.stan"}
-``` -->
+```{.stan include="estimate_params.stan"}
+```
 
-::: {.callout-caution collapse="true"}
+
 
 ```{r}
 #| eval: false
@@ -292,7 +308,7 @@ fit <- stan(
 fit
 ```
 
-# Evaluation
+## Evaluation
 
 ```{r}
 K_XX <- k_XX(X, 1.21, 0.85, eps) #theta$par[1], theta$par[2], theta$par[3])
