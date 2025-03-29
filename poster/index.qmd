@@ -1,0 +1,109 @@
+---
+title: Vector-valued Gaussian Processes
+format:
+  poster-typst:
+    size: "36x24"
+    poster-authors: "Andrew Moore, Grady Wright"
+    departments: "Department of Mathematics"
+    institution-logo: "./images/boisestate-laligned-logo.png"
+    footer-text: "Spring 2025, Senior Showcase"
+    footer-url: "https://ndrewwm.github.io/math-401"
+    footer-emails: "andrewmoore1@u.boisestate.edu"
+    footer-color: "0033A0" #"D64309"
+    keywords: ["Gaussian Processes", "Statistics", "Velocity Fields"]
+---
+
+# Overview of Gaussian Processes
+
+Gaussian processes are ...
+
+## Multivariate Gaussian (Multivariate Normal) Distribution
+
+```{=typst}
+
+The multivariate normal distribution is used to model _random vectors_ (vectors whose elements are jointly distributed random variables). This distribution is parameterized by a _mean vector_ $bold(mu)$ and _covariance matrix_ $bold(Sigma)$. Suppose $bold(x) in RR^N$ is drawn from a multivariate Gaussian distribution. Then, we can write the following:
+
+$ bold(x) in RR^N &tilde.op cal(N)_N (bold(mu), bold(Sigma)) \ 
+  bold(mu) in RR^N &= (mu_1, mu_2, ..., mu_N)^top = (EE(x_1), EE(x_2), ..., EE(x_N))^top \ 
+  bold(Sigma) in RR^(N times N) &= EE((bold(x) - mu)(bold(x) - mu)^top) = [op("cov")(x_i, x_j)]_(i j)^N \
+  x_i &tilde.op cal(N)(mu_i, bold(Sigma)_(i i)) $
+```
+
+## Gaussian Processes
+
+```{=typst}
+
+A _Gaussian Process_ (GP) describes a probability distribution over a (possibly infinite) collection of random variables, such that any finite collection of those random variables is distributed by the multivariate Gaussian distribution. GPs are characterized by a _mean function_ $m$ and _covariance (kernel) function_ $k$. By convention, it's assumed that the mean function is $bold(0)$.
+
+We will focus on the _squared exponential kernel_:
+
+$ k(x, x') = alpha op("exp")(-1/(2rho) ||x - x'||^2), $
+
+where $|| dot ||$ is the Euclidean norm. The squared exponential kernel has two _hyperparameters_, $alpha$ and $rho$, which control the variance scale and length scale of functions drawn from the GP. Typically, $alpha$ is set to 1, and $rho$ is specified based on domain knowledge or is estimated from observed data.
+```
+
+ This choice of kernel function reflects the assumption that the covariance between two points (or vectors) $x$ and $x'$ decays exponentially based on the distance between them.
+
+## Gaussian Process Regression
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim aeque doleamus animo, cum corpore dolemus, fieri.
+
+1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do.
+1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do.
+1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim aeque doleamus animo, cum corpore dolemus, fieri tamen permagna accessio potest, si aliquod aeternum et infinitum impendere malum nobis opinemur. Quod idem licet transferre in voluptatem, ut.
+
+| Lorem ipsum dolor sit. | Lorem ipsum. | Lorem ipsum. |
+|------------------------|--------------|--------------|
+| Lorem ipsum dolor.     | Lorem ipsum. | $\alpha$     |
+| Lorem ipsum.           | Lorem ipsum. | $\beta$      |
+| Lorem.                 | Lorem.       | $\gamma$     |
+| Lorem ipsum dolor.     | Lorem.       | $\theta$     |
+
+: Lorem ipsum dolor sit amet {#tbl-1}
+
+Lorem @tbl-1 ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim aeque doleamus animo, cum corpore dolemus, fieri tamen permagna accessio potest, si aliquod aeternum et infinitum impendere malum nobis opinemur. Quod idem licet transferre in voluptatem, ut postea variari voluptas distinguique possit, augeri amplificarique non possit. At etiam Athenis, ut e patre audiebam facete et urbane Stoicos irridente, statua est in quo a nobis philosophia defensa et.
+
+## Lorem ipsum dolor sit amet
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim aeque doleamus animo, cum corpore dolemus, fieri tamen permagna accessio potest, si aliquod aeternum et infinitum impendere malum nobis opinemur. Quod idem licet transferre in voluptatem, ut postea variari voluptas distinguique possit, augeri amplificarique non possit. At etiam Athenis, ut e patre.
+
+![Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do.](./images/Standard_lettering.png){width="100%"}
+
+# Lorem ipsum dolor.
+
+::: {.block fill="luma(230)" inset="8pt" radius="4pt"}
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim aeque doleamus animo, cum corpore dolemus, fieri tamen permagna accessio potest, si aliquod aeternum et infinitum impendere malum nobis opinemur. Quod idem licet transferre in voluptatem, ut postea variari voluptas distinguique possit, augeri amplifi- carique non possit. At etiam Athenis, ut e patre audiebam facete et urbane Stoicos irridente, statua est in quo a nobis philosophia defensa et.
+
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do.
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do.
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do.
+
+:::
+
+## Lorem ipsum etiam
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim aeque doleamus animo, cum corpore dolemus, fieri tamen permagna accessio potest, si aliquod aeternum et infinitum impendere malum nobis opinemur. 
+
+## Lorem ipsum possimus
+
+Quod idem licet transferre in voluptatem, ut postea variari voluptas distinguique possit, augeri amplificarique non possit. At etiam Athenis, ut e patre audiebam facete et urbane Stoicos irridente, statua est in quo a nobis philosophia defensa et collaudata est, cum id, quod maxime placeat, facere possimus, omnis voluptas assumenda est, om- nis dolor repellendus. Temporibus autem quibusdam et.
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim aeque doleamus animo, cum corpore dolemus, fieri tamen permagna accessio potest, si aliquod aeternum et infinitum impendere malum nobis opinemur. 
+
+![Temperature and ozone level](images/fig-airquality-1.svg)
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim aeque doleamus animo, cum corpore dolemus, fieri tamen permagna accessio potest, si aliquod aeternum et infinitum impendere malum nobis opinemur. Quod idem licet transferre in voluptatem, ut postea variari voluptas distinguique possit, augeri amplificarique non possit. At etiam Athenis, ut e patre audiebam facete et urbane Stoicos irridente, statua est in quo a nobis philosophia defensa et collaudata est, cum id, quod maxime placeat, facere possimus, omnis voluptas assumenda est, om- nis dolor repellendus. Temporibus autem quibusdam et.
+
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do.
+  - Lorem ipsum dolor sit amet.
+  -  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore.
+  - Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed. 
+  - Lorem ipsum dolor sit amet, consectetur adipiscing.
+
+$$
+\sum_(k=1)^n k = \frac{(n(n+1))}{2} = \frac{(n^2 + n)}{2}
+$$
