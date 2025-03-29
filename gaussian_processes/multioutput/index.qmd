@@ -214,7 +214,7 @@ This section defines R functions used to compute $\mathbf{K}_{XX}$.
 #' @param rho length-scale, rho > 0
 #' @return numeric
 k <- function(xi, xj, alpha = 1, rho = 1) {
-  alpha^2 * exp(-norm(xi - xj, type = "2") / (2 * rho^2))
+  alpha^2 * exp(-norm(xi - xj, type = "2")^2 / (2 * rho^2))
 }
 
 #' Compute the kernel matrix, given a set of input vectors
@@ -290,13 +290,15 @@ Constraints are used within Stan to require these parameters be > 0.
 library(rstan)
 
 fit <- stan(
-  file = "./estimate_params.stan",
+  file = "./icm.stan",
   model_name = "Parameter estimation, Isabel GPR",
-  data = lst(N, X, Y),
+  data = lst(N, X, Y, B = cor(Y)),
   chains = 2,
-  iter = 1000,
+  iter = 800,
   warmup = 400,
-  seed = 123
+  seed = 123,
+  cores = 2,
+  verbose = TRUE
 )
 ```
 
@@ -311,8 +313,8 @@ fit
 ## Evaluation
 
 ```{r}
-K_XX <- k_XX(X, 1.21, 0.85, eps) #theta$par[1], theta$par[2], theta$par[3])
-B <- 1/nrow(X) * t(Y) %*% solve(K_XX) %*% Y
+K_XX <- k_XX(X, 1, 0.84, 1e-9) #theta$par[1], theta$par[2], theta$par[3])
+B <- cor(Y)
 Sigma <- kronecker(B, K_XX)
 Si <- solve(Sigma) %*% y
 
@@ -332,13 +334,25 @@ f <- f |>
   bind_cols(d) |>
   mutate(col = factor(as.numeric(index %in% S$index), levels = 0:1, labels = c("Test", "Train")))
 
-p1 <- p0 +
+p1 <- ggplot() +
   geom_segment(
-    data = f,
-    aes(x, y, xend = x + vx_h/50, yend = y + vy_h/50, color = col),
+    data = f, #|> filter(col == "Test"),
+    aes(x, y, xend = x + vx/50, yend = y + vy/50),
     arrow = arrow(length = unit(0.1, "cm")),
     linewidth = 0.25,
-    alpha = 0.8
+    alpha = 0.3
+  ) +
+  geom_segment(
+    data = f |> filter(col == "Test"),
+    aes(x, y, xend = x + vx_h/50, yend = y + vy_h/50, color = col),
+    arrow = arrow(length = unit(0.1, "cm")),
+    linewidth = 0.25
+  ) +
+  geom_segment(
+    data = f |> filter(col == "Train"),
+    aes(x, y, xend = x + vx_h/50, yend = y + vy_h/50, color = col),
+    arrow = arrow(length = unit(0.1, "cm")),
+    linewidth = 0.25
   ) +
   scale_color_scico_d(palette = "imola", name = "") +
   labs(x = "Longitude", y = "Latitude") +

@@ -38,12 +38,12 @@ transformed data {
 
 parameters {
   real<lower=0> rho;    // Length-scale
-  real<lower=0> alpha;  // Variance scale
 }
 
 model {
-  matrix[N, N] K_xx = gp_exp_quad_cov(x, alpha, rho);
-  matrix[2, 2] B = 1/N * Y' * inverse(K_xx) * Y;
+  // Alpha is fixed to 1
+  matrix[N, N] K_xx = gp_exp_quad_cov(x, 1, rho);
+  matrix[2, 2] B = 1/N * Y' * (K_xx \ Y);
 
   matrix[N2, N2] K = kronecker_prod(B, K_xx);
   for (n in 1:N2) {
@@ -53,6 +53,5 @@ model {
   matrix[N2, N2] L_K = cholesky_decompose(K);
 
   rho ~ normal(0.8, 0.5);
-  alpha ~ normal(1, 1);
   y ~ multi_normal_cholesky(mu, L_K);
 }
