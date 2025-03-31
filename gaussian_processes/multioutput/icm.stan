@@ -18,6 +18,7 @@ data {
 
 transformed data {
   int N2 = N*2;
+  matrix[N, N] I_N = identity_matrix(N);
   vector[N2] y = to_vector(Y);
   vector[N2] mu = rep_vector(0, N2);
 
@@ -30,23 +31,24 @@ transformed data {
 parameters {
   real<lower=0> alpha;
   real<lower=0> rho;
-  real<lower=0> sigma;
+  real<lower=0> sigma1;
+  real<lower=0> sigma2;
 }
 
 model {
   alpha ~ std_normal();
   rho ~ inv_gamma(5, 5);
-  sigma ~ std_normal();
-  real sq_sigma = square(sigma);
+  sigma1 ~ std_normal();
+  sigma2 ~ std_normal();
+
+  matrix[2, 2] Sigma = identity_matrix(2);
+  Sigma[1, 1] = square(sigma1);
+  Sigma[2, 2] = square(sigma2);
 
   matrix[N, N] k_XX = gp_exp_quad_cov(x, alpha, rho);
-  matrix[N2, N2] K = kronecker_prod(k_XX, B, N, N2);
-
-  for (n in 1:N2) {
-    K[n, n] += sq_sigma;
-  }
-
+  matrix[N2, N2] K = kronecker_prod(k_XX, B, N, N2) + kronecker_prod(I_N, Sigma, N, N2);
   matrix[N2, N2] L_K = cholesky_decompose(K);
+
   y ~ multi_normal_cholesky(mu, L_K);
 }
 
