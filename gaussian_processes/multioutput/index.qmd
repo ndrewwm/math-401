@@ -136,20 +136,20 @@ Here, $\sigma^2_1, \sigma^2_2 > 0$ represent the independent and additive noise 
 
 $$
 \begin{align*}
-\mathbf{y}_* | \mathbf{X}, \mathbf{y}, \mathbf{X_*} &\sim \mathcal{N}_{2M}(\bar{\mathbf{f}}_*,\ \text{cov}(\mathbf{f}_*)) \\
-\bar{\mathbf{f}}_* &= \mathbb{E}[\mathbf{y}_* | \mathbf{X}, \mathbf{y}, \mathbf{X_*}] = \mathbf{K}_{X_*X}(\mathbf{K}_{XX} + \mathbf{V} \otimes \mathbf{I}_N)^{-1} \mathbf{y} \\
-\text{cov}(\mathbf{f}_*) &= \mathbf{K}_{X_*X_*} - \mathbf{K}_{X_*X}(\mathbf{K}_{XX} + \mathbf{V} \otimes \mathbf{I}_N)^{-1}\mathbf{K}_{XX_*} \\
+\mathbf{y}_* | \mathbf{X}, \mathbf{y}, \mathbf{X_*} &\sim \mathcal{N}_{2M}(\hat{\mu},\ \hat{\mathbf{\Sigma}}) \\
+\hat{\mathbf{\mu}} &= \mathbb{E}[\mathbf{y}_* | \mathbf{X}, \mathbf{y}, \mathbf{X_*}] = \mathbf{K}_{X_*X}(\mathbf{K}_{XX} + \mathbf{V} \otimes \mathbf{I}_N)^{-1} \mathbf{y} \\
+\hat{\mathbf{\Sigma}} &= \mathbf{K}_{X_*X_*} - \mathbf{K}_{X_*X}(\mathbf{K}_{XX} + \mathbf{V} \otimes \mathbf{I}_N)^{-1}\mathbf{K}_{XX_*} \\
 \end{align*}
 $$ {#eq-conditional-distribution-for-ystar}
 
 We will now work through how each piece of our distribution is defined. Let $k: \mathbb{R}^2 \times \mathbb{R}^2 \to \mathbb{R}$ be a (scalar) kernel function, defined as
 $$
-k(x_i, x_j) = \alpha^2 \cdot \exp\Bigl(-\frac{1}{2\rho^2} \| x_i - x_j \|_2 \Bigl),
+k(x_i, x_j) = \alpha^2 \cdot \exp\Bigl(-\frac{1}{2\rho^2} \| x_i - x_j \|^2 \Bigl),
 $$ {#eq-k}
 
-where $\alpha, \rho > 0$, and $\| \cdot \|_2$ is the Euclidean norm. This is also known as the squared exponential function, or the radial basis function. The parameter $\alpha$ controls ..., while $\rho$ controls the length-scale. Let $\mathbf{k}_{XX} \in \mathbb{R}^{N \times N}$, the covariance matrix between all points in $\mathbf{X}$, be defined as
+where $\alpha, \rho > 0$, and $\| \cdot \|$ is the Euclidean (L2) norm. This is also known as the squared exponential function, or the radial basis function. The parameter $\alpha$ controls ..., while $\rho$ controls the length-scale. Let $k(\mathbf{X}, \mathbf{X}) \in \mathbb{R}^{N \times N}$, the covariance matrix between all points in $\mathbf{X}$, be defined as
 $$
-\mathbf{k}_{XX} = (k(x_i, x_j))_{i,j}^N = \begin{bmatrix}
+k(\mathbf{X}, \mathbf{X}) = (k(x_i, x_j))_{i,j}^N = \begin{bmatrix}
   k(x_1, x_1) & \cdots & k(x_1, x_N) \\
   \vdots & \ddots & \vdots \\
   k(x_N, x_1) & \cdots & k(x_N, x_N)
@@ -158,17 +158,14 @@ $$ {#eq-kXX}
 
 Let $\mathbf{B} \in \mathbb{R}^{2 \times 2}$, the matrix of similarities between the outputs $\mathbf{Y}$, be defined as
 $$
-\mathbf{B} = \begin{bmatrix}
-  b_{11} & b_{12} \\
-  b_{21} & b_{22}
-\end{bmatrix} = \frac{1}{N} \mathbf{Y}^\top \mathbf{k}_{XX} \mathbf{Y}.
+\mathbf{B} = \text{corr}(\mathbf{Y}) = \Biggl( \frac{\langle \mathbf{y}_i - \bar{\mathbf{y}}_i,\ \mathbf{y}_j - \bar{\mathbf{y}}_j \rangle}{\| \mathbf{y}_i - \bar{\mathbf{y}}_i \| \| \mathbf{y}_j - \bar{\mathbf{y}}_j \| } \Biggr)^{2,2}_{i,j},
 $$ {#eq-B}
 
-The expression for $\mathbf{B}$ comes from Bonilla et al. [@bonilla2007multi], in section 2.3 (the authors use the notation $K^f$ and $K^x$ instead of $\mathbf{B}$ and $\mathbf{k}_{XX}$, respectively).
+where $\mathbf{y}_i$ is the i-th column of $\mathbf{Y}$ and $\bar{\mathbf{y}}_i$ is the arithmetic mean of $\mathbf{y}_i$. The operation in the numerator, $\langle \cdot, \cdot \rangle$, denotes the standard inner product. Each entry $b_{i,j}$ of $\mathbf{B}$ is the Pearson correlation coefficient, as estimated from our training data.
 
 Let $\mathbf{K}_{XX} \in \mathbb{R}^{2N \times 2N}$ be defined as
 $$
-\mathbf{K}_{XX} = \mathbf{B} \otimes \mathbf{k}_{XX}.
+\mathbf{K}_{XX} = \mathbf{B} \otimes k(\mathbf{X}, \mathbf{X}).
 $$ {#eq-KXX}
 
 Alvarez et al. identifies this approach of combining the kernel matrix with a similarity matrix via a Kronecker product as the "Intrinsic Coregionalization Model"; see equation (21) in section 4.2.2 [@alvarez2012kernels]. They describe this approach as being more restrictive, but simpler (to implement, I assume).
@@ -177,9 +174,9 @@ We can now define the other pieces needed to establish the covariance matrix use
 
 $$
 \begin{align*}
-  \mathbf{K}_{X_*X} &= \mathbf{B} \otimes (k(x_{*i}, x_j))_{i,j=1}^{M,N} \in \mathbb{R}^{2M \times 2N} \\
-  \mathbf{K}_{XX_*} &= \mathbf{K}_{X_*X}^\top \in \mathbb{R}^{2N \times 2M} \\
-  \mathbf{K}_{X_*X_*} &= \mathbf{B} \otimes (k(x_{*i}, x_{*j}))_{i,j=1}^{M} \in \mathbb{R}^{2M \times 2M}.
+  \mathbf{K}_{X_*X_*} &= \mathbf{B} \otimes k(\mathbf{X}_*, \mathbf{X}_*) = \mathbf{B} \otimes (k(x_{*i}, x_{*j}))_{i,j=1}^{M} \in \mathbb{R}^{2M \times 2M} \\
+  \mathbf{K}_{X_*X} &= \mathbf{B} \otimes k(\mathbf{X}_*, \mathbf{X}) = \mathbf{B} \otimes (k(x_{*i}, x_j))_{i,j=1}^{M,N} \in \mathbb{R}^{2M \times 2N} \\
+  \mathbf{K}_{XX_*} &= \mathbf{K}_{X_*X}^\top \in \mathbb{R}^{2N \times 2M}.
 \end{align*}
 $$ {#eq-KxX}
 
@@ -196,7 +193,15 @@ S <- d |>
 X <- S |> select(x, y) |> as.matrix()
 Y <- S |> select(vx, vy) |> as.matrix()
 y <- as.vector(Y)
+B <- cor(Y)
 N <- nrow(X)
+
+# Pull out test cases
+Z <- d |>
+  anti_join(S, by = "index") |>
+  select(x, y, vx, vy, index)
+
+X_star <- Z |> select(x, y) |> as.matrix()
 ```
 
 ## Kernel functions
@@ -262,112 +267,310 @@ k_xX <- function(x, X, alpha = 1, rho = 1) {
 }
 ```
 
-## Estimation
+## Hyperparameter Inference
 
-::: {.callout-note collapse="true"}
+### Estimation via Stan
 
-### Estimation of $\alpha$ and $\rho$, via Stan
-
-This section contains the Stan code used to estimate hyperparameter values using the probabilistic programming language, [Stan](https://mc-stan.org/). Within the scoped blocks of the Stan program we establish the model for $f(x)$ discussed in @eq-problem-stmt, and attempt to find plausible values for $\rho$ and $\alpha$ via Hamiltonian Monte-Carlo (HMC). We place prior distributions on each hyperparameter. At this time, they are set to be
-$$
-\begin{align*}
-  \rho &\sim \mathcal{N}(\mu = 0.8, \sigma = 0.5) \\
-  \alpha &\sim \mathcal{N}(\mu = 1, \sigma = 1).
-\end{align*}
-$$
-
-Constraints are used within Stan to require these parameters be > 0.
-
-<!-- requires: quarto add quarto-ext/include-code-files -->
-```{.stan include="estimate_params.stan"}
-```
-
-
+This section contains the `rstan` code used to estimate hyperparameter values using the probabilistic programming language, [Stan](https://mc-stan.org/). Within the scoped blocks of the Stan program we establish the model for $f(x)$ discussed in @eq-problem-stmt, and attempt to find plausible values for $\rho$ and $\alpha$ via Hamiltonian Monte-Carlo (HMC). We place prior distributions on each hyperparameter. Constraints are used within Stan to require these parameters be > 0.
 
 ```{r}
 #| eval: false
+#| code-fold: true
 
 library(rstan)
 
-fit <- stan(
-  file = "./icm.stan",
-  model_name = "Parameter estimation, Isabel GPR",
-  data = lst(N, X, Y, B = cor(Y)),
-  chains = 2,
-  iter = 800,
-  warmup = 400,
-  seed = 123,
-  cores = 2,
-  verbose = TRUE
-)
-```
-
-:::
-
-```{r}
-#| eval: false
-
-fit
-```
-
-## Evaluation
-
-```{r}
-K_XX <- k_XX(X, 1, 0.84, 1e-9) #theta$par[1], theta$par[2], theta$par[3])
-B <- cor(Y)
-Sigma <- kronecker(B, K_XX)
-Si <- solve(Sigma) %*% y
-
-f <- data.frame()
-for (i in 1:nrow(d)) {
-  x_star <- as.matrix(d[i, 1:2])
-  K_star <- apply(X[, 1:2], 1, function(x) k(x_star, x))
-  f_star <- t(kronecker(B, K_star)) %*% Si |> t()
-  f <- rbind(f, f_star)
+fit_stan <- function(filepath, model_name = "", data, verbose = FALSE) {
+  stan(
+    file = filepath,
+    model_name = model_name,
+    data = data,
+    chains = 2,
+    iter = 800,
+    warmup = 400,
+    seed = 123,
+    cores = 2,
+    verbose = verbose
+  )
 }
+
+# ICM
+# fit_stan("./icm.stan", "Isabel GPR, ICM: rho", lst(N, X, Y, B))
+# fit_stan("./icm_w_alpha.stan", "Isabel GPR, ICM: alpha & rho", lst(N, X, Y, B))
+# fit_stan("./icm_w_alpha_and_sigma.stan", "Isabel GPR, ICM: alpha, rho, & sigma", lst(N, X, Y, B))
+
+# Independent GPs
+# fit_stan("./icm.stan", "Isabel GPR, Indep: rho", lst(N, X, Y, B = diag(1, 2)))
+# fit_stan("./icm_w_alpha.stan", "Isabel GPR, Indep: alpha & rho", lst(N, X, Y, B = diag(1, 2)))
+fit_stan("./icm_w_alpha_and_sigma.stan", "Isabel GPR, Indep: alpha, rho, & sigma", lst(N, X, Y, B = diag(1, 2)))
 ```
 
+### Evaluation
+
+This section defines R functions used to compute the analytical posterior distribution for each parameter specification, and summarize the results with a figure and performance with respect to RMSE.
+
 ```{r}
-f <- f |>
-  tibble() |>
-  set_names(c("vx_h", "vy_h")) |>
-  bind_cols(d) |>
-  mutate(col = factor(as.numeric(index %in% S$index), levels = 0:1, labels = c("Test", "Train")))
+#| code-fold: true
 
-p1 <- ggplot() +
-  geom_segment(
-    data = f, #|> filter(col == "Test"),
-    aes(x, y, xend = x + vx/50, yend = y + vy/50),
-    arrow = arrow(length = unit(0.1, "cm")),
-    linewidth = 0.25,
-    alpha = 0.3
-  ) +
-  geom_segment(
-    data = f |> filter(col == "Test"),
-    aes(x, y, xend = x + vx_h/50, yend = y + vy_h/50, color = col),
-    arrow = arrow(length = unit(0.1, "cm")),
-    linewidth = 0.25
-  ) +
-  geom_segment(
-    data = f |> filter(col == "Train"),
-    aes(x, y, xend = x + vx_h/50, yend = y + vy_h/50, color = col),
-    arrow = arrow(length = unit(0.1, "cm")),
-    linewidth = 0.25
-  ) +
-  scale_color_scico_d(palette = "imola", name = "") +
-  labs(x = "Longitude", y = "Latitude") +
-  theme(legend.position = "bottom")
+get_posterior <- function(X, y, B, Z, alpha = 1, rho = 1, sigma = c(1e-9, 1e-9)) {
+  N <- nrow(X)
+  M <- nrow(Z)
 
-p1
+  V <- diag(sigma^2, 2)
+  K_XX <- kronecker(B, k_XX(X, alpha, rho, NULL)) + kronecker(V, diag(N))
+  K_ZX <- kronecker(B, k_xX(Z, X, alpha, rho))
+  K_ZZ <- kronecker(B, k_XX(Z, alpha, rho, NULL))
+
+  mu <- K_ZX %*% solve(K_XX) %*% y
+  mu <- matrix(mu, M, 2)
+  Sigma <- K_ZZ - K_ZX %*% solve(K_XX) %*% t(K_ZX)
+
+  return(lst(mu, Sigma))
+}
 
 rmse <- function(y, yhat) {
   sqrt(1/length(y) * sum((yhat - y)^2))
 }
 
-f |>
-  group_by(col) |>
-  summarize(
-    rmse_vx = rmse(vx, vx_h),
-    rmse_vy = rmse(vy, vy_h)
-  )
+get_evaluation <- function(mu, Z, S) {
+  out <- Z |>
+    bind_cols(as_tibble(mu) |> set_names(c("vx_h", "vy_h"))) |>
+    select(x, y, vx, vy, vx_h, vy_h, index) |>
+    bind_rows(S) |>
+    mutate(
+      col = factor(
+        as.numeric(index %in% S$index),
+        levels = 0:1,
+        labels = c("Test", "Train")
+      )
+    )
+
+  fig <- ggplot() +
+    geom_segment(
+      data = out,
+      aes(x, y, xend = x + vx/50, yend = y + vy/50),
+      arrow = arrow(length = unit(0.1, "cm")),
+      linewidth = 0.25,
+      alpha = 0.3
+    ) +
+    geom_segment(
+      data = filter(out, col == "Train"),
+      aes(x, y, xend = x + vx/50, yend = y + vy/50, color = col),
+      arrow = arrow(length = unit(0.1, "cm")),
+      linewidth = 0.25
+    ) +
+    geom_segment(
+      data = filter(out, col == "Test"),
+      aes(x, y, xend = x + vx_h/50, yend = y + vy_h/50, color = col),
+      arrow = arrow(length = unit(0.1, "cm")),
+      linewidth = 0.25
+    ) +
+    scale_color_scico_d(palette = "imola", name = "", direction = -1) +
+    labs(x = "Longitude", y = "Latitude") +
+    theme(legend.position = "bottom")
+
+  perf <- out |>
+    filter(col == "Test") |>
+    summarize(
+      rmse_vx = rmse(vx, vx_h),
+      rmse_vy = rmse(vy, vy_h)
+    )
+
+  return(lst(fig, perf))
+}
+```
+
+### ICM
+
+::: {.panel-tabset}
+
+#### Naive Parameters
+
+```{r}
+#| echo: false
+naive <- get_posterior(X, y, B, X_star)
+e_naive <- get_evaluation(naive$mu, Z, S)
+```
+
+| $\alpha$ | $\rho$ | $\sigma_1$ | $\sigma_2$ |
+| :------- | :----- | :--------- | :--------- |
+| 1.00 | 1.00 | 1e-9 | 1e-9 |
+
+```{r}
+#| echo: false
+e_naive$perf |> knitr::kable()
+```
+
+```{r}
+#| echo: false
+e_naive$fig
+```
+
+#### Inference on $\rho$
+
+```{r}
+#| echo: false
+w_rho <- get_posterior(X, y, B, X_star, alpha = 1, rho = 0.84)
+e_rho <- get_evaluation(w_rho$mu, Z, S)
+```
+
+| $\alpha$ | $\rho$ | $\sigma_1$ | $\sigma_2$ |
+| :------- | :----- | :--------- | :--------- |
+| 1.00 | 0.84 | 1e-9 | 1e-9 |
+
+```{r}
+#| echo: false
+e_rho$perf |> knitr::kable()
+```
+
+```{r}
+#| echo: false
+e_rho$fig
+```
+
+```{.stan include="./icm.stan"}
+```
+
+#### Inference on $\alpha$ and $\rho$
+
+```{r}
+#| echo: false
+w_alpha <- get_posterior(X, y, B, X_star, alpha = 8.34, rho = 0.98)
+e_alpha <- get_evaluation(w_alpha$mu, Z, S)
+```
+
+| $\alpha$ | $\rho$ | $\sigma_1$ | $\sigma_2$ |
+| :------- | :----- | :--------- | :--------- |
+| 8.34 | 0.98 | 1e-9 | 1e-9 |
+
+```{r}
+#| echo: false
+e_alpha$perf |> knitr::kable()
+```
+
+```{r}
+#| echo: false
+e_alpha$fig
+```
+
+```{.stan include="./icm_w_alpha.stan"}
+```
+
+#### Inference on $\alpha$, $\rho$, and $\sigma$
+
+```{r}
+#| echo: false
+w_sigma <- get_posterior(X, y, B, X_star, alpha = 0.79, rho = 5.10, sigma = c(6.95, 9.58))
+e_sigma <- get_evaluation(w_sigma$mu, Z, S)
+```
+
+| $\alpha$ | $\rho$ | $\sigma_1$ | $\sigma_2$ |
+| :------- | :----- | :--------- | :--------- |
+| 8.34 | 0.98 | 6.95 | 9.58 |
+
+```{r}
+#| echo: false
+e_sigma$perf |> knitr::kable()
+```
+
+```{r}
+#| echo: false
+e_sigma$fig
+```
+
+```{.stan include="./icm_w_alpha_and_sigma.stan"}
+```
+
+:::
+
+### Independent GPs
+
+::: {.panel-tabset}
+
+#### Naive Parameters
+
+```{r}
+#| echo: false
+naive <- get_posterior(X, y, B = diag(1, 2), X_star)
+e_naive <- get_evaluation(naive$mu, Z, S)
+```
+
+| $\alpha$ | $\rho$ | $\sigma_1$ | $\sigma_2$ |
+| :------- | :----- | :--------- | :--------- |
+| 1.00 | 1.00 | 1e-9 | 1e-9 |
+
+```{r}
+#| echo: false
+e_naive$perf |> knitr::kable()
+```
+
+```{r}
+#| echo: false
+e_naive$fig
+```
+
+#### Inference on $\rho$
+
+```{r}
+#| echo: false
+w_rho <- get_posterior(X, y, B = diag(1, 2), X_star, rho = 0.85)
+e_rho <- get_evaluation(w_rho$mu, Z, S)
+```
+
+| $\alpha$ | $\rho$ | $\sigma_1$ | $\sigma_2$ |
+| :------- | :----- | :--------- | :--------- |
+| 1.00 | 0.85 | 1e-9 | 1e-9 |
+
+```{r}
+#| echo: false
+e_rho$perf |> knitr::kable()
+```
+
+```{r}
+#| echo: false
+e_rho$fig
+```
+
+
+#### Inference on $\alpha$ and $\rho$
+
+```{r}
+#| echo: false
+w_alpha <- get_posterior(X, y, B, X_star, alpha = 8.12, rho = 0.99)
+e_alpha <- get_evaluation(w_alpha$mu, Z, S)
+```
+
+| $\alpha$ | $\rho$ | $\sigma_1$ | $\sigma_2$ |
+| :------- | :----- | :--------- | :--------- |
+| 8.12 | 0.99 | 1e-9 | 1e-9 |
+
+```{r}
+#| echo: false
+e_alpha$perf |> knitr::kable()
+```
+
+```{r}
+#| echo: false
+e_alpha$fig
+```
+
+#### Inference on $\alpha$, $\rho$, and $\sigma$
+
+```{r}
+#| echo: false
+w_sigma <- get_posterior(X, y, B, X_star, alpha = 8.12, rho = 0.99, sigma = c(6.99, 9.68))
+e_sigma <- get_evaluation(w_sigma$mu, Z, S)
+```
+
+| $\alpha$ | $\rho$ | $\sigma_1$ | $\sigma_2$ |
+| :------- | :----- | :--------- | :--------- |
+| 8.12 | 0.99 | 6.99 | 9.68 |
+
+```{r}
+#| echo: false
+e_sigma$perf |> knitr::kable()
+```
+
+```{r}
+#| echo: false
+e_sigma$fig
 ```

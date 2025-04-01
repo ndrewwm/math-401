@@ -1,6 +1,6 @@
 // Gaussian Process Regression for bivariate input and output data, using the
 // Intrinsic Coregionalization Model (ICM).
-// This program performs inference on rho, the length-scale hyperparameter for the
+// This program performs inference on alpha and rho, hyperparameters for the
 // exponentiated quadratic kernel function.
 
 functions {
@@ -25,7 +25,6 @@ data {
 transformed data {
   real delta = 1e-9;
   int N2 = N*2;
-  matrix[N, N] I_N = identity_matrix(N);
   vector[N2] y = to_vector(Y);
   vector[N2] mu = rep_vector(0, N2);
 
@@ -36,13 +35,15 @@ transformed data {
 }
 
 parameters {
-  real<lower=0> rho;  // Length-scale
+  real<lower=0> alpha;  // Marginal standard-deviation (magnitude of the function's range)
+  real<lower=0> rho;    // Length-scale
 }
 
 model {
+  alpha ~ std_normal();
   rho ~ inv_gamma(5, 5);
 
-  matrix[N, N] k_XX = gp_exp_quad_cov(x, 1, rho);
+  matrix[N, N] k_XX = gp_exp_quad_cov(x, alpha, rho);
   matrix[N2, N2] K = kronecker_prod(k_XX, B, N, N2);
   for (n in 1:N2) {
     K[n, n] += delta;

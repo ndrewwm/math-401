@@ -1,6 +1,6 @@
 // Gaussian Process Regression for bivariate input and output data, using the
 // Intrinsic Coregionalization Model (ICM).
-// This program performs inference on rho, the length-scale hyperparameter for the
+// This program performs inference on alpha, rho, and sigma-- hyperparameters for the
 // exponentiated quadratic kernel function.
 
 functions {
@@ -23,7 +23,6 @@ data {
 }
 
 transformed data {
-  real delta = 1e-9;
   int N2 = N*2;
   matrix[N, N] I_N = identity_matrix(N);
   vector[N2] y = to_vector(Y);
@@ -36,17 +35,24 @@ transformed data {
 }
 
 parameters {
-  real<lower=0> rho;  // Length-scale
+  real<lower=0> alpha;   // Marginal standard-deviation (magnitude of the function's range)
+  real<lower=0> rho;     // Length-scale
+  real<lower=0> sigma1;  // Scale of the noise-term for 1st component of Y
+  real<lower=0> sigma2;  // Scale of the noise-term for 2nd component of Y
 }
 
 model {
+  alpha ~ std_normal();
   rho ~ inv_gamma(5, 5);
+  sigma1 ~ std_normal();
+  sigma2 ~ std_normal();
+
+  matrix[2, 2] V = identity_matrix(2);
+  V[1, 1] = square(sigma1);
+  V[2, 2] = square(sigma2);
 
   matrix[N, N] k_XX = gp_exp_quad_cov(x, 1, rho);
-  matrix[N2, N2] K = kronecker_prod(k_XX, B, N, N2);
-  for (n in 1:N2) {
-    K[n, n] += delta;
-  }
+  matrix[N2, N2] K = kronecker_prod(k_XX, B, N, N2) + kronecker_prod(I_N, V, N, N2);
   matrix[N2, N2] L_K = cholesky_decompose(K);
 
   y ~ multi_normal_cholesky(mu, L_K);
