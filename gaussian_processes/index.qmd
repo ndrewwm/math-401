@@ -1,171 +1,167 @@
 ---
 title: Overview of Gaussian Processes
+bibliography: gaussian_processes.bib
+knitr:
+  opts_chunk:
+    out.width: "100%"
+nocite: |
+  @GundersonGPJune, @GundersonGPSep, @Orduz
 ---
 
-This page relies heavily on Kanagawa, Hennig, Sejdinovic, and Sriperumbudur (2018).
+## Introduction
 
-### Definition 2.2: Gaussian Process
+*Gaussian Processes* (often abbreviated as "GP"s) are stochastic (random) processes that are commonly used to model nonlinear functions. The authors of a popular textbook covering GPs and GP regression [@williams2006gaussian, pg. 2] provide the following informal definition:
 
-Let $\chi$ be a nonempty set, $k: \chi \times \chi \to \mathbb{R}$ a positive definite kernel and $m: \chi \to \mathbb{R}$ be any real-valued function. Then a random function $f: \chi \to \mathbb{R}$ is said to be a Gaussian process (GP) with *mean function* $m$ and *covariance kernel* $k$, denoted by $\mathcal{GP}(m, k)$, if the following holds: For any finite set $X = (x_1, \dots, x_n) \subset \chi$ of any size $n \in \mathbb{N}$, the random vector
+> A Gaussian process is a generalization of the Gaussian probability distribution. Whereas a probability distribution describes random variables which are scalars or vectors (for multivariate distributions), a stochastic process governs the properties of functions. Leaving mathematical sophistication aside, one can loosely think of a function as a very long vector, each entry in the vector specifying the function value $f(x)$ at a particular input $x$. It turns out, that although this idea is a little naïve, it is surprisingly close what we need.
 
-$$
-f_X = (f(x_1), \dots, f(x_n))^\top \in \mathbb{R}^n
-$$
+This description helpfully orients us to two key aspects. First is that GPs are often used to specify probability distributions over *functions*. Second, it cues us to think about collections of function evaluations as (jointly distributed) *vectors*. Below we'll discuss a more formal definition.
 
-follows the multivariate normal distribution $\mathcal{N}(m_X, k_{XX})$ with covariance matrix $k_{XX} = [k(x_i, x_j)]_{i, j = 1}^{n} \in \mathbb{R}^{n \times n}$ and mean vector $m_X = (m(x_1), \dots, m(x_n))^\top$.
+## Definition
 
-### Gaussian Process Regression
-
-- also called *kriging* or *Wiener-Kolmogorov prediction*
-
-Regression is the task of estimating of an unknown function $f$ based on a provided set of *training data*, $(X, Y)$, where $X = (x_1, \dots, x_n)^\top$ and $Y = (y_1, \dots, y_n)^\top$ are random vectors ($x_i$ and $y_i$ are *realizations*, collected by the experimenter). Regression assumes the presence of *noise* denoted by $\epsilon$, which completes the additive model:
-
-$$
-y_i = f(x_i) + \epsilon.
-$$
-
-It's typically assumed that $\epsilon$ is normally distributed with mean 0, i.e., $\epsilon \sim \mathcal{N}(0, \sigma)$.
-
-Gaussian process regression is a Bayesian approach that uses a GP as a prior distribution for $f$.
-
-|                               | Prior                | Posterior |
-| :---------------------------- | :------------------- | :-------- |
-| Hyperparameter: kernel        | $k$                  | $\bar{k}$ |
-| Hyperparameter: mean function | $m$                  | $\bar{m}$ |
-| Distribution                  | $\mathcal{GP}(m, k)$ | $\mathcal{GP}(\bar{m}, \bar{k})$ |
-
-The authors show that the *posterior distribution* $f|Y \sim \mathcal{GP}(\bar{m}, \bar{k})$ where $\bar{m} : \chi \to \mathbb{R}$ and $\bar{k}: \chi \times \chi \to \mathbb{R}$ is given by
-
+A *Gaussian Process* is an uncountably infinite collection of random variables, with any finite sample from the process sharing a joint [multivariate Gaussian distribution](./mvnorm/index.qmd). If we assume a function $f(\mathbf{x})$ comes from a Gaussian Process, we write
 $$
 \begin{align*}
-\bar{m}(x) &= m(x) + k_{xX}(k_{XX} + \sigma^2I_n)^{-1}(Y - m_X),\ x \in \chi, \\
-\bar{k}(x, x') &= k(x, x') - k_{xX}(k_{XX} + \sigma^2I_n)^{-1}k_{Xx'},\ x,x' \in \chi,
+f(\mathbf{x}) &\sim \mathcal{GP}(m, k)\ \text{ where } \\
+m(\mathbf{x}) &= \mathbb{E}(f(\mathbf{x})), \text{ and } \\
+k(\mathbf{x}, \mathbf{x}') &= \mathbb{E}[(f(\mathbf{x}) - m(\mathbf{x}))(f(\mathbf{x}') - m(\mathbf{x}'))].
 \end{align*}
 $$
 
-where $k_{Xx} = k_{xX}^\top = (k(x_1, x), \dots, k(x_n, x))^\top$.
+The functions $m$ and $k$ are referred to as *mean* and *covariance* functions, respectively. The mean function is often set to be the zero function $\mathbf{0}$ for notational convenience. The covariance (kernel) function must produce a positive definite matrix when evaluated on a collection of inputs. For my project, I've focused on the squared-exponential function. For the following examples, we'll define it using its scalar form $k: \mathbb{R} \times \mathbb{R} \to \mathbb{R}$:
+$$
+k(x_i, x_j) = \alpha^2 \cdot \exp \Bigl( -\frac{1}{2\rho^2}(x_i - x_j)^2 \Bigr), \text{ where } \alpha, \rho > 0.
+$$
 
-This is interesting, because these are closed-form expressions, and notably, we haven't made use of Bayes's Rule. Assuming the kernel and mean functions aren't expensive or difficult to evaluate, the computation is just linear algebra.
+Note that the values of $k$ will decrease exponentially as the inputs ($x_i$ and $x_j$) get farther apart. This is a desirable property for modeling covariance, as we'd generally expect two nearby inputs to be similar to each other and two distant values to be less similar. The range of the functions drawn from the GP is controlled via $\alpha$, while the frequency ("wiggliness") of the functions is controlled by the length-scale $\rho$. Together, we refer to $\alpha$ and $\rho$ are as *hyperparameters*. They can be estimated from sample data using statistical inference, or chosen by the analyst based on expertise or problem context.
 
-### Drawing from a Gaussian Process
+As an aside, the squared-exponential kernel is a common choice as a covariance function, but any function that produces a positive (semi)definite matrix can be used. David Duvenaud's website and thesis chapter includes descriptions of various kernel functions that can be used for modeling different types of data [@DuvenaudKernelCookbook].
+
+## Gaussian Process Regression
+
+In practice, Gaussian Processes are often brought to bear on *regression problems*, in which an analyst has collected a dataset $S = (\mathbf{x}, \mathbf{y}) = \{ (x_i, y_i) : x_i,y_i \in \mathbb{R}, i \in 1, 2, \dots, N \}$ with the goal of learning the relationship $f$ between $\mathbf{x}$ and $\mathbf{y}$:
+
+$$
+\begin{align*}
+\mathbf{y} &= f(\mathbf{x}) \ \text{ or} \\
+\mathbf{y} &= f(\mathbf{x}) + \epsilon \ \text{ (with additive noise)}.
+\end{align*}
+$$
+
+Once $f$ has been estimated, it can then be used to predict the values of future or test points, which we'll refer to as $\mathbf{x}_* \in \mathbb{R}^M$.
+
+Gaussian Process Regression can be considered a Bayesian method for learning $f$. We'll consider the plots below to as an example with simulated data.
+
+::: {.panel-tabset}
+
+### Prior Distribution
+
+In <span style="color: orange;"><strong>orange</strong></span>, we have a function, unknown to our imagined analyst. In <span style="color: grey;"><strong>grey</strong></span> we have 10 draws from $f \sim \mathcal{GP}(\mathbf{0}, k(\mathbf{x}_*, \mathbf{x}_*))$. This represents what the analyst knows before incorporating information from $S$. As we can see, the <span style="color: grey;"><strong>draws</strong></span> span the domain we're interested in, but their y-values are chaotic and don't align with the <span style="color: orange;"><strong>target</strong></span>.
 
 ```{r}
+#| code-fold: true
 #| message: false
 #| warning: false
-#| out-width: 100%
 
 library(tidyverse)
 set.seed(123)
+theme_set(theme_minimal(base_size = 15) + theme(panel.grid.minor = element_blank()))
 
-f <- function(x) sin(3*x) + sin(7*x)
-k <- function(x_i, x_j, sigma_f = 1, l = 0.4) sigma_f * exp(-(x_i - x_j)^2 / (2 * l^2))
+f <- function(x) sin(2*x) + sin(4*x)
+k <- function(x_i, x_j, alpha, rho) alpha^2 * exp(-(x_i - x_j)^2 / (2 * rho^2))
 
-N <- 400
-n <- 120
-x <- seq(-5, 5, length.out = N)
-f_x <- f(x)
-
-sigma <- 0.15
-epsilon <- rnorm(N, 0, sigma)
-y <- f_x + epsilon
-
-d <- tibble(x, f_x, y)
-ggplot(d, aes(x = x)) +
-  geom_line(aes(y = f_x), color = "blue") +
-  geom_point(aes(y = y))
-```
-
-Here we'll compute the posterior distribution over the whole range $[-5, 5]$, using $n = 100$ training data points.
-
-```{r}
-#| out-width: 100%
-
-ind_train <- sample(1:400, n, replace = FALSE)
-x_train <- x[ind_train]
-y_train <- y[ind_train]
-
-compute_covmat <- function(k, x, y) {
-  n_x <- length(x)
-  n_y <- length(y)
-  K <- matrix(0, n_x, n_y)
-  for (i in 1:n_x) {
-    for (j in 1:n_y) {
-      K[i, j] <- k(x[i], y[j])
+k_xX <- function(x, X, alpha = 1, rho = 0.4) {
+  N <- NROW(x)
+  M <- NROW(X)
+  K <- matrix(0, N, M)
+  for (n in 1:N) {
+    for (m in 1:M) {
+      K[n, m] <- k(x[n], X[m], alpha, rho)
     }
   }
   return(K)
 }
 
-k_XX <- compute_covmat(k, x_train, x_train)
-k_xx <- compute_covmat(k, x, x)
-k_xX <- compute_covmat(k, x, x_train)
+N <- 400
+n <- 30
+x <- seq(-5, 5, length.out = N)
+f_x <- f(x)
 
-m_post <- k_xX %*% solve(k_XX + sigma^2 * diag(n)) %*% y_train
-cov_post <- k_xx - k_xX %*% solve(k_XX + sigma^2 * diag(n)) %*% t(k_xX)
+D <- tibble(x, y = f_x)
+S <- slice_sample(D, n = n)
+Z <- anti_join(D, S, by = "x")
+
+K_xx <- k_xX(x, x)
+
+ggplot() +
+  geom_line(data = D, aes(x, y), color = "orange") +
+  geom_line(
+    data = map(
+      1:10, \(i) {
+        tibble(x, y = MASS::mvrnorm(1, mu = rep.int(0, N), Sigma = K_xx))
+    }) |> 
+      bind_rows(.id = "b"),
+    aes(x, y, group = b), alpha = 0.2
+  )
 ```
 
-Here `m_post` represents the mean vector of the posterior distibution, and `cov_post` represents the posterior's covariance matrix.
+### Training Data
 
-::: {.column-margin}
-In Kanagawa et al. (2018), they note that the final term in the posterior mean function $\bar{m}$ should be something like $(\mathbf{y} - m_\mathbf{x})$ where $m_\mathbf{x} = [m(x_1), \dots, m(x_N)]^\top$. I've omitted the subtraction given that $m(\mathbf{x}) = \mathbf{0}$.
-:::
+Again we have our unknown target function in <span style="color: orange;"><strong>orange</strong></span>. The **black** dots comprise $S$, the analyst's dataset (here, N = `r n`).
 
-Below in blue is the actual function $f$, with 50 draws (grey) from the posterior distribution. The posterior mean of these draws is plotted as the orange line.
 ```{r}
+#| code-fold: true
+
+ggplot() +
+  geom_line(data = D, aes(x, y), color = "orange") +
+  geom_point(data = S, aes(x, y))
+```
+
+### Posterior Distribution
+
+Now we can combine our prior distribution with the observed data to produce a posterior distribution. In essence, the result is a new distribution that "agrees" with the observed training data points. Gaussian Processes have a nice property in that the posterior distribution can be computed analytically[^1]:
+
+$$
+\begin{align*}
+\mathbf{y}_* | \mathbf{x}, \mathbf{y}, \mathbf{x}_* &\sim \mathcal{N}_M(\hat{\mu}, \hat{\Sigma}) \\
+\hat{\mu} &= k(\mathbf{x}_*, \mathbf{x})(k(\mathbf{x}, \mathbf{x}))^{-1}\mathbf{y} \\
+\hat{\Sigma} &= k(\mathbf{x}_*, \mathbf{x}_*) - k(\mathbf{x}_*, \mathbf{x})(k(\mathbf{x}, \mathbf{x}))^{-1}k(\mathbf{x}_*, \mathbf{x})^\top \\
+\text{ where } \ \ \ & \\
+k(\mathbf{x}, \mathbf{x}) &= [k(x_i, x_j)]_{i,j}^N \in \mathbb{R}^{N \times N} \\
+k(\mathbf{x}_*, \mathbf{x}) &= [k(x_{*i}, x_j)]_{i,j}^{M,N} \in \mathbb{R}^{M \times N} \\
+k(\mathbf{x}_*, \mathbf{x}_*) &= [k(x_{*i}, x_{*j})]_{i,j}^M \in \mathbb{R}^{M \times M}.
+\end{align*}
+$$
+
+After computing $\hat{\mu}$ and $\hat{\Sigma}$, we can draw samples from the multivariate normal distribution and summarize them to produce estimates for each test point in $\mathbf{x}_*$. Below in <span style="color: blue;"><strong>blue</strong></span> is the posterior mean across our domain, with the <span style="color: grey;"><strong>grey</strong></span> shading representing $\pm 2$ standard deviations (i.e., a 95% credible interval).
+
+```{r}
+#| code-fold: true
 #| warning: false
 
-f_post <- MASS::mvrnorm(50, m_post, cov_post)
+eps <- 0.009
+K_XX <- k_xX(S$x, S$x)
+K_xX <- k_xX(D$x, S$x)
 
-draws <- as_tibble(t(f_post)) |>
-  mutate(x = x, y = f(x)) |>
-  pivot_longer(V1:V50)
+# Adding a small amount of noise to the diagonal for numerical stability
+mu <- K_xX %*% solve(K_XX + eps^2 * diag(n)) %*% S$y
+sigma <- K_xx - K_xX %*% solve(K_XX + eps^2 * diag(n)) %*% t(K_xX)
 
-post_mean <- draws |>
+draws <- MASS::mvrnorm(100, mu, sigma)
+
+draws <- as_tibble(t(draws)) |>
+  mutate(x = D$x) |>
+  pivot_longer(-x) |>
   group_by(x) |>
-  summarize(post_mean = mean(value))
+  summarise(y = mean(value), s = sd(value))
 
-draws |>
-  ggplot(aes(x = x)) +
-  geom_point(
-    data = tibble(x = x[ind_train], y = y[ind_train]),
-    aes(x, y), alpha = 0.2
-  ) +
-  geom_line(aes(y = value, group = name), alpha = 0.1) +
-  geom_line(aes(y = y), color = "blue", lty = "dashed") +
-  geom_line(data = post_mean, aes(x = x, y = post_mean), color = "orange")
+ggplot() +
+  geom_line(data = D, aes(x, y), color = "orange") +
+  geom_ribbon(data = draws, aes(x, ymin = y - 2*s, ymax = y + 2*s), alpha = 0.2) +
+  geom_line(data = draws, aes(x, y), color = "blue") +
+  geom_point(data = S, aes(x, y))
 ```
 
-```{r}
-f_post <- MASS::mvrnorm(n = 1000, m_post, cov_post)
+:::
 
-draws <- as_tibble(t(f_post)) |>
-  mutate(x = x, y = f(x)) |>
-  pivot_longer(V1:V1000)
+[^1]: The posterior distribution for this example assumes no additive noise in the target vector $\mathbf{y}$. If measurement error is believed to be present, the computations for $\hat{\mu}$ and $\hat{\Sigma}$ should replace $k(\mathbf{x}, \mathbf{x})$ with $k(\mathbf{x}, \mathbf{x}) + \sigma_y^2 I_N$, in which $\sigma_y$ is an additional hyperparameter for the outcome's standard deviation. $I_N$ is the $N \times N$ identity matrix.
 
-post_summaries <- draws |>
-  group_by(x) |>
-  summarize(
-    post_mean = mean(value),
-    post_sd = sd(value)
-  )
-
-post_summaries <- draws |>
-  distinct(x, y) |>
-  left_join(post_summaries, by = "x")
-
-ggplot(data = post_summaries, aes(x = x)) +
-  geom_ribbon(aes(ymin = post_mean - 2*post_sd, ymax = post_mean + 2*post_sd), fill = "grey70") +
-  geom_line(aes(y = post_mean), color = "orange") +
-  geom_line(aes(y = y), color = "blue", lty = "dashed") +
-  geom_point(data = tibble(x = x[ind_train], y = y[ind_train]), aes(x, y), alpha = 0.3)
-```
-
-### Citations (WIP)
-
-- https://juanitorduz.github.io/gaussian_process_reg/
-
-- https://www.cs.toronto.edu/~duvenaud/cookbook/
-
-- https://gregorygundersen.com/blog/2019/06/27/gp-regression/
-
-- https://gregorygundersen.com/blog/2019/09/12/practical-gp-regression/

@@ -13,7 +13,7 @@ $$
 \mathbf{y} &= f(\mathbf{X}) + \mathbf{\epsilon} \text{ where } \\
 f(\mathbf{X}) &\sim \mathcal{N}_N(\mathbf{0}, \mathbf{K}), \\
 \mathbf{\epsilon} &\overset{\text{i.i.d.}}{\sim} \mathcal{N}(0, \sigma_y), \text{ and } \\
-\mathbf{K} &= [k(x_i, x_j)]_{ij}^N.
+\mathbf{K} &= [k(x_i, x_j)]_{ij}^N + \sigma^2_yI_N.
 \end{align*}
 $$
 
@@ -434,6 +434,7 @@ e_rho$fig
 
 ```{r}
 #| echo: false
+#| cache: true
 w_alpha <- get_posterior(X, y, B, X_star, alpha = 8.34, rho = 0.98)
 e_alpha <- get_evaluation(w_alpha$mu, Z, S)
 ```
@@ -459,6 +460,7 @@ e_alpha$fig
 
 ```{r}
 #| echo: false
+#| cache: true
 w_sigma <- get_posterior(X, y, B, X_star, alpha = 0.79, rho = 5.10, sigma = c(6.95, 9.58))
 e_sigma <- get_evaluation(w_sigma$mu, Z, S)
 ```
@@ -490,6 +492,7 @@ e_sigma$fig
 
 ```{r}
 #| echo: false
+#| cache: true
 naive <- get_posterior(X, y, B = diag(1, 2), X_star)
 e_naive <- get_evaluation(naive$mu, Z, S)
 ```
@@ -512,6 +515,7 @@ e_naive$fig
 
 ```{r}
 #| echo: false
+#| cache: true
 w_rho <- get_posterior(X, y, B = diag(1, 2), X_star, rho = 0.85)
 e_rho <- get_evaluation(w_rho$mu, Z, S)
 ```
@@ -535,6 +539,7 @@ e_rho$fig
 
 ```{r}
 #| echo: false
+#| cache: true
 w_alpha <- get_posterior(X, y, B, X_star, alpha = 8.12, rho = 0.99)
 e_alpha <- get_evaluation(w_alpha$mu, Z, S)
 ```
@@ -557,6 +562,7 @@ e_alpha$fig
 
 ```{r}
 #| echo: false
+#| cache: true
 w_sigma <- get_posterior(X, y, B, X_star, alpha = 8.12, rho = 0.99, sigma = c(6.99, 9.68))
 e_sigma <- get_evaluation(w_sigma$mu, Z, S)
 ```
