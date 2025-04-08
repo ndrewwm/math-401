@@ -223,12 +223,6 @@ window.Quarto = {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../../gaussian_processes/gaussian_process_regression/index.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Gaussian Processes and Gaussian Process Regression</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
   <a href="../../gaussian_processes/bivariate_case/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Modelling two variables using GPR</span></a>
   </div>
@@ -263,8 +257,11 @@ window.Quarto = {
   </div>
 </li>
           <li class="sidebar-item">
- <span class="menu-text">./reflections/cv/cv.qmd</span>
-  </li>
+  <div class="sidebar-item-container"> 
+  <a href="../../reflections/cv.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">cv</span></a>
+  </div>
+</li>
       </ul>
   </li>
     </ul>
@@ -281,8 +278,13 @@ window.Quarto = {
   <li><a href="#theory-and-notation" id="toc-theory-and-notation" class="nav-link" data-scroll-target="#theory-and-notation">Theory and notation</a></li>
   <li><a href="#training-and-test-data" id="toc-training-and-test-data" class="nav-link" data-scroll-target="#training-and-test-data">Training and test data</a></li>
   <li><a href="#kernel-functions" id="toc-kernel-functions" class="nav-link" data-scroll-target="#kernel-functions">Kernel functions</a></li>
-  <li><a href="#estimation" id="toc-estimation" class="nav-link" data-scroll-target="#estimation">Estimation</a></li>
+  <li><a href="#hyperparameter-inference" id="toc-hyperparameter-inference" class="nav-link" data-scroll-target="#hyperparameter-inference">Hyperparameter Inference</a>
+  <ul class="collapse">
+  <li><a href="#estimation-via-stan" id="toc-estimation-via-stan" class="nav-link" data-scroll-target="#estimation-via-stan">Estimation via Stan</a></li>
   <li><a href="#evaluation" id="toc-evaluation" class="nav-link" data-scroll-target="#evaluation">Evaluation</a></li>
+  <li><a href="#icm" id="toc-icm" class="nav-link" data-scroll-target="#icm">ICM</a></li>
+  <li><a href="#independent-gps" id="toc-independent-gps" class="nav-link" data-scroll-target="#independent-gps">Independent GPs</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -315,7 +317,7 @@ window.Quarto = {
 \mathbf{y} &amp;= f(\mathbf{X}) + \mathbf{\epsilon} \text{ where } \\
 f(\mathbf{X}) &amp;\sim \mathcal{N}_N(\mathbf{0}, \mathbf{K}), \\
 \mathbf{\epsilon} &amp;\overset{\text{i.i.d.}}{\sim} \mathcal{N}(0, \sigma_y), \text{ and } \\
-\mathbf{K} &amp;= [k(x_i, x_j)]_{ij}^N.
+\mathbf{K} &amp;= [k(x_i, x_j)]_{ij}^N + \sigma^2_yI_N.
 \end{align*}
 \]</span></p>
 
@@ -427,38 +429,35 @@ f(\mathbf{x}) &amp;\sim \mathcal{N}_{2N}(\mathbf{0}, \mathbf{K}_{XX})
 <p>Here, <span class="math inline">\(\sigma^2_1, \sigma^2_2 &gt; 0\)</span> represent the independent and additive noise associated with each of our outcome’s components. The <span class="math inline">\(\otimes\)</span> symbol denotes the Kronecker product. Each of the sub-matrices, such as <span class="math inline">\(\mathbf{K}_{XX_*}\)</span>, are defined below in <a href="#eq-KxX" class="quarto-xref">Equation&nbsp;8</a>. From this joint distribution, we can derive the conditional distribution for <span class="math inline">\(\mathbf{y}_*\)</span>:</p>
 <p><span id="eq-conditional-distribution-for-ystar"><span class="math display">\[
 \begin{align*}
-\mathbf{y}_* | \mathbf{X}, \mathbf{y}, \mathbf{X_*} &amp;\sim \mathcal{N}_{2M}(\bar{\mathbf{f}}_*,\ \text{cov}(\mathbf{f}_*)) \\
-\bar{\mathbf{f}}_* &amp;= \mathbb{E}[\mathbf{y}_* | \mathbf{X}, \mathbf{y}, \mathbf{X_*}] = \mathbf{K}_{X_*X}(\mathbf{K}_{XX} + \mathbf{V} \otimes \mathbf{I}_N)^{-1} \mathbf{y} \\
-\text{cov}(\mathbf{f}_*) &amp;= \mathbf{K}_{X_*X_*} - \mathbf{K}_{X_*X}(\mathbf{K}_{XX} + \mathbf{V} \otimes \mathbf{I}_N)^{-1}\mathbf{K}_{XX_*} \\
+\mathbf{y}_* | \mathbf{X}, \mathbf{y}, \mathbf{X_*} &amp;\sim \mathcal{N}_{2M}(\hat{\mu},\ \hat{\mathbf{\Sigma}}) \\
+\hat{\mathbf{\mu}} &amp;= \mathbb{E}[\mathbf{y}_* | \mathbf{X}, \mathbf{y}, \mathbf{X_*}] = \mathbf{K}_{X_*X}(\mathbf{K}_{XX} + \mathbf{V} \otimes \mathbf{I}_N)^{-1} \mathbf{y} \\
+\hat{\mathbf{\Sigma}} &amp;= \mathbf{K}_{X_*X_*} - \mathbf{K}_{X_*X}(\mathbf{K}_{XX} + \mathbf{V} \otimes \mathbf{I}_N)^{-1}\mathbf{K}_{XX_*} \\
 \end{align*}
 \tag{3}\]</span></span></p>
 <p>We will now work through how each piece of our distribution is defined. Let <span class="math inline">\(k: \mathbb{R}^2 \times \mathbb{R}^2 \to \mathbb{R}\)</span> be a (scalar) kernel function, defined as <span id="eq-k"><span class="math display">\[
-k(x_i, x_j) = \alpha^2 \cdot \exp\Bigl(-\frac{1}{2\rho^2} \| x_i - x_j \|_2 \Bigl),
+k(x_i, x_j) = \alpha^2 \cdot \exp\Bigl(-\frac{1}{2\rho^2} \| x_i - x_j \|^2 \Bigl),
 \tag{4}\]</span></span></p>
-<p>where <span class="math inline">\(\alpha, \rho &gt; 0\)</span>, and <span class="math inline">\(\| \cdot \|_2\)</span> is the Euclidean norm. This is also known as the squared exponential function, or the radial basis function. The parameter <span class="math inline">\(\alpha\)</span> controls …, while <span class="math inline">\(\rho\)</span> controls the length-scale. Let <span class="math inline">\(\mathbf{k}_{XX} \in \mathbb{R}^{N \times N}\)</span>, the covariance matrix between all points in <span class="math inline">\(\mathbf{X}\)</span>, be defined as <span id="eq-kXX"><span class="math display">\[
-\mathbf{k}_{XX} = (k(x_i, x_j))_{i,j}^N = \begin{bmatrix}
+<p>where <span class="math inline">\(\alpha, \rho &gt; 0\)</span>, and <span class="math inline">\(\| \cdot \|\)</span> is the Euclidean (L2) norm. This is also known as the squared exponential function, or the radial basis function. The parameter <span class="math inline">\(\alpha\)</span> controls …, while <span class="math inline">\(\rho\)</span> controls the length-scale. Let <span class="math inline">\(k(\mathbf{X}, \mathbf{X}) \in \mathbb{R}^{N \times N}\)</span>, the covariance matrix between all points in <span class="math inline">\(\mathbf{X}\)</span>, be defined as <span id="eq-kXX"><span class="math display">\[
+k(\mathbf{X}, \mathbf{X}) = (k(x_i, x_j))_{i,j}^N = \begin{bmatrix}
   k(x_1, x_1) &amp; \cdots &amp; k(x_1, x_N) \\
   \vdots &amp; \ddots &amp; \vdots \\
   k(x_N, x_1) &amp; \cdots &amp; k(x_N, x_N)
 \end{bmatrix}.
 \tag{5}\]</span></span></p>
 <p>Let <span class="math inline">\(\mathbf{B} \in \mathbb{R}^{2 \times 2}\)</span>, the matrix of similarities between the outputs <span class="math inline">\(\mathbf{Y}\)</span>, be defined as <span id="eq-B"><span class="math display">\[
-\mathbf{B} = \begin{bmatrix}
-  b_{11} &amp; b_{12} \\
-  b_{21} &amp; b_{22}
-\end{bmatrix} = \frac{1}{N} \mathbf{Y}^\top \mathbf{k}_{XX} \mathbf{Y}.
+\mathbf{B} = \text{corr}(\mathbf{Y}) = \Biggl( \frac{\langle \mathbf{y}_i - \bar{\mathbf{y}}_i,\ \mathbf{y}_j - \bar{\mathbf{y}}_j \rangle}{\| \mathbf{y}_i - \bar{\mathbf{y}}_i \| \| \mathbf{y}_j - \bar{\mathbf{y}}_j \| } \Biggr)^{2,2}_{i,j},
 \tag{6}\]</span></span></p>
-<p>The expression for <span class="math inline">\(\mathbf{B}\)</span> comes from Bonilla et al. <span class="citation" data-cites="bonilla2007multi">(<a href="#ref-bonilla2007multi" role="doc-biblioref">Bonilla, Chai, and Williams 2007</a>)</span>, in section 2.3 (the authors use the notation <span class="math inline">\(K^f\)</span> and <span class="math inline">\(K^x\)</span> instead of <span class="math inline">\(\mathbf{B}\)</span> and <span class="math inline">\(\mathbf{k}_{XX}\)</span>, respectively).</p>
+<p>where <span class="math inline">\(\mathbf{y}_i\)</span> is the i-th column of <span class="math inline">\(\mathbf{Y}\)</span> and <span class="math inline">\(\bar{\mathbf{y}}_i\)</span> is the arithmetic mean of <span class="math inline">\(\mathbf{y}_i\)</span>. The operation in the numerator, <span class="math inline">\(\langle \cdot, \cdot \rangle\)</span>, denotes the standard inner product. Each entry <span class="math inline">\(b_{i,j}\)</span> of <span class="math inline">\(\mathbf{B}\)</span> is the Pearson correlation coefficient, as estimated from our training data.</p>
 <p>Let <span class="math inline">\(\mathbf{K}_{XX} \in \mathbb{R}^{2N \times 2N}\)</span> be defined as <span id="eq-KXX"><span class="math display">\[
-\mathbf{K}_{XX} = \mathbf{B} \otimes \mathbf{k}_{XX}.
+\mathbf{K}_{XX} = \mathbf{B} \otimes k(\mathbf{X}, \mathbf{X}).
 \tag{7}\]</span></span></p>
 <p>Alvarez et al.&nbsp;identifies this approach of combining the kernel matrix with a similarity matrix via a Kronecker product as the “Intrinsic Coregionalization Model”; see equation (21) in section 4.2.2 <span class="citation" data-cites="alvarez2012kernels">(<a href="#ref-alvarez2012kernels" role="doc-biblioref">Alvarez et al. 2012</a>)</span>. They describe this approach as being more restrictive, but simpler (to implement, I assume).</p>
 <p>We can now define the other pieces needed to establish the covariance matrix used for the joint distribution of <span class="math inline">\(\begin{bmatrix} \mathbf{y} \\ \mathbf{y}_* \end{bmatrix}\)</span>:</p>
 <p><span id="eq-KxX"><span class="math display">\[
 \begin{align*}
-  \mathbf{K}_{X_*X} &amp;= \mathbf{B} \otimes (k(x_{*i}, x_j))_{i,j=1}^{M,N} \in \mathbb{R}^{2M \times 2N} \\
-  \mathbf{K}_{XX_*} &amp;= \mathbf{K}_{X_*X}^\top \in \mathbb{R}^{2N \times 2M} \\
-  \mathbf{K}_{X_*X_*} &amp;= \mathbf{B} \otimes (k(x_{*i}, x_{*j}))_{i,j=1}^{M} \in \mathbb{R}^{2M \times 2M}.
+  \mathbf{K}_{X_*X_*} &amp;= \mathbf{B} \otimes k(\mathbf{X}_*, \mathbf{X}_*) = \mathbf{B} \otimes (k(x_{*i}, x_{*j}))_{i,j=1}^{M} \in \mathbb{R}^{2M \times 2M} \\
+  \mathbf{K}_{X_*X} &amp;= \mathbf{B} \otimes k(\mathbf{X}_*, \mathbf{X}) = \mathbf{B} \otimes (k(x_{*i}, x_j))_{i,j=1}^{M,N} \in \mathbb{R}^{2M \times 2N} \\
+  \mathbf{K}_{XX_*} &amp;= \mathbf{K}_{X_*X}^\top \in \mathbb{R}^{2N \times 2M}.
 \end{align*}
 \tag{8}\]</span></span></p>
 </section>
@@ -474,7 +473,15 @@ k(x_i, x_j) = \alpha^2 \cdot \exp\Bigl(-\frac{1}{2\rho^2} \| x_i - x_j \|_2 \Big
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> S <span class="sc">|&gt;</span> <span class="fu">select</span>(x, y) <span class="sc">|&gt;</span> <span class="fu">as.matrix</span>()</span>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>Y <span class="ot">&lt;-</span> S <span class="sc">|&gt;</span> <span class="fu">select</span>(vx, vy) <span class="sc">|&gt;</span> <span class="fu">as.matrix</span>()</span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(Y)</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="fu">nrow</span>(X)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>B <span class="ot">&lt;-</span> <span class="fu">cor</span>(Y)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="fu">nrow</span>(X)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Pull out test cases</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>Z <span class="ot">&lt;-</span> d <span class="sc">|&gt;</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(S, <span class="at">by =</span> <span class="st">"index"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(x, y, vx, vy, index)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>X_star <span class="ot">&lt;-</span> Z <span class="sc">|&gt;</span> <span class="fu">select</span>(x, y) <span class="sc">|&gt;</span> <span class="fu">as.matrix</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="kernel-functions" class="level2">
@@ -491,7 +498,7 @@ k(x_i, x_j) = \alpha^2 \cdot \exp\Bigl(-\frac{1}{2\rho^2} \| x_i - x_j \|_2 \Big
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param rho length-scale, rho &gt; 0</span></span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co">#' @return numeric</span></span>
 <span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>k <span class="ot">&lt;-</span> <span class="cf">function</span>(xi, xj, <span class="at">alpha =</span> <span class="dv">1</span>, <span class="at">rho =</span> <span class="dv">1</span>) {</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  alpha<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fu">norm</span>(xi <span class="sc">-</span> xj, <span class="at">type =</span> <span class="st">"2"</span>) <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> rho<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  alpha<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span><span class="fu">norm</span>(xi <span class="sc">-</span> xj, <span class="at">type =</span> <span class="st">"2"</span>)<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> rho<span class="sc">^</span><span class="dv">2</span>))</span>
 <span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co">#' Compute the kernel matrix, given a set of input vectors</span></span>
@@ -540,178 +547,690 @@ k(x_i, x_j) = \alpha^2 \cdot \exp\Bigl(-\frac{1}{2\rho^2} \| x_i - x_j \|_2 \Big
 </details>
 </div>
 </section>
-<section id="estimation" class="level2">
-<h2 class="anchored" data-anchor-id="estimation">Estimation</h2>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Estimation of <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\rho\)</span>, via Stan
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-1" class="callout-1-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>This section contains the Stan code used to estimate hyperparameter values using the probabilistic programming language, <a href="https://mc-stan.org/">Stan</a>. Within the scoped blocks of the Stan program we establish the model for <span class="math inline">\(f(x)\)</span> discussed in <a href="#eq-problem-stmt" class="quarto-xref">Equation&nbsp;1</a>, and attempt to find plausible values for <span class="math inline">\(\rho\)</span> and <span class="math inline">\(\alpha\)</span> via Hamiltonian Monte-Carlo (HMC). We place prior distributions on each hyperparameter. At this time, they are set to be <span class="math display">\[
-\begin{align*}
-  \rho &amp;\sim \mathcal{N}(\mu = 0.8, \sigma = 0.5) \\
-  \alpha &amp;\sim \mathcal{N}(\mu = 1, \sigma = 1).
-\end{align*}
-\]</span></p>
-<p>Constraints are used within Stan to require these parameters be &gt; 0.</p>
-<!-- requires: quarto add quarto-ext/include-code-files -->
-<div class="sourceCode" id="cb4"><pre class="sourceCode stan code-with-copy"><code class="sourceCode stan"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">functions</span> {</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">// This is an embarrassingly manual implementation.</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Stan's maintainers appear to encourage authors to avoid</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">// evaluating Kronecker products as much as possible, to the</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">// point where there isn't a built-in version of this operation.</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span> kronecker_prod(<span class="dt">matrix</span> B, <span class="dt">matrix</span> K) {</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> N = rows(K);</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">int</span> N2 = N * <span class="dv">2</span>;</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">matrix</span>[N, N] b11 = B[<span class="dv">1</span>, <span class="dv">1</span>] * K;</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">matrix</span>[N, N] b12 = B[<span class="dv">1</span>, <span class="dv">2</span>] * K;</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">matrix</span>[N, N] b21 = B[<span class="dv">2</span>, <span class="dv">1</span>] * K;</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">matrix</span>[N, N] b22 = B[<span class="dv">2</span>, <span class="dv">2</span>] * K;</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    <span class="dt">matrix</span>[N2, N] L = append_row(b11, b21);</span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">matrix</span>[N2, N] R = append_row(b12, b22);</span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">matrix</span>[N2, N2] K2 = append_col(L, R);</span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> K2;</span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> {</span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>&gt; N;   <span class="co">// Number of observations</span></span>
-<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[N, <span class="dv">2</span>] X;   <span class="co">// Inputs</span></span>
-<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[N, <span class="dv">2</span>] Y;   <span class="co">// Targets</span></span>
-<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a><span class="kw">transformed data</span> {</span>
-<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> delta = <span class="fl">1e-9</span>;  <span class="co">// </span><span class="al">TODO</span><span class="co">: convert this to a parameter for estimation</span></span>
-<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> N2 = <span class="dv">2</span>*N;</span>
-<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[N2] y = to_vector(Y);</span>
-<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[N2] mu = rep_vector(<span class="dv">0</span>, N2);</span>
-<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>  <span class="dt">array</span>[N] <span class="dt">vector</span>[<span class="dv">2</span>] x;</span>
-<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (n <span class="cf">in</span> <span class="dv">1</span>:N) {</span>
-<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>    x[n] = to_vector(row(X, n));</span>
-<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a><span class="kw">parameters</span> {</span>
-<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; rho;    <span class="co">// Length-scale</span></span>
-<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; alpha;  <span class="co">// Variance scale</span></span>
-<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a><span class="kw">model</span> {</span>
-<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[N, N] K_xx = gp_exp_quad_cov(x, alpha, rho);</span>
-<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[<span class="dv">2</span>, <span class="dv">2</span>] B = <span class="dv">1</span>/N * Y' * inverse(K_xx) * Y;</span>
-<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[N2, N2] K = kronecker_prod(B, K_xx);</span>
-<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (n <span class="cf">in</span> <span class="dv">1</span>:N2) {</span>
-<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a>    K[n, n] = K[n, n] + delta;</span>
-<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[N2, N2] L_K = cholesky_decompose(K);</span>
-<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a>  rho ~ normal(<span class="fl">0.8</span>, <span class="fl">0.5</span>);</span>
-<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a>  alpha ~ normal(<span class="dv">1</span>, <span class="dv">1</span>);</span>
-<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a>  y ~ multi_normal_cholesky(mu, L_K);</span>
-<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<section id="hyperparameter-inference" class="level2">
+<h2 class="anchored" data-anchor-id="hyperparameter-inference">Hyperparameter Inference</h2>
+<section id="estimation-via-stan" class="level3">
+<h3 class="anchored" data-anchor-id="estimation-via-stan">Estimation via Stan</h3>
+<p>This section contains the <code>rstan</code> code used to estimate hyperparameter values using the probabilistic programming language, <a href="https://mc-stan.org/">Stan</a>. Within the scoped blocks of the Stan program we establish the model for <span class="math inline">\(f(x)\)</span> discussed in <a href="#eq-problem-stmt" class="quarto-xref">Equation&nbsp;1</a>, and attempt to find plausible values for <span class="math inline">\(\rho\)</span> and <span class="math inline">\(\alpha\)</span> via Hamiltonian Monte-Carlo (HMC). We place prior distributions on each hyperparameter. Constraints are used within Stan to require these parameters be &gt; 0.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rstan)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">stan</span>(</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">file =</span> <span class="st">"./estimate_params.stan"</span>,</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">model_name =</span> <span class="st">"Parameter estimation, Isabel GPR"</span>,</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> <span class="fu">lst</span>(N, X, Y),</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">chains =</span> <span class="dv">2</span>,</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">iter =</span> <span class="dv">1000</span>,</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">warmup =</span> <span class="dv">400</span>,</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> <span class="dv">123</span></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>fit</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rstan)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>fit_stan <span class="ot">&lt;-</span> <span class="cf">function</span>(filepath, <span class="at">model_name =</span> <span class="st">""</span>, data, <span class="at">verbose =</span> <span class="cn">FALSE</span>) {</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">stan</span>(</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> filepath,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">model_name =</span> model_name,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> data,</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">chains =</span> <span class="dv">2</span>,</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">iter =</span> <span class="dv">800</span>,</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">warmup =</span> <span class="dv">400</span>,</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">seed =</span> <span class="dv">123</span>,</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">cores =</span> <span class="dv">2</span>,</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">verbose =</span> verbose</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="co"># ICM</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="co"># fit_stan("./icm.stan", "Isabel GPR, ICM: rho", lst(N, X, Y, B))</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a><span class="co"># fit_stan("./icm_w_alpha.stan", "Isabel GPR, ICM: alpha &amp; rho", lst(N, X, Y, B))</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="co"># fit_stan("./icm_w_alpha_and_sigma.stan", "Isabel GPR, ICM: alpha, rho, &amp; sigma", lst(N, X, Y, B))</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Independent GPs</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a><span class="co"># fit_stan("./icm.stan", "Isabel GPR, Indep: rho", lst(N, X, Y, B = diag(1, 2)))</span></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a><span class="co"># fit_stan("./icm_w_alpha.stan", "Isabel GPR, Indep: alpha &amp; rho", lst(N, X, Y, B = diag(1, 2)))</span></span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a><span class="fu">fit_stan</span>(<span class="st">"./icm_w_alpha_and_sigma.stan"</span>, <span class="st">"Isabel GPR, Indep: alpha, rho, &amp; sigma"</span>, <span class="fu">lst</span>(N, X, Y, <span class="at">B =</span> <span class="fu">diag</span>(<span class="dv">1</span>, <span class="dv">2</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 </section>
-<section id="evaluation" class="level2">
-<h2 class="anchored" data-anchor-id="evaluation">Evaluation</h2>
+<section id="evaluation" class="level3">
+<h3 class="anchored" data-anchor-id="evaluation">Evaluation</h3>
+<p>This section defines R functions used to compute the analytical posterior distribution for each parameter specification, and summarize the results with a figure and performance with respect to RMSE.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>K_XX <span class="ot">&lt;-</span> <span class="fu">k_XX</span>(X, <span class="fl">1.21</span>, <span class="fl">0.85</span>, eps) <span class="co">#theta$par[1], theta$par[2], theta$par[3])</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>B <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">/</span><span class="fu">nrow</span>(X) <span class="sc">*</span> <span class="fu">t</span>(Y) <span class="sc">%*%</span> <span class="fu">solve</span>(K_XX) <span class="sc">%*%</span> Y</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>Sigma <span class="ot">&lt;-</span> <span class="fu">kronecker</span>(B, K_XX)</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>Si <span class="ot">&lt;-</span> <span class="fu">solve</span>(Sigma) <span class="sc">%*%</span> y</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>f <span class="ot">&lt;-</span> <span class="fu">data.frame</span>()</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(d)) {</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  x_star <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(d[i, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>])</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  K_star <span class="ot">&lt;-</span> <span class="fu">apply</span>(X[, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>], <span class="dv">1</span>, <span class="cf">function</span>(x) <span class="fu">k</span>(x_star, x))</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  f_star <span class="ot">&lt;-</span> <span class="fu">t</span>(<span class="fu">kronecker</span>(B, K_star)) <span class="sc">%*%</span> Si <span class="sc">|&gt;</span> <span class="fu">t</span>()</span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  f <span class="ot">&lt;-</span> <span class="fu">rbind</span>(f, f_star)</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>get_posterior <span class="ot">&lt;-</span> <span class="cf">function</span>(X, y, B, Z, <span class="at">alpha =</span> <span class="dv">1</span>, <span class="at">rho =</span> <span class="dv">1</span>, <span class="at">sigma =</span> <span class="fu">c</span>(<span class="fl">1e-9</span>, <span class="fl">1e-9</span>)) {</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  N <span class="ot">&lt;-</span> <span class="fu">nrow</span>(X)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  M <span class="ot">&lt;-</span> <span class="fu">nrow</span>(Z)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  V <span class="ot">&lt;-</span> <span class="fu">diag</span>(sigma<span class="sc">^</span><span class="dv">2</span>, <span class="dv">2</span>)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  K_XX <span class="ot">&lt;-</span> <span class="fu">kronecker</span>(B, <span class="fu">k_XX</span>(X, alpha, rho, <span class="cn">NULL</span>)) <span class="sc">+</span> <span class="fu">kronecker</span>(V, <span class="fu">diag</span>(N))</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  K_ZX <span class="ot">&lt;-</span> <span class="fu">kronecker</span>(B, <span class="fu">k_xX</span>(Z, X, alpha, rho))</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  K_ZZ <span class="ot">&lt;-</span> <span class="fu">kronecker</span>(B, <span class="fu">k_XX</span>(Z, alpha, rho, <span class="cn">NULL</span>))</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  mu <span class="ot">&lt;-</span> K_ZX <span class="sc">%*%</span> <span class="fu">solve</span>(K_XX) <span class="sc">%*%</span> y</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  mu <span class="ot">&lt;-</span> <span class="fu">matrix</span>(mu, M, <span class="dv">2</span>)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  Sigma <span class="ot">&lt;-</span> K_ZZ <span class="sc">-</span> K_ZX <span class="sc">%*%</span> <span class="fu">solve</span>(K_XX) <span class="sc">%*%</span> <span class="fu">t</span>(K_ZX)</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">lst</span>(mu, Sigma))</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>rmse <span class="ot">&lt;-</span> <span class="cf">function</span>(y, yhat) {</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sqrt</span>(<span class="dv">1</span><span class="sc">/</span><span class="fu">length</span>(y) <span class="sc">*</span> <span class="fu">sum</span>((yhat <span class="sc">-</span> y)<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>get_evaluation <span class="ot">&lt;-</span> <span class="cf">function</span>(mu, Z, S) {</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>  out <span class="ot">&lt;-</span> Z <span class="sc">|&gt;</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bind_cols</span>(<span class="fu">as_tibble</span>(mu) <span class="sc">|&gt;</span> <span class="fu">set_names</span>(<span class="fu">c</span>(<span class="st">"vx_h"</span>, <span class="st">"vy_h"</span>))) <span class="sc">|&gt;</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(x, y, vx, vy, vx_h, vy_h, index) <span class="sc">|&gt;</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">bind_rows</span>(S) <span class="sc">|&gt;</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>      <span class="at">col =</span> <span class="fu">factor</span>(</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>        <span class="fu">as.numeric</span>(index <span class="sc">%in%</span> S<span class="sc">$</span>index),</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>        <span class="at">levels =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>,</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>        <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Test"</span>, <span class="st">"Train"</span>)</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>      )</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>  fig <span class="ot">&lt;-</span> <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_segment</span>(</span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>      <span class="at">data =</span> out,</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>      <span class="fu">aes</span>(x, y, <span class="at">xend =</span> x <span class="sc">+</span> vx<span class="sc">/</span><span class="dv">50</span>, <span class="at">yend =</span> y <span class="sc">+</span> vy<span class="sc">/</span><span class="dv">50</span>),</span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>      <span class="at">arrow =</span> <span class="fu">arrow</span>(<span class="at">length =</span> <span class="fu">unit</span>(<span class="fl">0.1</span>, <span class="st">"cm"</span>)),</span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>      <span class="at">linewidth =</span> <span class="fl">0.25</span>,</span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>      <span class="at">alpha =</span> <span class="fl">0.3</span></span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_segment</span>(</span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>      <span class="at">data =</span> <span class="fu">filter</span>(out, col <span class="sc">==</span> <span class="st">"Train"</span>),</span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>      <span class="fu">aes</span>(x, y, <span class="at">xend =</span> x <span class="sc">+</span> vx<span class="sc">/</span><span class="dv">50</span>, <span class="at">yend =</span> y <span class="sc">+</span> vy<span class="sc">/</span><span class="dv">50</span>, <span class="at">color =</span> col),</span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>      <span class="at">arrow =</span> <span class="fu">arrow</span>(<span class="at">length =</span> <span class="fu">unit</span>(<span class="fl">0.1</span>, <span class="st">"cm"</span>)),</span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>      <span class="at">linewidth =</span> <span class="fl">0.25</span></span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_segment</span>(</span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>      <span class="at">data =</span> <span class="fu">filter</span>(out, col <span class="sc">==</span> <span class="st">"Test"</span>),</span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a>      <span class="fu">aes</span>(x, y, <span class="at">xend =</span> x <span class="sc">+</span> vx_h<span class="sc">/</span><span class="dv">50</span>, <span class="at">yend =</span> y <span class="sc">+</span> vy_h<span class="sc">/</span><span class="dv">50</span>, <span class="at">color =</span> col),</span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a>      <span class="at">arrow =</span> <span class="fu">arrow</span>(<span class="at">length =</span> <span class="fu">unit</span>(<span class="fl">0.1</span>, <span class="st">"cm"</span>)),</span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a>      <span class="at">linewidth =</span> <span class="fl">0.25</span></span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_color_scico_d</span>(<span class="at">palette =</span> <span class="st">"imola"</span>, <span class="at">name =</span> <span class="st">""</span>, <span class="at">direction =</span> <span class="sc">-</span><span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Longitude"</span>, <span class="at">y =</span> <span class="st">"Latitude"</span>) <span class="sc">+</span></span>
+<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span>
+<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a>  perf <span class="ot">&lt;-</span> out <span class="sc">|&gt;</span></span>
+<span id="cb5-59"><a href="#cb5-59" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(col <span class="sc">==</span> <span class="st">"Test"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb5-60"><a href="#cb5-60" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(</span>
+<span id="cb5-61"><a href="#cb5-61" aria-hidden="true" tabindex="-1"></a>      <span class="at">rmse_vx =</span> <span class="fu">rmse</span>(vx, vx_h),</span>
+<span id="cb5-62"><a href="#cb5-62" aria-hidden="true" tabindex="-1"></a>      <span class="at">rmse_vy =</span> <span class="fu">rmse</span>(vy, vy_h)</span>
+<span id="cb5-63"><a href="#cb5-63" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb5-64"><a href="#cb5-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-65"><a href="#cb5-65" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">lst</span>(fig, perf))</span>
+<span id="cb5-66"><a href="#cb5-66" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="icm" class="level3">
+<h3 class="anchored" data-anchor-id="icm">ICM</h3>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" aria-current="page">Naive Parameters</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false">Inference on <span class="math inline">\(\rho\)</span></a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-3" role="tab" aria-controls="tabset-1-3" aria-selected="false">Inference on <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\rho\)</span></a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-4-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-4" role="tab" aria-controls="tabset-1-4" aria-selected="false">Inference on <span class="math inline">\(\alpha\)</span>, <span class="math inline">\(\rho\)</span>, and <span class="math inline">\(\sigma\)</span></a></li></ul>
+<div class="tab-content">
+<div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
+<div class="cell">
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: The `x` argument of `as_tibble.matrix()` must have unique column names if
+`.name_repair` is omitted as of tibble 2.0.0.
+ℹ Using compatibility `.name_repair`.</code></pre>
+</div>
+</div>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: left;"><span class="math inline">\(\alpha\)</span></th>
+<th style="text-align: left;"><span class="math inline">\(\rho\)</span></th>
+<th style="text-align: left;"><span class="math inline">\(\sigma_1\)</span></th>
+<th style="text-align: left;"><span class="math inline">\(\sigma_2\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">1.00</td>
+<td style="text-align: left;">1.00</td>
+<td style="text-align: left;">1e-9</td>
+<td style="text-align: left;">1e-9</td>
+</tr>
+</tbody>
+</table>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: right;">rmse_vx</th>
+<th style="text-align: right;">rmse_vy</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">2.718579</td>
+<td style="text-align: right;">3.171989</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>f <span class="ot">&lt;-</span> f <span class="sc">|&gt;</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>() <span class="sc">|&gt;</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_names</span>(<span class="fu">c</span>(<span class="st">"vx_h"</span>, <span class="st">"vy_h"</span>)) <span class="sc">|&gt;</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_cols</span>(d) <span class="sc">|&gt;</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">col =</span> <span class="fu">factor</span>(<span class="fu">as.numeric</span>(index <span class="sc">%in%</span> S<span class="sc">$</span>index), <span class="at">levels =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>, <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Test"</span>, <span class="st">"Train"</span>)))</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> p0 <span class="sc">+</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(</span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> f,</span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(x, y, <span class="at">xend =</span> x <span class="sc">+</span> vx_h<span class="sc">/</span><span class="dv">50</span>, <span class="at">yend =</span> y <span class="sc">+</span> vy_h<span class="sc">/</span><span class="dv">50</span>, <span class="at">color =</span> col),</span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">arrow =</span> <span class="fu">arrow</span>(<span class="at">length =</span> <span class="fu">unit</span>(<span class="fl">0.1</span>, <span class="st">"cm"</span>)),</span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">linewidth =</span> <span class="fl">0.25</span>,</span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.8</span></span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_scico_d</span>(<span class="at">palette =</span> <span class="st">"imola"</span>, <span class="at">name =</span> <span class="st">""</span>) <span class="sc">+</span></span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Longitude"</span>, <span class="at">y =</span> <span class="st">"Latitude"</span>) <span class="sc">+</span></span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>p1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="index_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="index_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>rmse <span class="ot">&lt;-</span> <span class="cf">function</span>(y, yhat) {</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sqrt</span>(<span class="dv">1</span><span class="sc">/</span><span class="fu">length</span>(y) <span class="sc">*</span> <span class="fu">sum</span>((yhat <span class="sc">-</span> y)<span class="sc">^</span><span class="dv">2</span>))</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>f <span class="sc">|&gt;</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(col) <span class="sc">|&gt;</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">rmse_vx =</span> <span class="fu">rmse</span>(vx, vx_h),</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">rmse_vy =</span> <span class="fu">rmse</span>(vy, vy_h)</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 2 × 3
-  col   rmse_vx rmse_vy
-  &lt;fct&gt;   &lt;dbl&gt;   &lt;dbl&gt;
-1 Test     3.05    3.59
-2 Train    1.87    2.28</code></pre>
 </div>
 </div>
+<div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: left;"><span class="math inline">\(\alpha\)</span></th>
+<th style="text-align: left;"><span class="math inline">\(\rho\)</span></th>
+<th style="text-align: left;"><span class="math inline">\(\sigma_1\)</span></th>
+<th style="text-align: left;"><span class="math inline">\(\sigma_2\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">1.00</td>
+<td style="text-align: left;">0.84</td>
+<td style="text-align: left;">1e-9</td>
+<td style="text-align: left;">1e-9</td>
+</tr>
+</tbody>
+</table>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: right;">rmse_vx</th>
+<th style="text-align: right;">rmse_vy</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">2.732739</td>
+<td style="text-align: right;">3.199853</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode stan code-with-copy"><code class="sourceCode stan"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Gaussian Process Regression for bivariate input and output data, using the</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co">// Intrinsic Coregionalization Model (ICM).</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co">// This program performs inference on rho, the length-scale hyperparameter for the</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co">// exponentiated quadratic kernel function.</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="kw">functions</span> {</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Performs the Kronecker product B otimes A, where B \in R^{2 x 2}</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span> kronecker_prod(<span class="dt">matrix</span> A, <span class="dt">matrix</span> B, <span class="dt">int</span> N, <span class="dt">int</span> N2) {</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">matrix</span>[N2, N2] K;</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    K[<span class="dv">1</span>:N, <span class="dv">1</span>:N] = B[<span class="dv">1</span>, <span class="dv">1</span>] * A;</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    K[<span class="dv">1</span>:N, (N+<span class="dv">1</span>):N2] = B[<span class="dv">1</span>, <span class="dv">2</span>] * A;</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    K[(N+<span class="dv">1</span>):N2, <span class="dv">1</span>:N] = B[<span class="dv">2</span>, <span class="dv">1</span>] * A;</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    K[(N+<span class="dv">1</span>):N2, (N+<span class="dv">1</span>):N2] = B[<span class="dv">2</span>, <span class="dv">2</span>] * A;</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> K;</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> {</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>&gt; N;  <span class="co">// Total observations</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[N, <span class="dv">2</span>] X;  <span class="co">// Inputs</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[N, <span class="dv">2</span>] Y;  <span class="co">// Targets</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[<span class="dv">2</span>, <span class="dv">2</span>] B;  <span class="co">// Coregionalization matrix</span></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a><span class="kw">transformed data</span> {</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> delta = <span class="fl">1e-9</span>;</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> N2 = N*<span class="dv">2</span>;</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[N, N] I_N = identity_matrix(N);</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[N2] y = to_vector(Y);</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[N2] mu = rep_vector(<span class="dv">0</span>, N2);</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>  <span class="dt">array</span>[N] <span class="dt">vector</span>[<span class="dv">2</span>] x;</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (n <span class="cf">in</span> <span class="dv">1</span>:N) {</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>    x[n] = to_vector(row(X, n));</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a><span class="kw">parameters</span> {</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; rho;  <span class="co">// Length-scale</span></span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a><span class="kw">model</span> {</span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>  rho ~ inv_gamma(<span class="dv">5</span>, <span class="dv">5</span>);</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[N, N] k_XX = gp_exp_quad_cov(x, <span class="dv">1</span>, rho);</span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[N2, N2] K = kronecker_prod(k_XX, B, N, N2);</span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (n <span class="cf">in</span> <span class="dv">1</span>:N2) {</span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>    K[n, n] += delta;</span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[N2, N2] L_K = cholesky_decompose(K);</span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>  y ~ multi_normal_cholesky(mu, L_K);</span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="tabset-1-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-3-tab">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: left;"><span class="math inline">\(\alpha\)</span></th>
+<th style="text-align: left;"><span class="math inline">\(\rho\)</span></th>
+<th style="text-align: left;"><span class="math inline">\(\sigma_1\)</span></th>
+<th style="text-align: left;"><span class="math inline">\(\sigma_2\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">8.34</td>
+<td style="text-align: left;">0.98</td>
+<td style="text-align: left;">1e-9</td>
+<td style="text-align: left;">1e-9</td>
+</tr>
+</tbody>
+</table>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: right;">rmse_vx</th>
+<th style="text-align: right;">rmse_vy</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">2.687784</td>
+<td style="text-align: right;">3.119549</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode stan code-with-copy"><code class="sourceCode stan"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Gaussian Process Regression for bivariate input and output data, using the</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="co">// Intrinsic Coregionalization Model (ICM).</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co">// This program performs inference on alpha and rho, hyperparameters for the</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co">// exponentiated quadratic kernel function.</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="kw">functions</span> {</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Performs the Kronecker product B otimes A, where B \in R^{2 x 2}</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span> kronecker_prod(<span class="dt">matrix</span> A, <span class="dt">matrix</span> B, <span class="dt">int</span> N, <span class="dt">int</span> N2) {</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">matrix</span>[N2, N2] K;</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    K[<span class="dv">1</span>:N, <span class="dv">1</span>:N] = B[<span class="dv">1</span>, <span class="dv">1</span>] * A;</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    K[<span class="dv">1</span>:N, (N+<span class="dv">1</span>):N2] = B[<span class="dv">1</span>, <span class="dv">2</span>] * A;</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>    K[(N+<span class="dv">1</span>):N2, <span class="dv">1</span>:N] = B[<span class="dv">2</span>, <span class="dv">1</span>] * A;</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    K[(N+<span class="dv">1</span>):N2, (N+<span class="dv">1</span>):N2] = B[<span class="dv">2</span>, <span class="dv">2</span>] * A;</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> K;</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> {</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>&gt; N;  <span class="co">// Total observations</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[N, <span class="dv">2</span>] X;  <span class="co">// Inputs</span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[N, <span class="dv">2</span>] Y;  <span class="co">// Targets</span></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[<span class="dv">2</span>, <span class="dv">2</span>] B;  <span class="co">// Coregionalization matrix</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a><span class="kw">transformed data</span> {</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span> delta = <span class="fl">1e-9</span>;</span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> N2 = N*<span class="dv">2</span>;</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[N2] y = to_vector(Y);</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[N2] mu = rep_vector(<span class="dv">0</span>, N2);</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>  <span class="dt">array</span>[N] <span class="dt">vector</span>[<span class="dv">2</span>] x;</span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (n <span class="cf">in</span> <span class="dv">1</span>:N) {</span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>    x[n] = to_vector(row(X, n));</span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a><span class="kw">parameters</span> {</span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; alpha;  <span class="co">// Marginal standard-deviation (magnitude of the function's range)</span></span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; rho;    <span class="co">// Length-scale</span></span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a><span class="kw">model</span> {</span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>  alpha ~ std_normal();</span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a>  rho ~ inv_gamma(<span class="dv">5</span>, <span class="dv">5</span>);</span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[N, N] k_XX = gp_exp_quad_cov(x, alpha, rho);</span>
+<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[N2, N2] K = kronecker_prod(k_XX, B, N, N2);</span>
+<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (n <span class="cf">in</span> <span class="dv">1</span>:N2) {</span>
+<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a>    K[n, n] += delta;</span>
+<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[N2, N2] L_K = cholesky_decompose(K);</span>
+<span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a>  y ~ multi_normal_cholesky(mu, L_K);</span>
+<span id="cb8-54"><a href="#cb8-54" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="tabset-1-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-4-tab">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: left;"><span class="math inline">\(\alpha\)</span></th>
+<th style="text-align: left;"><span class="math inline">\(\rho\)</span></th>
+<th style="text-align: left;"><span class="math inline">\(\sigma_1\)</span></th>
+<th style="text-align: left;"><span class="math inline">\(\sigma_2\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">8.34</td>
+<td style="text-align: left;">0.98</td>
+<td style="text-align: left;">6.95</td>
+<td style="text-align: left;">9.58</td>
+</tr>
+</tbody>
+</table>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: right;">rmse_vx</th>
+<th style="text-align: right;">rmse_vy</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">8.208218</td>
+<td style="text-align: right;">12.03744</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode stan code-with-copy"><code class="sourceCode stan"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Gaussian Process Regression for bivariate input and output data, using the</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co">// Intrinsic Coregionalization Model (ICM).</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co">// This program performs inference on alpha, rho, and sigma-- hyperparameters for the</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co">// exponentiated quadratic kernel function.</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="kw">functions</span> {</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">// Performs the Kronecker product B otimes A, where B \in R^{2 x 2}</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span> kronecker_prod(<span class="dt">matrix</span> A, <span class="dt">matrix</span> B, <span class="dt">int</span> N, <span class="dt">int</span> N2) {</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">matrix</span>[N2, N2] K;</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    K[<span class="dv">1</span>:N, <span class="dv">1</span>:N] = B[<span class="dv">1</span>, <span class="dv">1</span>] * A;</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    K[<span class="dv">1</span>:N, (N+<span class="dv">1</span>):N2] = B[<span class="dv">1</span>, <span class="dv">2</span>] * A;</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    K[(N+<span class="dv">1</span>):N2, <span class="dv">1</span>:N] = B[<span class="dv">2</span>, <span class="dv">1</span>] * A;</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    K[(N+<span class="dv">1</span>):N2, (N+<span class="dv">1</span>):N2] = B[<span class="dv">2</span>, <span class="dv">2</span>] * A;</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> K;</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> {</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span>&lt;<span class="kw">lower</span>=<span class="dv">1</span>&gt; N;  <span class="co">// Total observations</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[N, <span class="dv">2</span>] X;  <span class="co">// Inputs</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[N, <span class="dv">2</span>] Y;  <span class="co">// Targets</span></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[<span class="dv">2</span>, <span class="dv">2</span>] B;  <span class="co">// Coregionalization matrix</span></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a><span class="kw">transformed data</span> {</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int</span> N2 = N*<span class="dv">2</span>;</span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[N, N] I_N = identity_matrix(N);</span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[N2] y = to_vector(Y);</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>  <span class="dt">vector</span>[N2] mu = rep_vector(<span class="dv">0</span>, N2);</span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>  <span class="dt">array</span>[N] <span class="dt">vector</span>[<span class="dv">2</span>] x;</span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (n <span class="cf">in</span> <span class="dv">1</span>:N) {</span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>    x[n] = to_vector(row(X, n));</span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a><span class="kw">parameters</span> {</span>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; alpha;   <span class="co">// Marginal standard-deviation (magnitude of the function's range)</span></span>
+<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; rho;     <span class="co">// Length-scale</span></span>
+<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; sigma1;  <span class="co">// Scale of the noise-term for 1st component of Y</span></span>
+<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a>  <span class="dt">real</span>&lt;<span class="kw">lower</span>=<span class="dv">0</span>&gt; sigma2;  <span class="co">// Scale of the noise-term for 2nd component of Y</span></span>
+<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-44"><a href="#cb9-44" aria-hidden="true" tabindex="-1"></a><span class="kw">model</span> {</span>
+<span id="cb9-45"><a href="#cb9-45" aria-hidden="true" tabindex="-1"></a>  alpha ~ std_normal();</span>
+<span id="cb9-46"><a href="#cb9-46" aria-hidden="true" tabindex="-1"></a>  rho ~ inv_gamma(<span class="dv">5</span>, <span class="dv">5</span>);</span>
+<span id="cb9-47"><a href="#cb9-47" aria-hidden="true" tabindex="-1"></a>  sigma1 ~ std_normal();</span>
+<span id="cb9-48"><a href="#cb9-48" aria-hidden="true" tabindex="-1"></a>  sigma2 ~ std_normal();</span>
+<span id="cb9-49"><a href="#cb9-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-50"><a href="#cb9-50" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[<span class="dv">2</span>, <span class="dv">2</span>] V = identity_matrix(<span class="dv">2</span>);</span>
+<span id="cb9-51"><a href="#cb9-51" aria-hidden="true" tabindex="-1"></a>  V[<span class="dv">1</span>, <span class="dv">1</span>] = square(sigma1);</span>
+<span id="cb9-52"><a href="#cb9-52" aria-hidden="true" tabindex="-1"></a>  V[<span class="dv">2</span>, <span class="dv">2</span>] = square(sigma2);</span>
+<span id="cb9-53"><a href="#cb9-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-54"><a href="#cb9-54" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[N, N] k_XX = gp_exp_quad_cov(x, <span class="dv">1</span>, rho);</span>
+<span id="cb9-55"><a href="#cb9-55" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[N2, N2] K = kronecker_prod(k_XX, B, N, N2) + kronecker_prod(I_N, V, N, N2);</span>
+<span id="cb9-56"><a href="#cb9-56" aria-hidden="true" tabindex="-1"></a>  <span class="dt">matrix</span>[N2, N2] L_K = cholesky_decompose(K);</span>
+<span id="cb9-57"><a href="#cb9-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-58"><a href="#cb9-58" aria-hidden="true" tabindex="-1"></a>  y ~ multi_normal_cholesky(mu, L_K);</span>
+<span id="cb9-59"><a href="#cb9-59" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="independent-gps" class="level3">
+<h3 class="anchored" data-anchor-id="independent-gps">Independent GPs</h3>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" role="tab" aria-controls="tabset-2-1" aria-selected="true">Naive Parameters</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" role="tab" aria-controls="tabset-2-2" aria-selected="false">Inference on <span class="math inline">\(\rho\)</span></a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-3" role="tab" aria-controls="tabset-2-3" aria-selected="false">Inference on <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\rho\)</span></a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-4-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-4" role="tab" aria-controls="tabset-2-4" aria-selected="false">Inference on <span class="math inline">\(\alpha\)</span>, <span class="math inline">\(\rho\)</span>, and <span class="math inline">\(\sigma\)</span></a></li></ul>
+<div class="tab-content">
+<div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: left;"><span class="math inline">\(\alpha\)</span></th>
+<th style="text-align: left;"><span class="math inline">\(\rho\)</span></th>
+<th style="text-align: left;"><span class="math inline">\(\sigma_1\)</span></th>
+<th style="text-align: left;"><span class="math inline">\(\sigma_2\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">1.00</td>
+<td style="text-align: left;">1.00</td>
+<td style="text-align: left;">1e-9</td>
+<td style="text-align: left;">1e-9</td>
+</tr>
+</tbody>
+</table>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: right;">rmse_vx</th>
+<th style="text-align: right;">rmse_vy</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">2.718579</td>
+<td style="text-align: right;">3.171989</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-2-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-2-tab">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: left;"><span class="math inline">\(\alpha\)</span></th>
+<th style="text-align: left;"><span class="math inline">\(\rho\)</span></th>
+<th style="text-align: left;"><span class="math inline">\(\sigma_1\)</span></th>
+<th style="text-align: left;"><span class="math inline">\(\sigma_2\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">1.00</td>
+<td style="text-align: left;">0.85</td>
+<td style="text-align: left;">1e-9</td>
+<td style="text-align: left;">1e-9</td>
+</tr>
+</tbody>
+</table>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: right;">rmse_vx</th>
+<th style="text-align: right;">rmse_vy</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">2.713324</td>
+<td style="text-align: right;">3.165199</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-23-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-2-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-3-tab">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: left;"><span class="math inline">\(\alpha\)</span></th>
+<th style="text-align: left;"><span class="math inline">\(\rho\)</span></th>
+<th style="text-align: left;"><span class="math inline">\(\sigma_1\)</span></th>
+<th style="text-align: left;"><span class="math inline">\(\sigma_2\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">8.12</td>
+<td style="text-align: left;">0.99</td>
+<td style="text-align: left;">1e-9</td>
+<td style="text-align: left;">1e-9</td>
+</tr>
+</tbody>
+</table>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: right;">rmse_vx</th>
+<th style="text-align: right;">rmse_vy</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">2.702115</td>
+<td style="text-align: right;">3.144015</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-26-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-2-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-4-tab">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: left;"><span class="math inline">\(\alpha\)</span></th>
+<th style="text-align: left;"><span class="math inline">\(\rho\)</span></th>
+<th style="text-align: left;"><span class="math inline">\(\sigma_1\)</span></th>
+<th style="text-align: left;"><span class="math inline">\(\sigma_2\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">8.12</td>
+<td style="text-align: left;">0.99</td>
+<td style="text-align: left;">6.99</td>
+<td style="text-align: left;">9.68</td>
+</tr>
+</tbody>
+</table>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: right;">rmse_vx</th>
+<th style="text-align: right;">rmse_vy</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">3.232751</td>
+<td style="text-align: right;">5.687826</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-29-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
 
 
+</div>
+</div>
+</div>
 
+</section>
 </section>
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
 <div id="ref-alvarez2012kernels" class="csl-entry" role="listitem">
 Alvarez, Mauricio A, Lorenzo Rosasco, Neil D Lawrence, et al. 2012. <span>“Kernels for Vector-Valued Functions: A Review.”</span> <em>Foundations and Trends<span></span> in Machine Learning</em> 4 (3): 195–266.
-</div>
-<div id="ref-bonilla2007multi" class="csl-entry" role="listitem">
-Bonilla, Edwin V, Kian Chai, and Christopher Williams. 2007. <span>“Multi-Task Gaussian Process Prediction.”</span> <em>Advances in Neural Information Processing Systems</em> 20.
 </div>
 <div id="ref-chang2018r" class="csl-entry" role="listitem">
 Chang, Winston. 2018. <em>R Graphics Cookbook: Practical Recipes for Visualizing Data</em>. O’Reilly Media.

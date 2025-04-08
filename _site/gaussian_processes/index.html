@@ -54,7 +54,27 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -134,7 +154,7 @@ window.Quarto = {
 <link rel="stylesheet" href="../styles.css">
 </head>
 
-<body class="nav-sidebar docked nav-fixed slimcontent">
+<body class="nav-sidebar docked nav-fixed">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
@@ -203,12 +223,6 @@ window.Quarto = {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../gaussian_processes/gaussian_process_regression/index.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Gaussian Processes and Gaussian Process Regression</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
   <a href="../gaussian_processes/bivariate_case/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Modelling two variables using GPR</span></a>
   </div>
@@ -243,8 +257,11 @@ window.Quarto = {
   </div>
 </li>
           <li class="sidebar-item">
- <span class="menu-text">./reflections/cv/cv.qmd</span>
-  </li>
+  <div class="sidebar-item-container"> 
+  <a href="../reflections/cv.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">cv</span></a>
+  </div>
+</li>
       </ul>
   </li>
     </ul>
@@ -257,15 +274,14 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#definition-2.2-gaussian-process" id="toc-definition-2.2-gaussian-process" class="nav-link active" data-scroll-target="#definition-2.2-gaussian-process">Definition 2.2: Gaussian Process</a></li>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#definition" id="toc-definition" class="nav-link" data-scroll-target="#definition">Definition</a></li>
   <li><a href="#gaussian-process-regression" id="toc-gaussian-process-regression" class="nav-link" data-scroll-target="#gaussian-process-regression">Gaussian Process Regression</a></li>
-  <li><a href="#drawing-from-a-gaussian-process" id="toc-drawing-from-a-gaussian-process" class="nav-link" data-scroll-target="#drawing-from-a-gaussian-process">Drawing from a Gaussian Process</a></li>
-  <li><a href="#citations-wip" id="toc-citations-wip" class="nav-link" data-scroll-target="#citations-wip">Citations (WIP)</a></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
-<main class="content page-columns page-full" id="quarto-document-content">
+<main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
@@ -286,89 +302,89 @@ window.Quarto = {
 </header>
 
 
-<p>This page relies heavily on Kanagawa, Hennig, Sejdinovic, and Sriperumbudur (2018).</p>
-<section id="definition-2.2-gaussian-process" class="level3">
-<h3 class="anchored" data-anchor-id="definition-2.2-gaussian-process">Definition 2.2: Gaussian Process</h3>
-<p>Let <span class="math inline">\(\chi\)</span> be a nonempty set, <span class="math inline">\(k: \chi \times \chi \to \mathbb{R}\)</span> a positive definite kernel and <span class="math inline">\(m: \chi \to \mathbb{R}\)</span> be any real-valued function. Then a random function <span class="math inline">\(f: \chi \to \mathbb{R}\)</span> is said to be a Gaussian process (GP) with <em>mean function</em> <span class="math inline">\(m\)</span> and <em>covariance kernel</em> <span class="math inline">\(k\)</span>, denoted by <span class="math inline">\(\mathcal{GP}(m, k)\)</span>, if the following holds: For any finite set <span class="math inline">\(X = (x_1, \dots, x_n) \subset \chi\)</span> of any size <span class="math inline">\(n \in \mathbb{N}\)</span>, the random vector</p>
-<p><span class="math display">\[
-f_X = (f(x_1), \dots, f(x_n))^\top \in \mathbb{R}^n
-\]</span></p>
-<p>follows the multivariate normal distribution <span class="math inline">\(\mathcal{N}(m_X, k_{XX})\)</span> with covariance matrix <span class="math inline">\(k_{XX} = [k(x_i, x_j)]_{i, j = 1}^{n} \in \mathbb{R}^{n \times n}\)</span> and mean vector <span class="math inline">\(m_X = (m(x_1), \dots, m(x_n))^\top\)</span>.</p>
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p><em>Gaussian Processes</em> (often abbreviated as “GP”s) are stochastic (random) processes that are commonly used to model nonlinear functions. The authors of a popular textbook covering GPs and GP regression <span class="citation" data-cites="williams2006gaussian">(<a href="#ref-williams2006gaussian" role="doc-biblioref">Williams and Rasmussen 2006</a>, pg. 2)</span> provide the following informal definition:</p>
+<blockquote class="blockquote">
+<p>A Gaussian process is a generalization of the Gaussian probability distribution. Whereas a probability distribution describes random variables which are scalars or vectors (for multivariate distributions), a stochastic process governs the properties of functions. Leaving mathematical sophistication aside, one can loosely think of a function as a very long vector, each entry in the vector specifying the function value <span class="math inline">\(f(x)\)</span> at a particular input <span class="math inline">\(x\)</span>. It turns out, that although this idea is a little naïve, it is surprisingly close what we need.</p>
+</blockquote>
+<p>This description helpfully orients us to two key aspects. First is that GPs are often used to specify probability distributions over <em>functions</em>. Second, it cues us to think about collections of function evaluations as (jointly distributed) <em>vectors</em>. Below we’ll discuss a more formal definition.</p>
 </section>
-<section id="gaussian-process-regression" class="level3">
-<h3 class="anchored" data-anchor-id="gaussian-process-regression">Gaussian Process Regression</h3>
-<ul>
-<li>also called <em>kriging</em> or <em>Wiener-Kolmogorov prediction</em></li>
-</ul>
-<p>Regression is the task of estimating of an unknown function <span class="math inline">\(f\)</span> based on a provided set of <em>training data</em>, <span class="math inline">\((X, Y)\)</span>, where <span class="math inline">\(X = (x_1, \dots, x_n)^\top\)</span> and <span class="math inline">\(Y = (y_1, \dots, y_n)^\top\)</span> are random vectors (<span class="math inline">\(x_i\)</span> and <span class="math inline">\(y_i\)</span> are <em>realizations</em>, collected by the experimenter). Regression assumes the presence of <em>noise</em> denoted by <span class="math inline">\(\epsilon\)</span>, which completes the additive model:</p>
-<p><span class="math display">\[
-y_i = f(x_i) + \epsilon.
-\]</span></p>
-<p>It’s typically assumed that <span class="math inline">\(\epsilon\)</span> is normally distributed with mean 0, i.e., <span class="math inline">\(\epsilon \sim \mathcal{N}(0, \sigma)\)</span>.</p>
-<p>Gaussian process regression is a Bayesian approach that uses a GP as a prior distribution for <span class="math inline">\(f\)</span>.</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 50%">
-<col style="width: 34%">
-<col style="width: 15%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;"></th>
-<th style="text-align: left;">Prior</th>
-<th style="text-align: left;">Posterior</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Hyperparameter: kernel</td>
-<td style="text-align: left;"><span class="math inline">\(k\)</span></td>
-<td style="text-align: left;"><span class="math inline">\(\bar{k}\)</span></td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Hyperparameter: mean function</td>
-<td style="text-align: left;"><span class="math inline">\(m\)</span></td>
-<td style="text-align: left;"><span class="math inline">\(\bar{m}\)</span></td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Distribution</td>
-<td style="text-align: left;"><span class="math inline">\(\mathcal{GP}(m, k)\)</span></td>
-<td style="text-align: left;"><span class="math inline">\(\mathcal{GP}(\bar{m}, \bar{k})\)</span></td>
-</tr>
-</tbody>
-</table>
-<p>The authors show that the <em>posterior distribution</em> <span class="math inline">\(f|Y \sim \mathcal{GP}(\bar{m}, \bar{k})\)</span> where <span class="math inline">\(\bar{m} : \chi \to \mathbb{R}\)</span> and <span class="math inline">\(\bar{k}: \chi \times \chi \to \mathbb{R}\)</span> is given by</p>
-<p><span class="math display">\[
+<section id="definition" class="level2">
+<h2 class="anchored" data-anchor-id="definition">Definition</h2>
+<p>A <em>Gaussian Process</em> is an uncountably infinite collection of random variables, with any finite sample from the process sharing a joint <a href="../gaussian_processes/mvnorm/index.html">multivariate Gaussian distribution</a>. If we assume a function <span class="math inline">\(f(\mathbf{x})\)</span> comes from a Gaussian Process, we write <span class="math display">\[
 \begin{align*}
-\bar{m}(x) &amp;= m(x) + k_{xX}(k_{XX} + \sigma^2I_n)^{-1}(Y - m_X),\ x \in \chi, \\
-\bar{k}(x, x') &amp;= k(x, x') - k_{xX}(k_{XX} + \sigma^2I_n)^{-1}k_{Xx'},\ x,x' \in \chi,
+f(\mathbf{x}) &amp;\sim \mathcal{GP}(m, k)\ \text{ where } \\
+m(\mathbf{x}) &amp;= \mathbb{E}(f(\mathbf{x})), \text{ and } \\
+k(\mathbf{x}, \mathbf{x}') &amp;= \mathbb{E}[(f(\mathbf{x}) - m(\mathbf{x}))(f(\mathbf{x}') - m(\mathbf{x}'))].
 \end{align*}
 \]</span></p>
-<p>where <span class="math inline">\(k_{Xx} = k_{xX}^\top = (k(x_1, x), \dots, k(x_n, x))^\top\)</span>.</p>
-<p>This is interesting, because these are closed-form expressions, and notably, we haven’t made use of Bayes’s Rule. Assuming the kernel and mean functions aren’t expensive or difficult to evaluate, the computation is just linear algebra.</p>
+<p>The functions <span class="math inline">\(m\)</span> and <span class="math inline">\(k\)</span> are referred to as <em>mean</em> and <em>covariance</em> functions, respectively. The mean function is often set to be the zero function <span class="math inline">\(\mathbf{0}\)</span> for notational convenience. The covariance (kernel) function must produce a positive definite matrix when evaluated on a collection of inputs. For my project, I’ve focused on the squared-exponential function. For the following examples, we’ll define it using its scalar form <span class="math inline">\(k: \mathbb{R} \times \mathbb{R} \to \mathbb{R}\)</span>: <span class="math display">\[
+k(x_i, x_j) = \alpha^2 \cdot \exp \Bigl( -\frac{1}{2\rho^2}(x_i - x_j)^2 \Bigr), \text{ where } \alpha, \rho &gt; 0.
+\]</span></p>
+<p>Note that the values of <span class="math inline">\(k\)</span> will decrease exponentially as the inputs (<span class="math inline">\(x_i\)</span> and <span class="math inline">\(x_j\)</span>) get farther apart. This is a desirable property for modeling covariance, as we’d generally expect two nearby inputs to be similar to each other and two distant values to be less similar. The range of the functions drawn from the GP is controlled via <span class="math inline">\(\alpha\)</span>, while the frequency (“wiggliness”) of the functions is controlled by the length-scale <span class="math inline">\(\rho\)</span>. Together, we refer to <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\rho\)</span> are as <em>hyperparameters</em>. They can be estimated from sample data using statistical inference, or chosen by the analyst based on expertise or problem context.</p>
+<p>As an aside, the squared-exponential kernel is a common choice as a covariance function, but any function that produces a positive (semi)definite matrix can be used. David Duvenaud’s website and thesis chapter includes descriptions of various kernel functions that can be used for modeling different types of data <span class="citation" data-cites="DuvenaudKernelCookbook">(<a href="#ref-DuvenaudKernelCookbook" role="doc-biblioref">Duvenaud 2014</a>)</span>.</p>
 </section>
-<section id="drawing-from-a-gaussian-process" class="level3 page-columns page-full">
-<h3 class="anchored" data-anchor-id="drawing-from-a-gaussian-process">Drawing from a Gaussian Process</h3>
+<section id="gaussian-process-regression" class="level2">
+<h2 class="anchored" data-anchor-id="gaussian-process-regression">Gaussian Process Regression</h2>
+<p>In practice, Gaussian Processes are often brought to bear on <em>regression problems</em>, in which an analyst has collected a dataset <span class="math inline">\(S = (\mathbf{x}, \mathbf{y}) = \{ (x_i, y_i) : x_i,y_i \in \mathbb{R}, i \in 1, 2, \dots, N \}\)</span> with the goal of learning the relationship <span class="math inline">\(f\)</span> between <span class="math inline">\(\mathbf{x}\)</span> and <span class="math inline">\(\mathbf{y}\)</span>:</p>
+<p><span class="math display">\[
+\begin{align*}
+\mathbf{y} &amp;= f(\mathbf{x}) \ \text{ or} \\
+\mathbf{y} &amp;= f(\mathbf{x}) + \epsilon \ \text{ (with additive noise)}.
+\end{align*}
+\]</span></p>
+<p>Once <span class="math inline">\(f\)</span> has been estimated, it can then be used to predict the values of future or test points, which we’ll refer to as <span class="math inline">\(\mathbf{x}_* \in \mathbb{R}^M\)</span>.</p>
+<p>Gaussian Process Regression can be considered a Bayesian method for learning <span class="math inline">\(f\)</span>. We’ll consider the plots below to as an example with simulated data.</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" aria-current="page">Prior Distribution</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false">Training Data</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-3" role="tab" aria-controls="tabset-1-3" aria-selected="false">Posterior Distribution</a></li></ul>
+<div class="tab-content">
+<div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
+<p>In <span style="color: orange;"><strong>orange</strong></span>, we have a function, unknown to our imagined analyst. In <span style="color: grey;"><strong>grey</strong></span> we have 10 draws from <span class="math inline">\(f \sim \mathcal{GP}(\mathbf{0}, k(\mathbf{x}_*, \mathbf{x}_*))\)</span>. This represents what the analyst knows before incorporating information from <span class="math inline">\(S\)</span>. As we can see, the <span style="color: grey;"><strong>draws</strong></span> span the domain we’re interested in, but their y-values are chaotic and don’t align with the <span style="color: orange;"><strong>target</strong></span>.</p>
 <div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>f <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">sin</span>(<span class="dv">3</span><span class="sc">*</span>x) <span class="sc">+</span> <span class="fu">sin</span>(<span class="dv">7</span><span class="sc">*</span>x)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>k <span class="ot">&lt;-</span> <span class="cf">function</span>(x_i, x_j, <span class="at">sigma_f =</span> <span class="dv">1</span>, <span class="at">l =</span> <span class="fl">0.4</span>) sigma_f <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>(x_i <span class="sc">-</span> x_j)<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> l<span class="sc">^</span><span class="dv">2</span>))</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">400</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">120</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">5</span>, <span class="dv">5</span>, <span class="at">length.out =</span> N)</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>f_x <span class="ot">&lt;-</span> <span class="fu">f</span>(x)</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>sigma <span class="ot">&lt;-</span> <span class="fl">0.15</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>epsilon <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(N, <span class="dv">0</span>, sigma)</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> f_x <span class="sc">+</span> epsilon</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">tibble</span>(x, f_x, y)</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(d, <span class="fu">aes</span>(<span class="at">x =</span> x)) <span class="sc">+</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> f_x), <span class="at">color =</span> <span class="st">"blue"</span>) <span class="sc">+</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> y))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">theme_set</span>(<span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">15</span>) <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>()))</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>f <span class="ot">&lt;-</span> <span class="cf">function</span>(x) <span class="fu">sin</span>(<span class="dv">2</span><span class="sc">*</span>x) <span class="sc">+</span> <span class="fu">sin</span>(<span class="dv">4</span><span class="sc">*</span>x)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>k <span class="ot">&lt;-</span> <span class="cf">function</span>(x_i, x_j, alpha, rho) alpha<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>(x_i <span class="sc">-</span> x_j)<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> (<span class="dv">2</span> <span class="sc">*</span> rho<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>k_xX <span class="ot">&lt;-</span> <span class="cf">function</span>(x, X, <span class="at">alpha =</span> <span class="dv">1</span>, <span class="at">rho =</span> <span class="fl">0.4</span>) {</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  N <span class="ot">&lt;-</span> <span class="fu">NROW</span>(x)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  M <span class="ot">&lt;-</span> <span class="fu">NROW</span>(X)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  K <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, N, M)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (n <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>N) {</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (m <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>M) {</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>      K[n, m] <span class="ot">&lt;-</span> <span class="fu">k</span>(x[n], X[m], alpha, rho)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(K)</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">400</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">30</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">5</span>, <span class="dv">5</span>, <span class="at">length.out =</span> N)</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>f_x <span class="ot">&lt;-</span> <span class="fu">f</span>(x)</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>D <span class="ot">&lt;-</span> <span class="fu">tibble</span>(x, <span class="at">y =</span> f_x)</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>S <span class="ot">&lt;-</span> <span class="fu">slice_sample</span>(D, <span class="at">n =</span> n)</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>Z <span class="ot">&lt;-</span> <span class="fu">anti_join</span>(D, S, <span class="at">by =</span> <span class="st">"x"</span>)</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>K_xx <span class="ot">&lt;-</span> <span class="fu">k_xX</span>(x, x)</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> D, <span class="fu">aes</span>(x, y), <span class="at">color =</span> <span class="st">"orange"</span>) <span class="sc">+</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> <span class="fu">map</span>(</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>      <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, \(i) {</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>        <span class="fu">tibble</span>(x, <span class="at">y =</span> MASS<span class="sc">::</span><span class="fu">mvrnorm</span>(<span class="dv">1</span>, <span class="at">mu =</span> <span class="fu">rep.int</span>(<span class="dv">0</span>, N), <span class="at">Sigma =</span> K_xx))</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>    }) <span class="sc">|&gt;</span> </span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>      <span class="fu">bind_rows</span>(<span class="at">.id =</span> <span class="st">"b"</span>),</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(x, y, <span class="at">group =</span> b), <span class="at">alpha =</span> <span class="fl">0.2</span></span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -377,109 +393,103 @@ y_i = f(x_i) + \epsilon.
 </div>
 </div>
 </div>
-<p>Here we’ll compute the posterior distribution over the whole range <span class="math inline">\([-5, 5]\)</span>, using <span class="math inline">\(n = 100\)</span> training data points.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>ind_train <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">400</span>, n, <span class="at">replace =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>x_train <span class="ot">&lt;-</span> x[ind_train]</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>y_train <span class="ot">&lt;-</span> y[ind_train]</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>compute_covmat <span class="ot">&lt;-</span> <span class="cf">function</span>(k, x, y) {</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  n_x <span class="ot">&lt;-</span> <span class="fu">length</span>(x)</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  n_y <span class="ot">&lt;-</span> <span class="fu">length</span>(y)</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  K <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, n_x, n_y)</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n_x) {</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n_y) {</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>      K[i, j] <span class="ot">&lt;-</span> <span class="fu">k</span>(x[i], y[j])</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(K)</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>k_XX <span class="ot">&lt;-</span> <span class="fu">compute_covmat</span>(k, x_train, x_train)</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>k_xx <span class="ot">&lt;-</span> <span class="fu">compute_covmat</span>(k, x, x)</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>k_xX <span class="ot">&lt;-</span> <span class="fu">compute_covmat</span>(k, x, x_train)</span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>m_post <span class="ot">&lt;-</span> k_xX <span class="sc">%*%</span> <span class="fu">solve</span>(k_XX <span class="sc">+</span> sigma<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> <span class="fu">diag</span>(n)) <span class="sc">%*%</span> y_train</span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>cov_post <span class="ot">&lt;-</span> k_xx <span class="sc">-</span> k_xX <span class="sc">%*%</span> <span class="fu">solve</span>(k_XX <span class="sc">+</span> sigma<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> <span class="fu">diag</span>(n)) <span class="sc">%*%</span> <span class="fu">t</span>(k_xX)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Here <code>m_post</code> represents the mean vector of the posterior distibution, and <code>cov_post</code> represents the posterior’s covariance matrix.</p>
-
-<div class="no-row-height column-margin column-container"><div class="">
-<p>In Kanagawa et al.&nbsp;(2018), they note that the final term in the posterior mean function <span class="math inline">\(\bar{m}\)</span> should be something like <span class="math inline">\((\mathbf{y} - m_\mathbf{x})\)</span> where <span class="math inline">\(m_\mathbf{x} = [m(x_1), \dots, m(x_N)]^\top\)</span>. I’ve omitted the subtraction given that <span class="math inline">\(m(\mathbf{x}) = \mathbf{0}\)</span>.</p>
-</div></div><p>Below in blue is the actual function <span class="math inline">\(f\)</span>, with 50 draws (grey) from the posterior distribution. The posterior mean of these draws is plotted as the orange line.</p>
+<div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
+<p>Again we have our unknown target function in <span style="color: orange;"><strong>orange</strong></span>. The <strong>black</strong> dots comprise <span class="math inline">\(S\)</span>, the analyst’s dataset (here, N = 30).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>f_post <span class="ot">&lt;-</span> MASS<span class="sc">::</span><span class="fu">mvrnorm</span>(<span class="dv">50</span>, m_post, cov_post)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>draws <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(<span class="fu">t</span>(f_post)) <span class="sc">|&gt;</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">x =</span> x, <span class="at">y =</span> <span class="fu">f</span>(x)) <span class="sc">|&gt;</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(V1<span class="sc">:</span>V50)</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>post_mean <span class="ot">&lt;-</span> draws <span class="sc">|&gt;</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(x) <span class="sc">|&gt;</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">post_mean =</span> <span class="fu">mean</span>(value))</span>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> D, <span class="fu">aes</span>(x, y), <span class="at">color =</span> <span class="st">"orange"</span>) <span class="sc">+</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> S, <span class="fu">aes</span>(x, y))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" style="width:100.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-1-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-3-tab">
+<p>Now we can combine our prior distribution with the observed data to produce a posterior distribution. In essence, the result is a new distribution that “agrees” with the observed training data points. Gaussian Processes have a nice property in that the posterior distribution can be computed analytically<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>:</p>
+<p><span class="math display">\[
+\begin{align*}
+\mathbf{y}_* | \mathbf{x}, \mathbf{y}, \mathbf{x}_* &amp;\sim \mathcal{N}_M(\hat{\mu}, \hat{\Sigma}) \\
+\hat{\mu} &amp;= k(\mathbf{x}_*, \mathbf{x})(k(\mathbf{x}, \mathbf{x}))^{-1}\mathbf{y} \\
+\hat{\Sigma} &amp;= k(\mathbf{x}_*, \mathbf{x}_*) - k(\mathbf{x}_*, \mathbf{x})(k(\mathbf{x}, \mathbf{x}))^{-1}k(\mathbf{x}_*, \mathbf{x})^\top \\
+\text{ where } \ \ \ &amp; \\
+k(\mathbf{x}, \mathbf{x}) &amp;= [k(x_i, x_j)]_{i,j}^N \in \mathbb{R}^{N \times N} \\
+k(\mathbf{x}_*, \mathbf{x}) &amp;= [k(x_{*i}, x_j)]_{i,j}^{M,N} \in \mathbb{R}^{M \times N} \\
+k(\mathbf{x}_*, \mathbf{x}_*) &amp;= [k(x_{*i}, x_{*j})]_{i,j}^M \in \mathbb{R}^{M \times M}.
+\end{align*}
+\]</span></p>
+<p>After computing <span class="math inline">\(\hat{\mu}\)</span> and <span class="math inline">\(\hat{\Sigma}\)</span>, we can draw samples from the multivariate normal distribution and summarize them to produce estimates for each test point in <span class="math inline">\(\mathbf{x}_*\)</span>. Below in <span style="color: blue;"><strong>blue</strong></span> is the posterior mean across our domain, with the <span style="color: grey;"><strong>grey</strong></span> shading representing <span class="math inline">\(\pm 2\)</span> standard deviations (i.e., a 95% credible interval).</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>eps <span class="ot">&lt;-</span> <span class="fl">0.009</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>K_XX <span class="ot">&lt;-</span> <span class="fu">k_xX</span>(S<span class="sc">$</span>x, S<span class="sc">$</span>x)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>K_xX <span class="ot">&lt;-</span> <span class="fu">k_xX</span>(D<span class="sc">$</span>x, S<span class="sc">$</span>x)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Adding a small amount of noise to the diagonal for numerical stability</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>mu <span class="ot">&lt;-</span> K_xX <span class="sc">%*%</span> <span class="fu">solve</span>(K_XX <span class="sc">+</span> eps<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> <span class="fu">diag</span>(n)) <span class="sc">%*%</span> S<span class="sc">$</span>y</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>sigma <span class="ot">&lt;-</span> K_xx <span class="sc">-</span> K_xX <span class="sc">%*%</span> <span class="fu">solve</span>(K_XX <span class="sc">+</span> eps<span class="sc">^</span><span class="dv">2</span> <span class="sc">*</span> <span class="fu">diag</span>(n)) <span class="sc">%*%</span> <span class="fu">t</span>(K_xX)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>draws <span class="ot">&lt;-</span> MASS<span class="sc">::</span><span class="fu">mvrnorm</span>(<span class="dv">100</span>, mu, sigma)</span>
 <span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>draws <span class="sc">|&gt;</span></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> x)) <span class="sc">+</span></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(</span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> <span class="fu">tibble</span>(<span class="at">x =</span> x[ind_train], <span class="at">y =</span> y[ind_train]),</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(x, y), <span class="at">alpha =</span> <span class="fl">0.2</span></span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> value, <span class="at">group =</span> name), <span class="at">alpha =</span> <span class="fl">0.1</span>) <span class="sc">+</span></span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> y), <span class="at">color =</span> <span class="st">"blue"</span>, <span class="at">lty =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> post_mean, <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> post_mean), <span class="at">color =</span> <span class="st">"orange"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>draws <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(<span class="fu">t</span>(draws)) <span class="sc">|&gt;</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">x =</span> D<span class="sc">$</span>x) <span class="sc">|&gt;</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>x) <span class="sc">|&gt;</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(x) <span class="sc">|&gt;</span></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">y =</span> <span class="fu">mean</span>(value), <span class="at">s =</span> <span class="fu">sd</span>(value))</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> D, <span class="fu">aes</span>(x, y), <span class="at">color =</span> <span class="st">"orange"</span>) <span class="sc">+</span></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="at">data =</span> draws, <span class="fu">aes</span>(x, <span class="at">ymin =</span> y <span class="sc">-</span> <span class="dv">2</span><span class="sc">*</span>s, <span class="at">ymax =</span> y <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span>s), <span class="at">alpha =</span> <span class="fl">0.2</span>) <span class="sc">+</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> draws, <span class="fu">aes</span>(x, y), <span class="at">color =</span> <span class="st">"blue"</span>) <span class="sc">+</span></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> S, <span class="fu">aes</span>(x, y))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="index_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="index_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" style="width:100.0%"></p>
 </figure>
 </div>
 </div>
 </div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>f_post <span class="ot">&lt;-</span> MASS<span class="sc">::</span><span class="fu">mvrnorm</span>(<span class="at">n =</span> <span class="dv">1000</span>, m_post, cov_post)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>draws <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(<span class="fu">t</span>(f_post)) <span class="sc">|&gt;</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">x =</span> x, <span class="at">y =</span> <span class="fu">f</span>(x)) <span class="sc">|&gt;</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(V1<span class="sc">:</span>V1000)</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>post_summaries <span class="ot">&lt;-</span> draws <span class="sc">|&gt;</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(x) <span class="sc">|&gt;</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">post_mean =</span> <span class="fu">mean</span>(value),</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">post_sd =</span> <span class="fu">sd</span>(value)</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>post_summaries <span class="ot">&lt;-</span> draws <span class="sc">|&gt;</span></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(x, y) <span class="sc">|&gt;</span></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(post_summaries, <span class="at">by =</span> <span class="st">"x"</span>)</span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> post_summaries, <span class="fu">aes</span>(<span class="at">x =</span> x)) <span class="sc">+</span></span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> post_mean <span class="sc">-</span> <span class="dv">2</span><span class="sc">*</span>post_sd, <span class="at">ymax =</span> post_mean <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span>post_sd), <span class="at">fill =</span> <span class="st">"grey70"</span>) <span class="sc">+</span></span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> post_mean), <span class="at">color =</span> <span class="st">"orange"</span>) <span class="sc">+</span></span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> y), <span class="at">color =</span> <span class="st">"blue"</span>, <span class="at">lty =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
-<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> <span class="fu">tibble</span>(<span class="at">x =</span> x[ind_train], <span class="at">y =</span> y[ind_train]), <span class="fu">aes</span>(x, y), <span class="at">alpha =</span> <span class="fl">0.3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="index_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
 </div>
 </div>
 </div>
-</section>
-<section id="citations-wip" class="level3">
-<h3 class="anchored" data-anchor-id="citations-wip">Citations (WIP)</h3>
-<ul>
-<li><p>https://juanitorduz.github.io/gaussian_process_reg/</p></li>
-<li><p>https://www.cs.toronto.edu/~duvenaud/cookbook/</p></li>
-<li><p>https://gregorygundersen.com/blog/2019/06/27/gp-regression/</p></li>
-<li><p>https://gregorygundersen.com/blog/2019/09/12/practical-gp-regression/</p></li>
-</ul>
+
 
 
 </section>
 
-</main> <!-- /main -->
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-DuvenaudKernelCookbook" class="csl-entry" role="listitem">
+Duvenaud, David. 2014. <span>“The Kernel Cookbook: Advice on Covariance Functions.”</span> Website. <a href="https://www.cs.toronto.edu/~duvenaud/cookbook/">https://www.cs.toronto.edu/~duvenaud/cookbook/</a>.
+</div>
+<div id="ref-GundersonGPSep" class="csl-entry" role="listitem">
+Gunderson, Gregory. 2019a. <span>“A Practical Implementation of Gaussian Process Regression.”</span> Website. <a href="https://gregorygundersen.com/blog/2019/09/12/practical-gp-regression/">https://gregorygundersen.com/blog/2019/09/12/practical-gp-regression/</a>.
+</div>
+<div id="ref-GundersonGPJune" class="csl-entry" role="listitem">
+———. 2019b. <span>“Gaussian Process Regression with Code Snippets.”</span> Website. <a href="https://gregorygundersen.com/blog/2019/06/27/gp-regression/">https://gregorygundersen.com/blog/2019/06/27/gp-regression/</a>.
+</div>
+<div id="ref-Orduz" class="csl-entry" role="listitem">
+Orduz, Juan Camilo. 2019. <span>“An Introduction to Gaussian Process Regression.”</span> Website. <a href="https://juanitorduz.github.io/gaussian_process_reg/">https://juanitorduz.github.io/gaussian_process_reg/</a>.
+</div>
+<div id="ref-williams2006gaussian" class="csl-entry" role="listitem">
+Williams, Christopher KI, and Carl Edward Rasmussen. 2006. <em>Gaussian Processes for Machine Learning</em>. Vol. 2. 3. MIT press Cambridge, MA.
+</div>
+</div></section><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>The posterior distribution for this example assumes no additive noise in the target vector <span class="math inline">\(\mathbf{y}\)</span>. If measurement error is believed to be present, the computations for <span class="math inline">\(\hat{\mu}\)</span> and <span class="math inline">\(\hat{\Sigma}\)</span> should replace <span class="math inline">\(k(\mathbf{x}, \mathbf{x})\)</span> with <span class="math inline">\(k(\mathbf{x}, \mathbf{x}) + \sigma_y^2 I_N\)</span>, in which <span class="math inline">\(\sigma_y\)</span> is an additional hyperparameter for the outcome’s standard deviation. <span class="math inline">\(I_N\)</span> is the <span class="math inline">\(N \times N\)</span> identity matrix.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
