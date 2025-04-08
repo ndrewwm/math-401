@@ -15,7 +15,7 @@ format:
 
 # Overview of Gaussian Processes
 
-Gaussian processes are ...
+Gaussian processes are generalizations of the multivariate Gaussian distribution. Rather than characterizing a probability distributions of vectors, Gaussian processes can be used to describe a probability distribution over families of functions.
 
 ## Multivariate Gaussian (Multivariate Normal) Distribution
 
@@ -29,15 +29,28 @@ $ bold(x) in RR^N &tilde.op cal(N)_N (bold(mu), bold(Sigma)) \
   x_i &tilde.op cal(N)(mu_i, bold(Sigma)_(i i)) $
 ```
 
-## Gaussian Processes
+## Gaussian Processes (GPs)
 
 ```{=typst}
 
-A _Gaussian Process_ (GP) describes a probability distribution over a (possibly infinite) collection of random variables, such that any finite collection of those random variables is distributed by the multivariate Gaussian distribution. GPs are characterized by a _mean function_ $m$ and _covariance (kernel) function_ $k$. By convention, it's assumed that the mean function is $bold(0)$.
+Formally, a _Gaussian process_ (GP) is an uncountably infinite collection of random variables, with any finite sample from the process sharing a joint multivariate Gaussian distribution. GPs are fully specified by a _mean function_ $m$ and _covariance (kernel) function_ $k$. For notational convenience, it's often assumed that the mean function is $bold(0)$, but this is not required. The kernel function must produce a positive semi-definite matrix when evaluated on a set of input points (or vectors).
+```
 
-We will focus on the _squared exponential kernel_:
+::: {.block fill="luma(230)" inset="8pt" radius="4pt"}
 
-$ k(x, x') = alpha op("exp")(-1/(2rho) ||x - x'||^2), $
+```{=typst}
+*Positive semi-definite matrix.*
+
+Let $M in RR^(N times N)$ be a symmetric matrix. We say that $M$ is positive semi-definite if, for all vectors $bold(x) in RR^N$ not equal to $bold(0)$, the following holds: $bold(x)^top M bold(x) >= 0.$
+```
+
+:::
+
+
+```{=typst}
+We will focus primarily on the _squared exponential kernel_ $k: RR^p times RR^p -> RR$, defined as:
+
+$ k(x, x') = alpha^2 op("exp")(-1/(2rho^2) ||x - x'||^2), $
 
 where $|| dot ||$ is the Euclidean norm. The squared exponential kernel has two _hyperparameters_, $alpha$ and $rho$, which control the variance scale and length scale of functions drawn from the GP. Typically, $alpha$ is set to 1, and $rho$ is specified based on domain knowledge or is estimated from observed data.
 ```
@@ -45,6 +58,17 @@ where $|| dot ||$ is the Euclidean norm. The squared exponential kernel has two 
  This choice of kernel function reflects the assumption that the covariance between two points (or vectors) $x$ and $x'$ decays exponentially based on the distance between them.
 
 ## Gaussian Process Regression
+
+```{=typst}
+
+In practice, Gaussian Processes are often brought to bear on _regression problems_, in which an analyst has collected a dataset $S = (bold(x), bold(y)) = { (x_i, y_i) : x_i in RR^p, y_i in RR^d, i in 1, 2, ..., N }$ with the goal of learning the relationship $f$ between $bold(x)$ and $bold(y)$:
+
+$ bold(y) &= f(bold(x)) " or " \
+  bold(y) &= f(bold(x)) + epsilon " (with additive noise)". $
+
+Once $f$ has been estimated, it can then be used to predict the values of future or test points, which we’ll refer to as $bold(x)_* in RR^M$. Gaussian Process Regression can be considered a Bayesian method for learning $f$. As an overview, we'll consider an example using simulated data where $x_i, y_i in RR$.
+```
+
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim aeque doleamus animo, cum corpore dolemus, fieri.
 
