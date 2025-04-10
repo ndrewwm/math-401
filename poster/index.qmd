@@ -1,5 +1,10 @@
 ---
 title: Vector-valued Gaussian Processes
+knitr:
+  opts_chunk:
+    echo: false
+    warning: false
+    message: false
 format:
   poster-typst:
     size: "36x24"
@@ -57,7 +62,18 @@ where $|| dot ||$ is the Euclidean norm. The squared exponential kernel has two 
 
  This choice of kernel function reflects the assumption that the covariance between two points (or vectors) $x$ and $x'$ decays exponentially based on the distance between them.
 
-## Gaussian Process Regression
+::: {.block fill="luma(230)" inset="8pt" radius="4pt"}
+
+```{=typst}
+*Euclidean (L2) Norm.*
+
+Let $bold(x) in RR^N$. The Euclidean Norm of $bold(x)$, written $||bold(x)||$, is defined as
+$ ||bold(x)|| = sqrt(sum_(i = 1)^N x_i) = sqrt(x_1 + x_2 + dots.h.c + x_N). $
+```
+
+:::
+
+# Gaussian Process Regression -- Univariate $\mathbf{y}$
 
 ```{=typst}
 
@@ -66,11 +82,127 @@ In practice, Gaussian Processes are often brought to bear on _regression problem
 $ bold(y) &= f(bold(x)) " or " \
   bold(y) &= f(bold(x)) + epsilon " (with additive noise)". $
 
-Once $f$ has been estimated, it can then be used to predict the values of future or test points, which we’ll refer to as $bold(x)_* in RR^M$. Gaussian Process Regression can be considered a Bayesian method for learning $f$. As an overview, we'll consider an example using simulated data where $x_i, y_i in RR$.
+Once $f$ has been estimated, it can then be used to predict the values of future or test points. Gaussian Process Regression can be considered a Bayesian method for learning $f$. As an overview, we'll consider an example using simulated data where $x_i, y_i in RR$. \ \
 ```
 
+```{=typst}
+Let $f(x) = sin(2x) + sin(4x)$ be an unknown function that an analyst is attempting to model using sampled data. Let $N = 20$ and $M = 400 - N$. We wish to use our sample $S$ to predict the values $bold(y)_* = f(bold(x)_*)$ for test data $bold(x)_* in RR^M$.
+```
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim aeque doleamus animo, cum corpore dolemus, fieri.
+```{r}
+#| fig.height: 4.5
+#| fig.width: 10
+
+library(tidyverse)
+library(MASS, include.only = "mvrnorm")
+set.seed(123)
+theme_set(theme_minimal(base_size = 18) + theme(panel.grid.minor = element_blank()))
+
+f <- function(x) sin(2*x) + sin(4*x)
+k <- function(x_i, x_j, alpha, rho) alpha^2 * exp(-(x_i - x_j)^2 / (2 * rho^2))
+
+k_xX <- function(x, X, alpha = 1, rho = 0.4) {
+  N <- NROW(x)
+  M <- NROW(X)
+  K <- matrix(0, N, M)
+  for (n in 1:N) {
+    for (m in 1:M) {
+      K[n, m] <- k(x[n], X[m], alpha, rho)
+    }
+  }
+  return(K)
+}
+
+N <- 400
+n <- 20
+x <- seq(-5, 5, length.out = N)
+f_x <- f(x)
+
+D <- tibble(x, y = f_x)
+S <- slice_sample(D, n = n)
+Z <- anti_join(D, S, by = "x")
+
+K_xx <- k_xX(x, x)
+
+leg <- c("Training Set" = "black", "Target" = "orange", "Prior" = "grey", "Posterior Mean" = "blue")
+p0 <- ggplot() +
+  geom_line(data = D, aes(x, y, color = "Target")) +
+  geom_point(data = S, aes(x, y, color = "Training Set")) +
+  scale_color_manual(name = "", values = leg) +
+  labs(y = "f(x)") +
+  theme(
+    legend.position = c(0.13, 0.9)
+  )
+
+# p0
+```
+
+```{=typst}
+We can draw samples from the prior distribution:
+
+$ \ f " " &~ " " cal(N)_M (bold(0), k(bold(x)_*, bold(x)_*)) \
+ k(bold(x)_*, bold(x)_*) in RR^(M times M) &= [k(bold(x)_(*i), bold(x)_(*j))]_(i,j)^M = mat( 
+  k(x_(*1), x_(*1)), k(x_(*1), x_(*2)), ..., k(x_(*1), x_(*M));
+  k(x_(*2), x_(*1)), k(x_(*2), x_(*2)), ..., k(x_(*2), x_(*M));
+  dots.v, dots.v, dots.down, dots.v;
+  k(x_(*M), x_(*1)), k(x_(*M), x_(*2)), ..., k(x_(*M), x_(*M));
+). $
+```
+
+Draws from the prior distribution (shown in grey) don't necessarily agree with our data points. They represent our state of knowledge before observing the training data. In this instance, our kernel function ensures that draws are smooth curves-- matching what we might believe is a property of the target function.
+
+```{r}
+#| fig.height: 4.5
+#| fig.width: 10
+
+prior <- mvrnorm(10, rep_len(0, nrow(K_xx)), K_xx) |>
+  t() |>
+  as_tibble() |>
+  mutate(x = x) |>
+  pivot_longer(-x)
+
+p0 + geom_line(data = prior, aes(x, y = value, group = name, color = "Prior"), alpha = 0.7)
+```
+
+Our prior model for $f$ and our observed data $S$ can be combined to form a _posterior_ distribution. This distribution has an analytical form:
+
+```{=typst}
+$ bold(y)_* | bold(x), bold(y), bold(x)_* " " &~ " " cal(N)_M (hat(mu), hat(Sigma)) \
+hat(mu) in RR^M &= k(bold(x)_*, bold(x)) (k(bold(x), bold(x)))^(-1) bold(y) \
+hat(Sigma) in RR^(M times M) &= k(bold(x)_*, bold(x)_*) - k(bold(x)_*, bold(x))(k(bold(x), bold(x)))^(-1)k(bold(x)_*, bold(x))^top \
+k(bold(x), bold(x)) in RR^(N times N) &= [k(x_i, x_j)]_(i,j)^N \
+k(bold(x)_*, bold(x)) in RR^(M times N) &= [k(x_(*i), x_j)]_(i,j)^(M,N). $
+```
+
+```{r}
+#| fig.height: 4.5
+#| fig.width: 10
+
+eps <- 0.009
+K_XX <- k_xX(S$x, S$x)
+K_xX <- k_xX(D$x, S$x)
+
+# Adding a small amount of noise to the diagonal for numerical stability
+mu <- K_xX %*% solve(K_XX + eps^2 * diag(n)) %*% S$y
+sigma <- K_xx - K_xX %*% solve(K_XX + eps^2 * diag(n)) %*% t(K_xX)
+
+post <- mvrnorm(100, mu, sigma) |>
+  t() |>
+  as_tibble() |>
+  mutate(x = x) |>
+  pivot_longer(-x) |>
+  group_by(x) |>
+  summarise(y = mean(value), s = sd(value))
+
+p0 +
+  geom_ribbon(data = post, aes(x, ymin = y - 2*s, ymax = y + 2*s), alpha = 0.2) +
+  geom_line(data = post, aes(x, y, color = "Posterior Mean")) +
+  geom_point(data = S, aes(x, y, color = "Training Set"))
+```
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim aeque doleamus animo, cum corpore dolemus, fieri tamen permagna accessio potest, si aliquod aeternum et infinitum impendere malum nobis opinemur. Quod idem licet transferre in voluptatem, ut.
+
+# Multioutput GPR -- Vector-valued $\mathbf{y}$
 
 1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do.
 1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do.
@@ -94,40 +226,3 @@ Lorem @tbl-1 ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod t
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim aeque doleamus animo, cum corpore dolemus, fieri tamen permagna accessio potest, si aliquod aeternum et infinitum impendere malum nobis opinemur. Quod idem licet transferre in voluptatem, ut postea variari voluptas distinguique possit, augeri amplificarique non possit. At etiam Athenis, ut e patre.
 
 ![Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do.](./images/Standard_lettering.png){width="100%"}
-
-# Lorem ipsum dolor.
-
-::: {.block fill="luma(230)" inset="8pt" radius="4pt"}
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim aeque doleamus animo, cum corpore dolemus, fieri tamen permagna accessio potest, si aliquod aeternum et infinitum impendere malum nobis opinemur. Quod idem licet transferre in voluptatem, ut postea variari voluptas distinguique possit, augeri amplifi- carique non possit. At etiam Athenis, ut e patre audiebam facete et urbane Stoicos irridente, statua est in quo a nobis philosophia defensa et.
-
-- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do.
-- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do.
-- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do.
-
-:::
-
-## Lorem ipsum etiam
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim aeque doleamus animo, cum corpore dolemus, fieri tamen permagna accessio potest, si aliquod aeternum et infinitum impendere malum nobis opinemur. 
-
-## Lorem ipsum possimus
-
-Quod idem licet transferre in voluptatem, ut postea variari voluptas distinguique possit, augeri amplificarique non possit. At etiam Athenis, ut e patre audiebam facete et urbane Stoicos irridente, statua est in quo a nobis philosophia defensa et collaudata est, cum id, quod maxime placeat, facere possimus, omnis voluptas assumenda est, om- nis dolor repellendus. Temporibus autem quibusdam et.
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim aeque doleamus animo, cum corpore dolemus, fieri tamen permagna accessio potest, si aliquod aeternum et infinitum impendere malum nobis opinemur. 
-
-![Temperature and ozone level](images/fig-airquality-1.svg)
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim aeque doleamus animo, cum corpore dolemus, fieri tamen permagna accessio potest, si aliquod aeternum et infinitum impendere malum nobis opinemur. Quod idem licet transferre in voluptatem, ut postea variari voluptas distinguique possit, augeri amplificarique non possit. At etiam Athenis, ut e patre audiebam facete et urbane Stoicos irridente, statua est in quo a nobis philosophia defensa et collaudata est, cum id, quod maxime placeat, facere possimus, omnis voluptas assumenda est, om- nis dolor repellendus. Temporibus autem quibusdam et.
-
-- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do.
-  - Lorem ipsum dolor sit amet.
-  -  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-- Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore.
-  - Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed. 
-  - Lorem ipsum dolor sit amet, consectetur adipiscing.
-
-$$
-\sum_(k=1)^n k = \frac{(n(n+1))}{2} = \frac{(n^2 + n)}{2}
-$$
