@@ -306,7 +306,7 @@ naive <- get_posterior(X, y, B, as.matrix(select(Z, x, y)))
 #| fig.width: 9
 #| fig.align: center
 
-get_evaluation <- function(mu, Z, S, dd = 50) {
+get_evaluation <- function(mu, Z, S, dd = 50, xlab = "Longitude", ylab = "Latitude") {
   out <- Z |>
     bind_cols(as_tibble(mu) |> set_names(c("vx_h", "vy_h"))) |>
     select(x, y, vx, vy, vx_h, vy_h, index) |>
@@ -342,7 +342,7 @@ get_evaluation <- function(mu, Z, S, dd = 50) {
       linewidth = 0.25
     ) +
     scale_color_manual(name = "", values = col) +
-    labs(x = "Longitude", y = "Latitude") +
+    labs(x = xlab, y = ylab) +
     theme(legend.position = "none")
 
   perf <- out |>
@@ -428,6 +428,6 @@ naive <- get_posterior(X, y, B, X_star, sigma = c(1e-06, 1e-06))
 #| fig.width: 9
 #| fig.align: center
 
-res <- get_evaluation(naive$mu, Z, S, 15)
+res <- get_evaluation(naive$mu, Z, S, 15, "x", "y")
 res$fig
 ```
