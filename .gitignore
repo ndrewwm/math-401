@@ -1,2 +1,4 @@
 /.quarto/
 .DS_STORE
+*.mat
+/poster/index_cache/

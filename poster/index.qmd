@@ -25,11 +25,11 @@ Gaussian processes generalize the multivariate Gaussian distribution and can be 
 ## Multivariate Gaussian Distribution
 
 ```{=typst}
-The multivariate normal distribution is used to model _random vectors_ (vectors of jointly distributed random variables).
+The multivariate Gaussian distribution is used to model _random vectors_ (vectors of jointly distributed random variables).
 
 $ bold(x) in RR^N &tilde.op cal(N)_N (bold(mu), bold(Sigma)) \ 
   bold(mu) in RR^N &= (mu_1, mu_2, ..., mu_N)^top = (EE(x_1), EE(x_2), ..., EE(x_N))^top \ 
-  bold(Sigma) in RR^(N times N) &= EE((bold(x) - mu)(bold(x) - mu)^top) = [op("cov")(x_i, x_j)]_(i,j)^N \
+  bold(Sigma) in RR^(N times N) &= EE((bold(x) - mu)(bold(x) - mu)^top) = [op("cov")(x_i, x_j)]_(i,j = 1)^N \
   x_i &tilde.op cal(N)(mu_i, bold(Sigma)_(i i)) $
 ```
 
@@ -54,16 +54,15 @@ $ k(x, x') = alpha^2 op("exp")(-1/(2rho^2) ||x - x'||^2). $
 # Gaussian Process Regression -- Univariate $\mathbf{y}$
 
 ```{=typst}
-
-In practice, Gaussian Processes are often brought to bear on _regression problems_, in which an analyst has collected a dataset $S = (bold(x), bold(y)) = { (x_i, y_i) : x_i in RR^p, y_i in RR^d, i in 1, 2, ..., N }$ with the goal of learning the relationship $f$ between $bold(x)$ and $bold(y)$. 
-
-\
-Let $f(x) = sin(2x) + sin(4x)$ be an unknown function that an analyst is attempting to model using sampled data. Let $N = 20$ and $M = 400 - N$. We wish to use our sample $S$ to predict the values $bold(y)_* = f(bold(x)_*)$ for test data $bold(x)_* in RR^M$.
+Let $S = (bold(x), bold(y)) = { (x_i, y_i) : x_i in RR^p, y_i in RR^d, i in 1, 2, ..., N }$ be a researcher's dataset, and let $N = 20$ and $M = 400 - N$. We wish to use $S$ to find an unknown function $f$ that satisfies $bold(y) = f(bold(x))$, possibly subject to additive noise $epsilon$.
 ```
 
 ```{r}
 #| fig.height: 7
 #| fig.width: 15
+
+ORANGE <- "#D64309"
+BLUE <- "#0033A0"
 
 library(tidyverse)
 library(MASS, include.only = "mvrnorm")
@@ -96,7 +95,7 @@ Z <- anti_join(D, S, by = "x")
 
 K_xx <- k_xX(x, x)
 
-leg <- c("Training Set" = "black", "Target" = "orange", "Prior" = "grey", "Posterior Mean" = "blue")
+leg <- c("Training Set" = "black", "Target" = ORANGE, "Draws from the Prior" = "grey", "Posterior Mean" = BLUE)
 p0 <- ggplot() +
   geom_line(data = D, aes(x, y, color = "Target")) +
   geom_point(data = S, aes(x, y, color = "Training Set")) +
@@ -110,16 +109,15 @@ p0 <- ggplot() +
 ```
 
 ```{=typst}
-\ \
 We can draw samples from the prior distribution:
 
 $
 f " " &~ " " cal("GP")(bold(0), k) \
 bold(y)_* " " &~ " " cal(N)_M (bold(0), k(bold(x)_*, bold(x)_*)) \
-k(bold(x)_*, bold(x)_*) in RR^(M times M) &= [k(bold(x)_(*i), bold(x)_(*j))]_(i,j)^M. $
+k(bold(x)_*, bold(x)_*) in RR^(M times M) &= [k(bold(x)_(*i), bold(x)_(*j))]_(i,j = 1)^M. $
 
 
-- Draws from the prior distribution (shown in grey) don't necessarily agree with our data points.
+- Draws from the prior distribution (shown in grey) don't necessarily agree with the data points.
 - Kernel choice determines properties of $f$ (e.g., smoothness)
 ```
 
@@ -133,17 +131,17 @@ prior <- mvrnorm(10, rep_len(0, nrow(K_xx)), K_xx) |>
   mutate(x = x) |>
   pivot_longer(-x)
 
-p0 + geom_line(data = prior, aes(x, y = value, group = name, color = "Prior"), alpha = 0.7)
+p0 + geom_line(data = prior, aes(x, y = value, group = name, color = "Draws from the Prior"), alpha = 0.7)
 ```
 
-Our prior model for $f$ and our observed data $S$ can be combined to form a _posterior_ distribution:
+Our prior model for $f$ and the observed data $S$ can be combined to form a _posterior_ distribution:
 
 ```{=typst}
 $ bold(y)_* | bold(x), bold(y), bold(x)_* " " &~ " " cal(N)_M (hat(mu), hat(Sigma)) \
 hat(mu) in RR^M &= k(bold(x)_*, bold(x)) (k(bold(x), bold(x)))^(-1) bold(y) \
 hat(Sigma) in RR^(M times M) &= k(bold(x)_*, bold(x)_*) - k(bold(x)_*, bold(x))(k(bold(x), bold(x)))^(-1)k(bold(x)_*, bold(x))^top \
-k(bold(x), bold(x)) in RR^(N times N) &= [k(x_i, x_j)]_(i,j)^N \
-k(bold(x)_*, bold(x)) in RR^(M times N) &= [k(x_(*i), x_j)]_(i,j)^(M,N). $
+k(bold(x), bold(x)) in RR^(N times N) &= [k(x_i, x_j)]_(i,j = 1)^N \
+k(bold(x)_*, bold(x)) in RR^(M times N) &= [k(x_(*i), x_j)]_(i,j = 1)^(M,N). $
 ```
 
 ```{r}
@@ -173,24 +171,216 @@ p0 +
 ```
 
 # Multioutput GPR -- Vector-valued $\mathbf{y}$
+```{=typst}
+- GPR can be extended to targets with >1 dimensions.
+- Velocity fields: $bold(X), bold(Y) in RR^(N times 2)$
+- Intrinsic Coregionalization Model (ICM): combines the kernel matrix with a similarity matrix $B$
+```
 
-1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do.
-1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do.
-1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do.
+```{=typst}
+$ bold(X), bold(Y) in RR^(N times 2), " " bold(y) &in RR^(2N) = "vec"(Y), " " bold(X)_* in RR^(M times 2) \
+  bold(y)_* | bold(X), bold(y), bold(X)_* " " &~ " " cal(N)_(2M) (hat(mu), hat(Sigma)) \
+  hat(mu) in RR^(2M) &= K_(bold(X)_* bold(X)) K_(bold(X) bold(X))^(-1) bold(y) \
+  hat(Sigma) in RR^(2M times 2M) &= K_(bold(X)_* bold(X)_*) - K_(bold(X)_* bold(X)) K_(bold(X) bold(X))^(-1) K_(bold(X)_* bold(X))^top \
+  K_(bold(X) bold(X)) in RR^(2N times 2N) &= B times.circle k(bold(X), bold(X)) \
+  K_(bold(X)_* bold(X)) in RR^(2M times 2N) &= B times.circle k(bold(X)_*, bold(X)) \
+  K_(bold(X)_* bold(X)_*) in RR^(2M times 2M) &= B times.circle k(bold(X)_*, bold(X)_*) \
+  B in RR^(2 times 2) &= "corr"(bold(Y)) = (
+  (angle.l bold(y)_i - overline(bold(y))_i, bold(y)_j - overline(bold(y))_j angle.r) / 
+    (||bold(y)_i - overline(bold(y))_i|| ||bold(y)_j - overline(bold(y))_j||)
+)_(i,j = 1)^2 
+$
+```
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim aeque doleamus animo, cum corpore dolemus, fieri tamen permagna accessio potest, si aliquod aeternum et infinitum impendere malum nobis opinemur. Quod idem licet transferre in voluptatem, ut.
+```{r}
+#| fig.height: 10
+#| fig.width: 15
 
-| Lorem ipsum dolor sit. | Lorem ipsum. | Lorem ipsum. |
-|------------------------|--------------|--------------|
-| Lorem ipsum dolor.     | Lorem ipsum. | $\alpha$     |
-| Lorem ipsum.           | Lorem ipsum. | $\beta$      |
-| Lorem.                 | Lorem.       | $\gamma$     |
-| Lorem ipsum dolor.     | Lorem.       | $\theta$     |
+library(gcookbook)
+library(scico)
+library(grid)
+set.seed(123)
 
-: Lorem ipsum dolor sit amet {#tbl-1}
+# Keep a subset in the middle of the the z-axis
+d_isabel <- isabel |>
+  filter(z == 10.035) |>
+  as_tibble()
 
-Lorem @tbl-1 ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim aeque doleamus animo, cum corpore dolemus, fieri tamen permagna accessio potest, si aliquod aeternum et infinitum impendere malum nobis opinemur. Quod idem licet transferre in voluptatem, ut postea variari voluptas distinguique possit, augeri amplificarique non possit. At etiam Athenis, ut e patre audiebam facete et urbane Stoicos irridente, statua est in quo a nobis philosophia defensa et.
+# Keep 1 out of every 'by' values in vector x
+every_n <- function(x, by = 4) {
+  x <- sort(x)
+  x[seq(1, length(x), by = by)]
+}
 
-## Lorem ipsum dolor sit amet
+# Keep 1 of every 4 values in x and y
+keep_x <- every_n(unique(isabel$x), 4)
+keep_y <- every_n(unique(isabel$y), 4)
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim aeque doleamus animo, cum corpore dolemus, fieri tamen permagna accessio potest, si aliquod aeternum et infinitum impendere malum nobis opinemur. Quod idem licet transferre in voluptatem, ut postea variari voluptas distinguique possit, augeri amplificarique non possit. At etiam Athenis, ut e patre.
+# Keep only those rows where x value is in keepx and y value is in keepy
+d <- d_isabel |>
+  filter(x %in% keep_x, y %in% keep_y) |>
+  mutate(index = 1:n())
+
+# Need to load grid for arrow() function
+library(grid)
+
+# Make a plot with the subset, and use an arrowhead 0.1 cm long
+p1 <- ggplot(d, aes(x, y)) +
+  geom_segment(
+    aes(xend = x + vx/60, yend = y + vy/60),
+    arrow = arrow(length = unit(0.1, "cm")),
+    linewidth = 0.25
+  ) +
+  labs(x = "Longitude", y = "Latitude")
+
+# p1
+```
+
+```{r}
+#| cache: true
+
+# Set up the training data
+S <- d |>
+  slice_sample(n = floor(0.3 * nrow(d))) |>
+  select(x, y, vx, vy, index)
+
+X <- S |> select(x, y) |> as.matrix()
+Y <- S |> select(vx, vy) |> as.matrix()
+y <- as.vector(Y)
+B <- cor(Y)
+N <- nrow(X)
+
+# Pull out test cases
+Z <- d |>
+  anti_join(S, by = "index") |>
+  select(x, y, vx, vy, index)
+
+X_star <- Z |> select(x, y) |> as.matrix()
+
+k <- function(xi, xj, alpha = 1, rho = 1) {
+  alpha^2 * exp(-norm(xi - xj, type = "2")^2 / (2 * rho^2))
+}
+
+k_xX <- function(x, X, alpha = 1, rho = 1) {
+  N <- nrow(x)
+  M <- nrow(X)
+
+  K <- matrix(0, N, M)
+  for (i in 1:N) {
+    for (j in 1:M) {
+      K[i, j] <- k(x[i, ], X[j, ], alpha, rho)
+    }
+  }
+
+  K
+}
+
+get_posterior <- function(X, y, B, Z, alpha = 1, rho = 1, sigma = c(1e-9, 1e-9)) {
+  N <- nrow(X)
+  M <- nrow(Z)
+
+  V <- diag(sigma^2, 2)
+  K_XX <- kronecker(B, k_xX(X, X, alpha, rho)) + kronecker(V, diag(N))
+  K_ZX <- kronecker(B, k_xX(Z, X, alpha, rho))
+  K_ZZ <- kronecker(B, k_xX(Z, Z, alpha, rho))
+
+  mu <- K_ZX %*% solve(K_XX) %*% y
+  mu <- matrix(mu, M, 2)
+  Sigma <- K_ZZ - K_ZX %*% solve(K_XX) %*% t(K_ZX)
+
+  return(lst(mu, Sigma))
+}
+
+rmse <- function(y, yhat) {
+  sqrt(1/length(y) * sum((yhat - y)^2))
+}
+
+naive <- get_posterior(X, y, B, as.matrix(select(Z, x, y)))
+```
+
+```{r}
+#| fig.height: 9
+#| fig.width: 9
+#| fig.align: center
+
+get_evaluation <- function(mu, Z, S, dd = 50) {
+  out <- Z |>
+    bind_cols(as_tibble(mu) |> set_names(c("vx_h", "vy_h"))) |>
+    select(x, y, vx, vy, vx_h, vy_h, index) |>
+    bind_rows(S) |>
+    mutate(
+      col = factor(
+        as.numeric(index %in% S$index),
+        levels = 0:1,
+        labels = c("Test", "Train")
+      )
+    )
+
+  col <- c("Training Points" = ORANGE, "Test Points" = BLUE)
+
+  fig <- ggplot() +
+    geom_segment(
+      data = out,
+      aes(x, y, xend = x + vx/dd, yend = y + vy/dd),
+      arrow = arrow(length = unit(0.1, "cm")),
+      linewidth = 0.25,
+      alpha = 0.3
+    ) +
+    geom_segment(
+      data = filter(out, col == "Train"),
+      aes(x, y, xend = x + vx/dd, yend = y + vy/dd, color = "Training Points"),
+      arrow = arrow(length = unit(0.1, "cm")),
+      linewidth = 0.25
+    ) +
+    geom_segment(
+      data = filter(out, col == "Test"),
+      aes(x, y, xend = x + vx_h/dd, yend = y + vy_h/dd, color = "Test Points"),
+      arrow = arrow(length = unit(0.1, "cm")),
+      linewidth = 0.25
+    ) +
+    scale_color_manual(name = "", values = col) +
+    labs(x = "Longitude", y = "Latitude") +
+    theme(legend.position = "none")
+
+  perf <- out |>
+    filter(col == "Test") |>
+    summarize(
+      rmse_vx = rmse(vx, vx_h),
+      rmse_vy = rmse(vy, vy_h)
+    )
+
+  return(lst(fig, perf))
+}
+
+res <- get_evaluation(naive$mu, Z, S, 60)
+res$fig
+```
+
+
+<!-- PIV DATA -->
+
+```{r}
+#| fig.height: 10
+#| fig.width: 10
+#| fig.align: center
+
+library(R.matlab)
+
+piv <- readMat("PIV_Data_Tank_Lvl100.mat")
+
+D <- tibble(
+  x = as.vector(piv$x),
+  y = as.vector(piv$y),
+  vx = as.vector(piv$u),
+  vy = as.vector(piv$v)
+)
+
+p2 <- ggplot(D, aes(x, y)) +
+  geom_segment(
+    aes(xend = x + vx, yend = y + vy),
+    arrow = arrow(length = unit(0.1, "cm")),
+    linewidth = 0.25
+  )
+
+p2
+```
