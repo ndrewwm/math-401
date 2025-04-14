@@ -176,6 +176,7 @@ p0 +
 ```{=typst}
 - GPR can be extended to targets with >1 dimensions.
 - Velocity fields: $bold(X), bold(Y) in RR^(N times 2)$
+- Idea: columns of $bold(Y)$ might not be independent
 - Intrinsic Coregionalization Model (ICM): combines the kernel matrix with a similarity matrix $B$
 ```
 
@@ -368,6 +369,10 @@ res$fig
 
 library(R.matlab)
 
+min_max_norm <- function(x) {
+  (x - min(x)) / (max(x) - min(x))
+}
+
 piv <- readMat("PIV_Data_Tank_Lvl100.mat")
 
 D <- tibble(
@@ -375,14 +380,54 @@ D <- tibble(
   y = as.vector(piv$y),
   vx = as.vector(piv$u),
   vy = as.vector(piv$v)
-)
+) |>
+  mutate(
+    vx = min_max_norm(vx),
+    vy = min_max_norm(vy),
+    index = 1:n()
+  )
 
 p2 <- ggplot(D, aes(x, y)) +
   geom_segment(
-    aes(xend = x + vx, yend = y + vy),
+    aes(xend = x + vx/15, yend = y + vy/15),
     arrow = arrow(length = unit(0.1, "cm")),
     linewidth = 0.25
   )
 
-p2
+# p2
+```
+
+```{r}
+#| cache: true
+
+set.seed(123)
+
+# Set up the training data
+S <- D |>
+  slice_sample(n = floor(0.3 * nrow(D))) |>
+  select(x, y, vx, vy, index)
+
+X <- S |> select(x, y) |> as.matrix()
+Y <- S |> select(vx, vy) |> as.matrix()
+y <- as.vector(Y)
+B <- cor(Y)
+N <- nrow(X)
+
+# Pull out test cases
+Z <- D |>
+  anti_join(S, by = "index") |>
+  select(x, y, vx, vy, index)
+
+X_star <- Z |> select(x, y) |> as.matrix()
+
+naive <- get_posterior(X, y, B, X_star, sigma = c(1e-06, 1e-06))
+```
+
+```{r}
+#| fig.height: 9
+#| fig.width: 9
+#| fig.align: center
+
+res <- get_evaluation(naive$mu, Z, S, 15)
+res$fig
 ```
