@@ -1,5 +1,7 @@
 ---
 title: Vector-valued Gaussian Processes
+execute: 
+  freeze: true
 knitr:
   opts_chunk:
     echo: false
