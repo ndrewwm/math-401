@@ -56,7 +56,7 @@ $ k(x, x') = alpha^2 op("exp")(-1/(2rho^2) ||x - x'||^2). $
 # Gaussian Process Regression -- Univariate $\mathbf{y}$
 
 ```{=typst}
-Let $S = (bold(x), bold(y)) = { (x_i, y_i) : x_i in RR^p, y_i in RR^d, i in 1, 2, ..., N }$ be a researcher's dataset, and let $N = 20$ and $M = 400 - N$. We wish to use $S$ to find an unknown function $f$ that satisfies $bold(y) = f(bold(x))$, possibly subject to additive noise $epsilon$.
+Let $S = (bold(x), bold(y)) = { (x_i, y_i) : x_i, y_i in RR, i in 1, 2, ..., N }$ be a researcher's dataset, and let $N = 20$ and $M = 400 - N$. We wish to use $S$ to find an unknown function $f$ that satisfies $bold(y) = f(bold(x))$, possibly subject to additive noise $epsilon$.
 ```
 
 ```{r}
@@ -140,8 +140,8 @@ Our prior model for $f$ and the observed data $S$ can be combined to form a _pos
 
 ```{=typst}
 $ bold(y)_* | bold(x), bold(y), bold(x)_* " " &~ " " cal(N)_M (hat(mu), hat(Sigma)) \
-hat(mu) in RR^M &= k(bold(x)_*, bold(x)) (k(bold(x), bold(x)))^(-1) bold(y) \
-hat(Sigma) in RR^(M times M) &= k(bold(x)_*, bold(x)_*) - k(bold(x)_*, bold(x))(k(bold(x), bold(x)))^(-1)k(bold(x)_*, bold(x))^top \
+hat(mu) in RR^M &= k(bold(x)_*, bold(x)) k(bold(x), bold(x))^(-1) bold(y) \
+hat(Sigma) in RR^(M times M) &= k(bold(x)_*, bold(x)_*) - k(bold(x)_*, bold(x))k(bold(x), bold(x))^(-1)k(bold(x)_*, bold(x))^top \
 k(bold(x), bold(x)) in RR^(N times N) &= [k(x_i, x_j)]_(i,j = 1)^N \
 k(bold(x)_*, bold(x)) in RR^(M times N) &= [k(x_(*i), x_j)]_(i,j = 1)^(M,N). $
 ```
