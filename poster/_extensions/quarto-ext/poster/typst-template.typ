@@ -52,7 +52,7 @@
   title_column_size: "20",
 
   // Poster title's font size (in pt).
-  title_font_size: "72",
+  title_font_size: "84",
 
   // Authors' font size (in pt).
   authors_font_size: "36",

@@ -10,7 +10,7 @@ knitr:
 format:
   poster-typst:
     size: "48x36"
-    poster-authors: "Andrew Moore, Grady Wright"
+    poster-authors: "Andrew Moore, Grady Wright (Advisor)"
     departments: "Department of Mathematics"
     institution-logo: "./images/boisestate-laligned-logo.png"
     footer-text: "Spring 2025, Senior Showcase"
@@ -29,10 +29,10 @@ Gaussian processes generalize the multivariate Gaussian distribution and can be 
 ```{=typst}
 The multivariate Gaussian distribution is used to model _random vectors_ (vectors of jointly distributed random variables).
 
-$ bold(x) in RR^N &tilde.op cal(N)_N (bold(mu), bold(Sigma)) \ 
-  bold(mu) in RR^N &= (mu_1, mu_2, ..., mu_N)^top = (EE(x_1), EE(x_2), ..., EE(x_N))^top \ 
-  bold(Sigma) in RR^(N times N) &= EE((bold(x) - mu)(bold(x) - mu)^top) = [op("cov")(x_i, x_j)]_(i,j = 1)^N \
-  x_i &tilde.op cal(N)(mu_i, bold(Sigma)_(i i)) $
+$ bold(z) in RR^N &tilde.op cal(N)_N (bold(mu), bold(Sigma)) \ 
+  bold(mu) in RR^N &= (mu_1, mu_2, ..., mu_N)^top = (EE(z_1), EE(z_2), ..., EE(z_N))^top \ 
+  bold(Sigma) in RR^(N times N) &= EE((bold(z) - mu)(bold(z) - mu)^top) = [op("cov")(z_i, z_j)]_(i,j = 1)^N \
+  z_i &tilde.op cal(N)(mu_i, bold(Sigma)_(i i)) $
 ```
 
 ## Gaussian Processes (GPs)
@@ -113,11 +113,9 @@ p0 <- ggplot() +
 ```{=typst}
 We can draw samples from the prior distribution:
 
-$
-f " " &~ " " cal("GP")(bold(0), k) \
+$ f " " &~ " " cal("GP")(bold(0), k) \
 bold(y)_* " " &~ " " cal(N)_M (bold(0), k(bold(x)_*, bold(x)_*)) \
-k(bold(x)_*, bold(x)_*) in RR^(M times M) &= [k(bold(x)_(*i), bold(x)_(*j))]_(i,j = 1)^M. $
-
+k(bold(x)_*, bold(x)_*) in RR^(M times M) &= [k(x_(*i), x_(*j))]_(i,j = 1)^M. $
 
 - Draws from the prior distribution (shown in grey) don't necessarily agree with the data points.
 - Kernel choice determines properties of $f$ (e.g., smoothness)
@@ -194,6 +192,8 @@ $ bold(X), bold(Y) in RR^(N times 2), " " bold(y) &in RR^(2N) = "vec"(Y), " " bo
 )_(i,j = 1)^2 
 $
 ```
+
+**Case study: Hurricane Isabel Simulation**
 
 ```{r}
 #| fig.height: 10
@@ -302,8 +302,41 @@ naive <- get_posterior(X, y, B, as.matrix(select(Z, x, y)))
 ```
 
 ```{r}
-#| fig.height: 9
-#| fig.width: 9
+library(ggvfields)
+
+vfield <- function(dat, L = 0.07, xlab = "x", ylab = "y") {
+  ggplot() +
+    geom_vector(
+      data = dat,
+      aes(x = x, y = y, fx = vx, fy = vy),
+      arrow = arrow(length = unit(0.1, "cm")),
+      show.legend = FALSE,
+      color = "grey",
+      L = L
+    ) +
+    geom_vector(
+      data = dat |> filter(col == "Train"),
+      aes(x = x, y = y, fx = vx, fy = vy),
+      arrow = arrow(length = unit(0.1, "cm")),
+      show.legend = FALSE,
+      color = ORANGE,
+      L = L
+    ) +
+    geom_vector(
+      data = dat |> filter(col == "Test"),
+      aes(x = x, y = y, fx = vx_h, fy = vy_h),
+      arrow = arrow(length = unit(0.1, "cm")),
+      show.legend = FALSE,
+      color = BLUE,
+      L = L
+    ) +
+    labs(x = xlab, y = ylab)
+}
+```
+
+```{r}
+#| fig.height: 8.5
+#| fig.width: 8.5
 #| fig.align: center
 
 get_evaluation <- function(mu, Z, S, dd = 50, xlab = "Longitude", ylab = "Latitude") {
@@ -319,32 +352,6 @@ get_evaluation <- function(mu, Z, S, dd = 50, xlab = "Longitude", ylab = "Latitu
       )
     )
 
-  col <- c("Training Points" = ORANGE, "Test Points" = BLUE)
-
-  fig <- ggplot() +
-    geom_segment(
-      data = out,
-      aes(x, y, xend = x + vx/dd, yend = y + vy/dd),
-      arrow = arrow(length = unit(0.1, "cm")),
-      linewidth = 0.25,
-      alpha = 0.3
-    ) +
-    geom_segment(
-      data = filter(out, col == "Train"),
-      aes(x, y, xend = x + vx/dd, yend = y + vy/dd, color = "Training Points"),
-      arrow = arrow(length = unit(0.1, "cm")),
-      linewidth = 0.25
-    ) +
-    geom_segment(
-      data = filter(out, col == "Test"),
-      aes(x, y, xend = x + vx_h/dd, yend = y + vy_h/dd, color = "Test Points"),
-      arrow = arrow(length = unit(0.1, "cm")),
-      linewidth = 0.25
-    ) +
-    scale_color_manual(name = "", values = col) +
-    labs(x = xlab, y = ylab) +
-    theme(legend.position = "none")
-
   perf <- out |>
     filter(col == "Test") |>
     summarize(
@@ -352,26 +359,20 @@ get_evaluation <- function(mu, Z, S, dd = 50, xlab = "Longitude", ylab = "Latitu
       rmse_vy = rmse(vy, vy_h)
     )
 
-  return(lst(fig, perf))
+  return(lst(perf, out))
 }
 
 res <- get_evaluation(naive$mu, Z, S, 60)
-res$fig
+vfield(res$out, L = 0.6, xlab = "Longitude", ylab = "Latitude")
 ```
 
 
 <!-- PIV DATA -->
 
+**Case study: Particle Image Velocimetry**
+
 ```{r}
-#| fig.height: 10
-#| fig.width: 10
-#| fig.align: center
-
 library(R.matlab)
-
-min_max_norm <- function(x) {
-  (x - min(x)) / (max(x) - min(x))
-}
 
 piv <- readMat("PIV_Data_Tank_Lvl100.mat")
 
@@ -379,22 +380,9 @@ D <- tibble(
   x = as.vector(piv$x),
   y = as.vector(piv$y),
   vx = as.vector(piv$u),
-  vy = as.vector(piv$v)
-) |>
-  mutate(
-    vx = min_max_norm(vx),
-    vy = min_max_norm(vy),
-    index = 1:n()
-  )
-
-p2 <- ggplot(D, aes(x, y)) +
-  geom_segment(
-    aes(xend = x + vx/15, yend = y + vy/15),
-    arrow = arrow(length = unit(0.1, "cm")),
-    linewidth = 0.25
-  )
-
-# p2
+  vy = as.vector(piv$v),
+  index = 1:length(piv$x)
+)
 ```
 
 ```{r}
@@ -424,10 +412,12 @@ naive <- get_posterior(X, y, B, X_star, sigma = c(1e-06, 1e-06))
 ```
 
 ```{r}
-#| fig.height: 9
-#| fig.width: 9
+#| fig.height: 8.5
+#| fig.width: 8.5
 #| fig.align: center
 
 res <- get_evaluation(naive$mu, Z, S, 15, "x", "y")
-res$fig
+vfield(res$out)
 ```
+
+*Note:* colors reflect <span style="color: #D64309">sample data</span>, <span style="color: #0033A0">posterior mean</span>, and <span style="color: grey;">test points.</span>
