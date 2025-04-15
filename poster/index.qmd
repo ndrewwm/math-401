@@ -12,7 +12,7 @@ format:
     size: "48x36"
     poster-authors: "Andrew Moore, Grady Wright (Advisor)"
     departments: "Department of Mathematics"
-    institution-logo: "./images/boisestate-laligned-logo.png"
+    institution-logo: "./images/boisestate-leftalignedlogo-2color-rgb.png"
     footer-text: "Spring 2025, Senior Showcase"
     footer-url: "https://ndrewwm.github.io/math-401"
     footer-emails: "andrewmoore1@u.boisestate.edu"
@@ -193,7 +193,7 @@ $ bold(X), bold(Y) in RR^(N times 2), " " bold(y) &in RR^(2N) = "vec"(Y), " " bo
 $
 ```
 
-**Case study: Hurricane Isabel Simulation**
+**Case study:** Hurricane Isabel Simulation (Chang, 2018)
 
 ```{r}
 #| fig.height: 10
@@ -369,7 +369,7 @@ vfield(res$out, L = 0.6, xlab = "Longitude", ylab = "Latitude")
 
 <!-- PIV DATA -->
 
-**Case study: Particle Image Velocimetry**
+**Case study:** Particle Image Velocimetry (Harlander, Wright, & Egbers, 2012)
 
 ```{r}
 library(R.matlab)
