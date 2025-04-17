@@ -103,8 +103,8 @@ p0 <- ggplot() +
 ```
 
 ```{=typst}
-$ S = (bold(x), bold(y)) &= { (x_i, y_i) : x_i, y_i in RR, i in 1, 2, ..., N } \
-  f " " ~ " " cal("GP")(bold(0), k) " " & " "
+$ "Have: " bold(x), bold(y) in RR^N, & bold(x)_* in RR^M " Want: " bold(y) = f(bold(x)) \
+  "Prior: " f " " ~ cal("GP")(bold(0), k) " " & " "
   bold(y)_* " " ~ " " cal(N)_M (bold(0), k(bold(x)_*, bold(x)_*)) \
   k(bold(x)_*, bold(x)_*) in RR^(M times M) &= [k(x_(*i), x_(*j))]_(i,j = 1)^M. $
 
@@ -126,7 +126,7 @@ p0 + geom_line(data = prior, aes(x, y = value, group = name, color = "Draws from
 ```
 
 ```{=typst}
-$ bold(y)_* | bold(x), bold(y), bold(x)_* " " &~ " " cal(N)_M (hat(mu), hat(Sigma)) \
+$ "Posterior: " bold(y)_* | bold(x), bold(y), bold(x)_* " " &~ " " cal(N)_M (hat(mu), hat(Sigma)) \
 hat(mu) in RR^M &= k(bold(x)_*, bold(x)) k(bold(x), bold(x))^(-1) bold(y) \
 hat(Sigma) in RR^(M times M) &= k(bold(x)_*, bold(x)_*) - k(bold(x)_*, bold(x))k(bold(x), bold(x))^(-1)k(bold(x)_*, bold(x))^top $
 ```
