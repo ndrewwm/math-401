@@ -2,6 +2,9 @@
 title: Vector-valued Gaussian Processes
 execute: 
   freeze: true
+bibliography: poster.bib
+nocite: |
+  @harlander2012reconstruction, @alvarez2012kernels, @williams2006gaussian, @chang2018r
 knitr:
   opts_chunk:
     echo: false
@@ -22,41 +25,30 @@ format:
 
 # Overview of Gaussian Processes
 
-Gaussian processes generalize the multivariate Gaussian distribution and can be used to describe a probability distribution over families of functions.
+Gaussian processes generalize the multivariate Gaussian dist. and can describe probability distributions over functions. [@williams2006gaussian]
 
 ## Multivariate Gaussian Distribution
 
 ```{=typst}
-The multivariate Gaussian distribution is used to model _random vectors_ (vectors of jointly distributed random variables).
-
-$ bold(z) in RR^N &tilde.op cal(N)_N (bold(mu), bold(Sigma)) \ 
+$ bold(z) in RR^N &tilde.op cal(N)_N (bold(mu), bold(Sigma)) " " z_i tilde.op cal(N)(mu_i, bold(Sigma)_(i i)) \ 
   bold(mu) in RR^N &= (mu_1, mu_2, ..., mu_N)^top = (EE(z_1), EE(z_2), ..., EE(z_N))^top \ 
-  bold(Sigma) in RR^(N times N) &= EE((bold(z) - mu)(bold(z) - mu)^top) = [op("cov")(z_i, z_j)]_(i,j = 1)^N \
-  z_i &tilde.op cal(N)(mu_i, bold(Sigma)_(i i)) $
+  bold(Sigma) in RR^(N times N) &= EE((bold(z) - mu)(bold(z) - mu)^top) = [op("cov")(z_i, z_j)]_(i,j = 1)^N $
 ```
 
 ## Gaussian Processes (GPs)
 
 ```{=typst}
-- _Gaussian process_ (GP): an uncountably infinite collection of random variables; any finite sample is a draw from a MV Gaussian distribution.
-- GPs are fully specified by a _mean function_ $m$ and _covariance (kernel) function_ $k$.
-- The kernel function must produce a positive semi-definite matrix when evaluated on a set of input points (or vectors).
-```
-
-
-```{=typst}
-We focus on the _squared exponential kernel_ $k: RR^p times RR^p -> RR$, defined as:
-
-$ k(x, x') = alpha^2 op("exp")(-1/(2rho^2) ||x - x'||^2). $
-
-- $||dot||$ is the Euclidean Norm: $||bold(x)|| = sqrt(x_1 + x_2 + dots.h.c + x_N)$
+- GP: an uncountably infinite collection of random variables; any finite sample is a draw from a MV Gaussian distribution.
+- GPs fully specified by _mean_ and _covariance (kernel)_ functions.
+- The covariance function $k$ must produce a positive semi-definite matrix.
+- Squared exponential kernel, $k: RR^p times RR^p -> RR$: $ k(x, x') = alpha^2 op("exp")(-1/(2rho^2) ||x - x'||^2). $
+// - $||dot||$ is the Euclidean Norm: $||bold(x)|| = sqrt(x_1 + x_2 + dots.h.c + x_N)$
 - $alpha$ and $rho$ are _hyperparameters_ (chosen, or estimated from data)
 ```
 
 # Gaussian Process Regression -- Univariate $\mathbf{y}$
 
 ```{=typst}
-Let $S = (bold(x), bold(y)) = { (x_i, y_i) : x_i, y_i in RR, i in 1, 2, ..., N }$ be a researcher's dataset, and let $N = 20$ and $M = 400 - N$. We wish to use $S$ to find an unknown function $f$ that satisfies $bold(y) = f(bold(x))$, possibly subject to additive noise $epsilon$.
 ```
 
 ```{r}
@@ -111,18 +103,17 @@ p0 <- ggplot() +
 ```
 
 ```{=typst}
-We can draw samples from the prior distribution:
+$ S = (bold(x), bold(y)) &= { (x_i, y_i) : x_i, y_i in RR, i in 1, 2, ..., N } \
+  f " " ~ " " cal("GP")(bold(0), k) " " & " "
+  bold(y)_* " " ~ " " cal(N)_M (bold(0), k(bold(x)_*, bold(x)_*)) \
+  k(bold(x)_*, bold(x)_*) in RR^(M times M) &= [k(x_(*i), x_(*j))]_(i,j = 1)^M. $
 
-$ f " " &~ " " cal("GP")(bold(0), k) \
-bold(y)_* " " &~ " " cal(N)_M (bold(0), k(bold(x)_*, bold(x)_*)) \
-k(bold(x)_*, bold(x)_*) in RR^(M times M) &= [k(x_(*i), x_(*j))]_(i,j = 1)^M. $
-
-- Draws from the prior distribution (shown in grey) don't necessarily agree with the data points.
-- Kernel choice determines properties of $f$ (e.g., smoothness)
+// - Draws from the prior distribution (shown in grey) don't necessarily agree with the data points.
+// - Kernel choice determines properties of $f$ (e.g., smoothness)
 ```
 
 ```{r}
-#| fig.height: 7
+#| fig.height: 6.2
 #| fig.width: 15
 
 prior <- mvrnorm(10, rep_len(0, nrow(K_xx)), K_xx) |>
@@ -134,18 +125,19 @@ prior <- mvrnorm(10, rep_len(0, nrow(K_xx)), K_xx) |>
 p0 + geom_line(data = prior, aes(x, y = value, group = name, color = "Draws from the Prior"), alpha = 0.7)
 ```
 
-Our prior model for $f$ and the observed data $S$ can be combined to form a _posterior_ distribution:
-
 ```{=typst}
 $ bold(y)_* | bold(x), bold(y), bold(x)_* " " &~ " " cal(N)_M (hat(mu), hat(Sigma)) \
 hat(mu) in RR^M &= k(bold(x)_*, bold(x)) k(bold(x), bold(x))^(-1) bold(y) \
-hat(Sigma) in RR^(M times M) &= k(bold(x)_*, bold(x)_*) - k(bold(x)_*, bold(x))k(bold(x), bold(x))^(-1)k(bold(x)_*, bold(x))^top \
-k(bold(x), bold(x)) in RR^(N times N) &= [k(x_i, x_j)]_(i,j = 1)^N \
+hat(Sigma) in RR^(M times M) &= k(bold(x)_*, bold(x)_*) - k(bold(x)_*, bold(x))k(bold(x), bold(x))^(-1)k(bold(x)_*, bold(x))^top $
+```
+
+```{=typst}
+$ k(bold(x), bold(x)) in RR^(N times N) &= [k(x_i, x_j)]_(i,j = 1)^N \
 k(bold(x)_*, bold(x)) in RR^(M times N) &= [k(x_(*i), x_j)]_(i,j = 1)^(M,N). $
 ```
 
 ```{r}
-#| fig.height: 7
+#| fig.height: 6.2
 #| fig.width: 15
 
 eps <- 0.009
@@ -171,29 +163,28 @@ p0 +
 ```
 
 # Multioutput GPR -- Vector-valued $\mathbf{y}$
-```{=typst}
-- GPR can be extended to targets with >1 dimensions.
-- Velocity fields: $bold(X), bold(Y) in RR^(N times 2)$
-- Idea: columns of $bold(Y)$ might not be independent
-- Intrinsic Coregionalization Model (ICM): combines the kernel matrix with a similarity matrix $B$
-```
 
 ```{=typst}
-$ bold(X), bold(Y) in RR^(N times 2), " " bold(y) &in RR^(2N) = "vec"(Y), " " bold(X)_* in RR^(M times 2) \
-  bold(y)_* | bold(X), bold(y), bold(X)_* " " &~ " " cal(N)_(2M) (hat(mu), hat(Sigma)) \
+- Velocity fields: $bold(X), bold(Y) in RR^(N times 2), " " bold(y) &in RR^(2N) = "vec"(Y), " " bold(X)_* in RR^(M times 2)$
+```
+
+<!-- // - Idea: columns of $bold(Y)$ might not be independent -->
+- Intrinsic Coregionalization Model (ICM) [@alvarez2012kernels] [@bonilla2007multi]
+
+```{=typst}
+$ bold(y)_* | bold(X), bold(y), bold(X)_* " " &~ " " cal(N)_(2M) (hat(mu), hat(Sigma)) \
   hat(mu) in RR^(2M) &= K_(bold(X)_* bold(X)) K_(bold(X) bold(X))^(-1) bold(y) \
   hat(Sigma) in RR^(2M times 2M) &= K_(bold(X)_* bold(X)_*) - K_(bold(X)_* bold(X)) K_(bold(X) bold(X))^(-1) K_(bold(X)_* bold(X))^top \
   K_(bold(X) bold(X)) in RR^(2N times 2N) &= B times.circle k(bold(X), bold(X)) \
-  K_(bold(X)_* bold(X)) in RR^(2M times 2N) &= B times.circle k(bold(X)_*, bold(X)) \
+  K_(bold(X)_* bold(X)) in RR^(2M times 2N) &= B times.circle k(bold(X)_*, bold(X)) \ 
   K_(bold(X)_* bold(X)_*) in RR^(2M times 2M) &= B times.circle k(bold(X)_*, bold(X)_*) \
   B in RR^(2 times 2) &= "corr"(bold(Y)) = (
   (angle.l bold(y)_i - overline(bold(y))_i, bold(y)_j - overline(bold(y))_j angle.r) / 
     (||bold(y)_i - overline(bold(y))_i|| ||bold(y)_j - overline(bold(y))_j||)
-)_(i,j = 1)^2 
-$
+)_(i,j = 1)^2 $
 ```
 
-**Case study:** Hurricane Isabel Simulation (Chang, 2018)
+**Case study:** Hurricane Isabel Simulation [@chang2018r]
 
 ```{r}
 #| fig.height: 10
@@ -369,7 +360,7 @@ vfield(res$out, L = 0.6, xlab = "Longitude", ylab = "Latitude")
 
 <!-- PIV DATA -->
 
-**Case study:** Particle Image Velocimetry (Harlander, Wright, & Egbers, 2012)
+**Case study:** Particle Image Velocimetry [@harlander2012reconstruction]
 
 ```{r}
 library(R.matlab)
@@ -412,8 +403,8 @@ naive <- get_posterior(X, y, B, X_star, sigma = c(1e-06, 1e-06))
 ```
 
 ```{r}
-#| fig.height: 8.5
-#| fig.width: 8.5
+#| fig.height: 10
+#| fig.width: 10
 #| fig.align: center
 
 res <- get_evaluation(naive$mu, Z, S, 15, "x", "y")
@@ -421,3 +412,7 @@ vfield(res$out)
 ```
 
 *Note:* colors reflect <span style="color: #D64309">sample data</span>, <span style="color: #0033A0">posterior mean</span>, and <span style="color: grey;">test points.</span>
+
+```{=typst}
+\
+```
