@@ -3,13 +3,35 @@ title: Reflection 2
 author: Andrew Moore
 date: "3/7/2025"
 format:
-  pdf:
-    margin-top: 30mm
-    margin-bottom: 30mm
-    margin-left: 30mm
-    margin-right: 30mm
+  typst:
+    margin:
+      top: 30mm
+      bottom: 30mm
+      left: 30mm
+      right: 30mm
   html: default
 description: |
   In this reflection, you will consider ways you can apply your unique skills and knowledge in the world, as you research potential next steps in your career.
 ---
+
+<!-- Meet with your project advisor to discuss potential career opportunities and graduate programs. -->
+
+<!-- They will help you identify options that could be a good fit for your interests and background. -->
+
+<!-- Research career opportunities and graduate programs, and summarize your findings. -->
+
+<!-- Look into at least two of your advisor’s suggestions, and one additional graduate program or employment opportunity, and create a summary for each that includes: -->
+
+<!-- Application information — application deadlines, submission requirements, and the contact information for the person/department handling applications. -->
+
+<!-- What interests you about each of the three careers/programs. -->
+
+<!-- How you think your current skills and knowledge prepare you for each career/program. -->
+
+For this reflection, I met with my advisor to discuss my CV and career goals. As a second degree student, my circumstances are a bit different from others in the program. Specifically, I've already gained career experience that most students completing their first undergraduate degree won't have had. With these experiences in mind, we contemplated the future paths and opportunities my career might take.
+
+Successful completion of my program is the conferral of a bachelor of science. In the course of my career, I have worked in academic contexts, supporting the behavioral and social research of faculty; I have also worked in a research center responsible for collecting important survey data for studies on various topics. I was (and am) drawn to study mathematics because I believe that understanding statistical methods relied on for scientific work is valuable. Second, while self-study is important, we benefit greatly from the guidance of experienced teachers. I feel compelled to lend what I've learned towards advancing the public good, either through supporting or conducting scientific research, or as a teacher (if I'm ever fortunate enough to have the opportunity). The natural course for pursuing these callings runs through further training, likely at the doctoral level.
+
+Yet, I can't consider these aspirations without noting the present context in which I write them. The leadership of the US government is currently engaging in numerous actions and policies that threaten the foundations needed to train new scientists. These actions are too numerous to list, but the threats to the stability of funding and to the freedom and safety of university students, targeted for political expression, are incredibly dire. Higher education in the US is beset with numerous preexisting challenges, and I'm deeply worried that the reckless and haphazard uptake of LLMs in educational settings will be damaging in ways that are difficult for us to currently comprehend. These are uncomfortable uncertainties; it feels inadequate to acknowledge how unevenly they're experienced.
+
 

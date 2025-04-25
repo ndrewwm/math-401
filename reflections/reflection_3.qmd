@@ -1,0 +1,304 @@
+---
+title: Reflection 3
+author: Andrew Moore
+date: "4/22/2025"
+bibliography: "reflection3.bib"
+knitr:
+  opts_chunk: 
+    echo: false
+    warning: false
+    message: false
+    fig.align: center
+format:
+  typst:
+    margin:
+      top: 30mm
+      bottom: 30mm
+      left: 30mm
+      right: 30mm
+  html: default
+description: |
+  In this reflection, you will identify key ideas you want people to understand about your project. How do you explain these to someone who has limited exposure to the mathematics involved?
+---
+
+<!-- 750 words -->
+
+For my project, I hope to communicate the following key ideas:
+
+### 1. Gaussian processes (GPs) generalize the multivariate Gaussian distribution to "families" of functions.
+
+- Most people have encountered the Gaussian distribution, written $Z \sim \mathcal{N}(\mu, \sigma^2)$. When the probability (density) function is graphed, it forms a bell-shaped curve. Recall that $\mu$ determines where the curve is centered, and $\sigma$ determines how closely the mass of the distribution falls around $\mu$.
+
+```{r}
+#| fig.width: 3
+#| fig.height: 1.5
+
+library(tidyverse)
+library(MASS, include.only = "mvrnorm")
+theme_set(theme_minimal(base_size = 12))
+set.seed(123)
+
+ggplot(tibble(x = c(-3, 3)), aes(x)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = 0, sd = 1)) +
+  scale_y_continuous(breaks = NULL, name = "")
+```
+
+- We have a related probability distribution, called the _multivariate Gaussian_, which we use to model _vectors_ whose entries come from a Gaussian distribution. The multivariate Gaussian distribution is parameterized by a mean vector, and covariance matrix. We write this as
+
+$$
+\begin{align*}
+\mathbf{z} &= (z_1, z_2, \dots, z_N)^\top \\
+\mathbf{z} &\sim \mathcal{N}_N (\mu, \mathbf{\Sigma}) \\
+       z_i &\sim \mathcal{N}(\mu_i, \mathbf{\Sigma}_{i,i}) \\
+\mu &= (\mathbb{E}(z_1), \mathbb{E}(z_2), \dots, \mathbb{E}(z_N))^\top \\
+\mathbf{\Sigma} &= cov(\mathbf{z}) = \mathbb{E}[(\mathbf{z} - \mu)(\mathbf{z} - \mu)^\top]
+\end{align*}
+$$
+
+- Multivariate Gaussian distributions are used to model vectors of a fixed size (dimension). However, we can consider vectors of any size, by introducing the idea of a Gaussian Process (GP).
+
+- Formally, a Gaussian Process is defined as an uncountably infinite collection of random variables, of which any finite sample from the process is described by a multivariate Gaussian distribution. In this way, you could liken GPs as a way to describe probability distributions over _functions_ (where functions are "infinitely tall" vectors) [@williams2006gaussian]. We write this as $f \sim \mathcal{GP}(m, k)$ where $m$ and $k$ are _mean_ and _covariance (kernel)_ functions.
+
+### 2. Gaussian processes are useful in the context of regression problems.
+
+- This perspective is helpful in the context of _regression_ problems, in which a researcher is wants to model the relationship $f$ between inputs and outputs, typically written $\mathbf{y} = f(\mathbf{x})$. Here, $\mathbf{x}$ and $\mathbf{y}$ are vectors representing data collected by the researcher.
+
+- If we assume $f$ comes from a Gaussian process, we can choose an appropriate covariance function $k$ that induces characteristics we assume $f$ has. For example, we might want a kernel that results in smooth functions. Other kernels can be chosen to induce periodic behavior (think sine/cosine functions), or linearity.
+
+- This is attractive because we frequently encounter problems where the relationship $f$ is complicated and nonlinear.
+
+```{r}
+#| fig.height: 3
+
+ORANGE <- "#D64309"
+BLUE <- "#0033A0"
+
+f <- function(x) sin(2*x) + sin(4*x)
+k <- function(x_i, x_j, alpha, rho) alpha^2 * exp(-(x_i - x_j)^2 / (2 * rho^2))
+
+k_xX <- function(x, X, alpha = 1, rho = 0.4) {
+  N <- NROW(x)
+  M <- NROW(X)
+  K <- matrix(0, N, M)
+  for (n in 1:N) {
+    for (m in 1:M) {
+      K[n, m] <- k(x[n], X[m], alpha, rho)
+    }
+  }
+  return(K)
+}
+
+N <- 400
+n <- 20
+x <- seq(-5, 5, length.out = N)
+
+D <- tibble(x, y = f(x))
+S <- slice_sample(D, n = n)
+Z <- anti_join(D, S, by = "x")
+
+leg <- c("Training Set" = "black", "Target" = ORANGE, "Draws from the Prior" = "grey", "Posterior Mean" = BLUE)
+p0 <- ggplot() +
+  geom_line(data = D, aes(x, y, color = "Target")) +
+  geom_point(data = S, aes(x, y, color = "Training Set")) +
+  scale_color_manual(name = "", values = leg) +
+  labs(y = "f(x)") +
+  theme(legend.position = c(0.13, 0.9))
+
+eps <- 0.009
+K_xx <- k_xX(x, x)
+K_XX <- k_xX(S$x, S$x)
+K_xX <- k_xX(D$x, S$x)
+
+# Adding a small amount of noise to the diagonal for numerical stability
+mu <- K_xX %*% solve(K_XX + eps^2 * diag(n)) %*% S$y
+sigma <- K_xx - K_xX %*% solve(K_XX + eps^2 * diag(n)) %*% t(K_xX)
+
+post <- mvrnorm(100, mu, sigma) |>
+  t() |>
+  as_tibble() |>
+  mutate(x = x) |>
+  pivot_longer(-x) |>
+  group_by(x) |>
+  summarise(y = mean(value), s = sd(value))
+
+p0 +
+  geom_ribbon(data = post, aes(x, ymin = y - 2*s, ymax = y + 2*s), alpha = 0.2) +
+  geom_line(data = post, aes(x, y, color = "Posterior Mean")) +
+  geom_point(data = S, aes(x, y, color = "Training Set"))
+```
+
+### 3. We can use GPs to model functions that have more than one dimension.
+
+- It's common for researchers and scientists to be interested in a statistical outcome that's univariate. That is, we might want to predict the value of $y_*$ (a scalar), given that we've collected $(x_1, y_1), \dots, (x_N, y_N)$.
+
+- However, not all quantities that interest us are scalars. We might be interested in modeling phenomena that are best described by *vectors*. An example of this is wind velocity, which has two components: *direction* and *magnitude* at a measured point in space. This means rather than a single $y_*$, we might have a vector: $\mathbf{y}_* = (y_1, y_2)^\top$.
+
+- Rather than building a model for each component, it's likely that our analysis will benefit from considering both components together. If the components of our target vectors aren't independent, we could leverage that information to improve our predictions.
+
+- This idea is translated smoothly within the framework of Gaussian Process regression. A simple approach (referred to as the Intrinsic Corregionalization Model, ICM) [@alvarez2012kernels] is to construct a *similarity matrix* that summarizes the relationships between our outcome components, and combine it with our inputs.
+
+```{r}
+#| cache: true
+
+library(gcookbook)
+library(scico)
+library(grid)
+set.seed(123)
+
+# Keep a subset in the middle of the the z-axis
+d_isabel <- isabel |>
+  filter(z == 10.035) |>
+  as_tibble()
+
+# Keep 1 out of every 'by' values in vector x
+every_n <- function(x, by = 4) {
+  x <- sort(x)
+  x[seq(1, length(x), by = by)]
+}
+
+# Keep 1 of every 4 values in x and y
+keep_x <- every_n(unique(isabel$x), 4)
+keep_y <- every_n(unique(isabel$y), 4)
+
+# Keep only those rows where x value is in keepx and y value is in keepy
+d <- d_isabel |>
+  filter(x %in% keep_x, y %in% keep_y) |>
+  mutate(index = 1:n())
+
+# Set up the training data
+S <- d |>
+  slice_sample(n = floor(0.3 * nrow(d))) |>
+  select(x, y, vx, vy, index)
+
+X <- S |> select(x, y) |> as.matrix()
+Y <- S |> select(vx, vy) |> as.matrix()
+y <- as.vector(Y)
+B <- cor(Y)
+N <- nrow(X)
+
+# Pull out test cases
+Z <- d |>
+  anti_join(S, by = "index") |>
+  select(x, y, vx, vy, index)
+
+X_star <- Z |> select(x, y) |> as.matrix()
+
+k <- function(xi, xj, alpha = 1, rho = 1) {
+  alpha^2 * exp(-norm(xi - xj, type = "2")^2 / (2 * rho^2))
+}
+
+k_xX <- function(x, X, alpha = 1, rho = 1) {
+  N <- nrow(x)
+  M <- nrow(X)
+
+  K <- matrix(0, N, M)
+  for (i in 1:N) {
+    for (j in 1:M) {
+      K[i, j] <- k(x[i, ], X[j, ], alpha, rho)
+    }
+  }
+
+  K
+}
+
+get_posterior <- function(X, y, B, Z, alpha = 1, rho = 1, sigma = c(1e-9, 1e-9)) {
+  N <- nrow(X)
+  M <- nrow(Z)
+  V <- diag(sigma^2, 2)
+
+  K_XX <- kronecker(B, k_xX(X, X, alpha, rho)) + kronecker(V, diag(N))
+  K_ZX <- kronecker(B, k_xX(Z, X, alpha, rho))
+  K_ZZ <- kronecker(B, k_xX(Z, Z, alpha, rho))
+
+  mu <- K_ZX %*% solve(K_XX) %*% y
+  mu <- matrix(mu, M, 2)
+  Sigma <- K_ZZ - K_ZX %*% solve(K_XX) %*% t(K_ZX)
+
+  return(lst(mu, Sigma))
+}
+
+rmse <- function(y, yhat) {
+  sqrt(1/length(y) * sum((yhat - y)^2))
+}
+
+naive <- get_posterior(X, y, B, as.matrix(select(Z, x, y)))
+```
+
+```{r}
+#| echo: false
+
+library(ggvfields)
+library(ggtext)
+
+vfield <- function(dat, L = 0.07, xlab = "x", ylab = "y") {
+  ggplot() +
+    geom_vector(
+      data = dat,
+      aes(x = x, y = y, fx = vx, fy = vy),
+      arrow = arrow(length = unit(0.1, "cm")),
+      show.legend = FALSE,
+      color = "grey",
+      L = L
+    ) +
+    geom_vector(
+      data = dat |> filter(col == "Train"),
+      aes(x = x, y = y, fx = vx, fy = vy),
+      arrow = arrow(length = unit(0.1, "cm")),
+      show.legend = FALSE,
+      color = ORANGE,
+      L = L
+    ) +
+    geom_vector(
+      data = dat |> filter(col == "Test"),
+      aes(x = x, y = y, fx = vx_h, fy = vy_h),
+      arrow = arrow(length = unit(0.1, "cm")),
+      show.legend = FALSE,
+      color = BLUE,
+      L = L
+    ) +
+    labs(
+      x = xlab,
+      y = ylab,
+      title = "Isabel simulation, displaying <span style='color:#D64309'>Training</span> and <span style='color:#0033A0'>Test</span> data."
+    ) +
+    theme(
+      plot.title = element_markdown()
+    )
+}
+```
+
+```{r}
+get_evaluation <- function(mu, Z, S, dd = 50, xlab = "Longitude", ylab = "Latitude") {
+  out <- Z |>
+    bind_cols(as_tibble(mu) |> set_names(c("vx_h", "vy_h"))) |>
+    select(x, y, vx, vy, vx_h, vy_h, index) |>
+    bind_rows(S) |>
+    mutate(
+      col = factor(
+        as.numeric(index %in% S$index),
+        levels = 0:1,
+        labels = c("Test", "Train")
+      )
+    )
+
+  perf <- out |>
+    filter(col == "Test") |>
+    summarize(
+      rmse_vx = rmse(vx, vx_h),
+      rmse_vy = rmse(vy, vy_h)
+    )
+
+  return(lst(perf, out))
+}
+
+res <- get_evaluation(naive$mu, Z, S, 60)
+vfield(res$out, L = 0.6, xlab = "Longitude", ylab = "Latitude")
+```
+
+Data from the *R Graphics Cookbook* [@chang2018r].
+
+### Question -- Think about yourself as a freshman: what would you’ve found interesting or impressive about your project?
+
+In writing up this outline, I imagined persons similar to myself when I started my math program. When I began my second degree, I had disciplinary knowledge from the social sciences and some training in statistics, but wanted greater confidence in my understanding of the "nuts and bolts". In the overview, I wanted to connect existing knowledge from initial statistics coursework to the much broader context of multivariate statistics.
+
+Additionally, I wanted to illustrate how Gaussian process regression (GPR) can be used to model complex phenomena. My example in the first figure hopefully helps demonstrate this. Even with just a few points, we're able to get a decent fit to the target function. Lastly, I think the case of a 2-dimensional outcome variable is very interesting. Due to their simplicity, most class examples teaching regression focus on scalar outcomes, and this is appropriate for learning. However, many things we would want to learn about in the world aren't neatly quantified as scalars. GPR is very flexible, and it can be useful for all kinds of modeling problems.
