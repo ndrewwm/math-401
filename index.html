@@ -6,6 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Andrew Moore">
+<meta name="dcterms.date" content="2025-01-16">
+<meta name="description" content="Homepage for my senior project.">
 
 <title>MATH 401 – Math 401</title>
 <style>
@@ -20,7 +23,27 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
@@ -121,6 +144,10 @@ window.Quarto = {
     <a class="nav-link active" href="./index.html" aria-current="page"> 
 <span class="menu-text">Home</span></a>
   </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./poster/index.pdf"> 
+<span class="menu-text">Poster</span></a>
+  </li>  
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
@@ -156,11 +183,11 @@ window.Quarto = {
       <div class="sidebar-item-container"> 
             <a href="./gaussian_processes/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Gaussian Processes</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./gaussian_processes/mvnorm/index.html" class="sidebar-item-text sidebar-link">
@@ -191,15 +218,27 @@ window.Quarto = {
       <div class="sidebar-item-container"> 
             <a href="./reflections/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Reflections</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./reflections/reflection_1.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Reflection 1</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./reflections/reflection_2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Reflection 2</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./reflections/reflection_3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Reflection 3</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -220,17 +259,9 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#meeting-summaries" id="toc-meeting-summaries" class="nav-link active" data-scroll-target="#meeting-summaries">Meeting Summaries</a>
-  <ul class="collapse">
-  <li><a href="#section" id="toc-section" class="nav-link" data-scroll-target="#section">3/14/25</a></li>
-  <li><a href="#section-1" id="toc-section-1" class="nav-link" data-scroll-target="#section-1">3/10/25</a></li>
-  <li><a href="#section-2" id="toc-section-2" class="nav-link" data-scroll-target="#section-2">3/3/25</a></li>
-  <li><a href="#section-3" id="toc-section-3" class="nav-link" data-scroll-target="#section-3">2/24/25</a></li>
-  <li><a href="#section-4" id="toc-section-4" class="nav-link" data-scroll-target="#section-4">2/14/25</a></li>
-  <li><a href="#section-5" id="toc-section-5" class="nav-link" data-scroll-target="#section-5">1/31/25</a></li>
-  <li><a href="#section-6" id="toc-section-6" class="nav-link" data-scroll-target="#section-6">1/23/25</a></li>
-  <li><a href="#section-7" id="toc-section-7" class="nav-link" data-scroll-target="#section-7">1/16/25</a></li>
-  </ul></li>
+  <li><a href="#welcome" id="toc-welcome" class="nav-link active" data-scroll-target="#welcome">Welcome</a></li>
+  <li><a href="#project-summary" id="toc-project-summary" class="nav-link" data-scroll-target="#project-summary">Project Summary</a></li>
+  <li><a href="#weekly-meetings" id="toc-weekly-meetings" class="nav-link" data-scroll-target="#weekly-meetings">Weekly Meetings</a></li>
   </ul>
 </nav>
     </div>
@@ -242,12 +273,35 @@ window.Quarto = {
 <h1 class="title">MATH 401</h1>
 </div>
 
+<div>
+  <div class="description">
+    Homepage for my senior project.
+  </div>
+</div>
 
 
 <div class="quarto-title-meta">
 
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Andrew Moore </p>
+          </div>
+  </div>
     
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">January 16, 2025</p>
+    </div>
+  </div>
   
+    <div>
+    <div class="quarto-title-meta-heading">Modified</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date-modified">April 25, 2025</p>
+    </div>
+  </div>
     
   </div>
   
@@ -256,10 +310,62 @@ window.Quarto = {
 </header>
 
 
-<section id="meeting-summaries" class="level1">
-<h1>Meeting Summaries</h1>
+<section id="welcome" class="level1">
+<h1>Welcome</h1>
+<p>Hello! This website contains the work I completed during the course of Math-401, my senior project and final course to complete my BS in Applied Mathematics. I completed this course during Spring 2025; <a href="https://gradywright.github.io/">Dr.&nbsp;Grady Wright</a> (Professor, Boise State Department of Mathematics), served as my project advisor. During the course, I focused on the topic of <a href="./gaussian_processes/index.html"><em>Gaussian Processes (GPs)</em></a>, a generalization of the multivariate Gaussian distribution, and how GPs can be useful in the context of various regression problems.</p>
+<p>You can browse my writings on different subtopics from the sidebar, or by searching using the magnifying glass in the upper-right corner of the page. This website was built using <a href="https://quarto.org/">Quarto</a>, with data analysis, inference, and visualization being conducted using the R and Stan programming languages. My poster’s layout was built from an excellent <a href="https://typst.app/">typst</a> <a href="https://github.com/quarto-ext/typst-templates/tree/main/poster">template</a>, with a few formatting tweaks.</p>
+</section>
+<section id="project-summary" class="level1">
+<h1>Project Summary</h1>
+<p>We began the semester by examining the connections between <a href="./gaussian_processes/index.html">Gaussian Processes</a> and Kernal Ridge Regression (KRR), reading <span class="citation" data-cites="kanagawa2018gaussian">Kanagawa et al. (<a href="#ref-kanagawa2018gaussian" role="doc-biblioref">2018</a>)</span> as a starting point. The two approaches are theoretically related in that both rely on positive-definite kernels to accomplish interpolation or data fitting. In practice, the approaches are comparable; for example, the KRR estimator is equivalent to the GP posterior mean function. However, the approaches differ in their quantification of uncertainty<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>, and in how they define hypothesis spaces<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>.</p>
+<p>Having an introduction to the topics, I worked to gain an understanding of Gaussian Process regression by simulating univariate data. From this basic case, we moved to multidimensional problems to explore how GPs can be useful for regression problems with a spatial dimension. Early applications of GPR were in geostatistics, in which the technique (more commonly referred to as <em>Kriging</em>) has been used to predict the distribution of minerals over a sampled area. We concluded by applying GPR to a <em>vector-valued</em> outcome, specifically velocity fields. Here I drew upon the <em>Intrinsic Coregionalization Model</em>, discussed in <span class="citation" data-cites="alvarez2012kernels">Alvarez et al. (<a href="#ref-alvarez2012kernels" role="doc-biblioref">2012</a>)</span>, which involves constructing a similarity matrix to summarize cross-output dependencies which is then combined with the kernel/Gram matrix constructed from the researcher’s training data. The page <a href="./gaussian_processes/multioutput/index.html">Multioutput Gaussian Process Regression</a> explores these topics using a simulation of Hurricane Isabel’s velocity field, and also includes my attempts to conduct hyperparameter inference using the Stan programming language. I also explored multioutput/vector-valued GPR with Particle Image Velocimetry data from <span class="citation" data-cites="harlander2012reconstruction">Harlander, Wright, and Egbers (<a href="#ref-harlander2012reconstruction" role="doc-biblioref">2012</a>)</span> in my project’s <a href="./poster/index.pdf">poster</a>.</p>
+</section>
+<section id="weekly-meetings" class="level1">
+<h1>Weekly Meetings</h1>
+<p>These are brief notes I took to summarize topics and materials I discussed with Dr.&nbsp;Wright during our scheduled meetings. Some of the links that reference this site may be dead; I ultimately consolidated several pages down to the set that are available today in the sidebar.</p>
+<div class="callout callout-style-simple callout-note no-icon callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Notes
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
 <section id="section" class="level2">
-<h2 class="anchored" data-anchor-id="section">3/14/25</h2>
+<h2 class="anchored" data-anchor-id="section">4/25/25</h2>
+<ul>
+<li>Wrap-up. Working on completing incomplete reflections.</li>
+</ul>
+</section>
+<section id="section-1" class="level2">
+<h2 class="anchored" data-anchor-id="section-1">4/14/25</h2>
+<ul>
+<li>Review of current draft
+<ul>
+<li>Should tighten up which variables are used in Section I– would be better to use <span class="math inline">\(\mathbf{z}\)</span>, rather than <span class="math inline">\(\mathbf{x}\)</span> (which is what we use to refer to training data).</li>
+</ul></li>
+<li>Scaling of the PIV vector field is off (all the magnitudes are too small)– and appears to be scrambled compared to what we expect. Bug in my code somewhere.</li>
+</ul>
+</section>
+<section id="section-2" class="level2">
+<h2 class="anchored" data-anchor-id="section-2">4/4/25</h2>
+<ul>
+<li>Summary of my progress re: poster drafting</li>
+</ul>
+</section>
+<section id="section-3" class="level2">
+<h2 class="anchored" data-anchor-id="section-3">3/28/25</h2>
+<ul>
+<li>Reading about the ICM and LCM</li>
+<li>Updating Stan code used for inference of hyperparameters.</li>
+</ul>
+</section>
+<section id="section-4" class="level2">
+<h2 class="anchored" data-anchor-id="section-4">3/14/25</h2>
 <ul>
 <li>Writeup of <a href="./gaussian_processes/multioutput/index.html">multioutput GPR</a> is close to finished. Used data from a simulation of hurricane Isabel to test out the approach.</li>
 <li>I’ve been working on parameter estimation for multioutput GPR.
@@ -271,14 +377,14 @@ window.Quarto = {
 <li>Multioutput GPR appears to relate to the idea of the <em>Matrix Normal</em> distribution. In some circumstances, it may be equivalent?</li>
 </ul>
 </section>
-<section id="section-1" class="level2">
-<h2 class="anchored" data-anchor-id="section-1">3/10/25</h2>
+<section id="section-5" class="level2">
+<h2 class="anchored" data-anchor-id="section-5">3/10/25</h2>
 <ul>
 <li>I needed to cancel due to a conflict. We’ll postpone until 3/14.</li>
 </ul>
 </section>
-<section id="section-2" class="level2">
-<h2 class="anchored" data-anchor-id="section-2">3/3/25</h2>
+<section id="section-6" class="level2">
+<h2 class="anchored" data-anchor-id="section-6">3/3/25</h2>
 <ul>
 <li>Still working on code for multioutput GPR.</li>
 <li>Reviewed my CV and discussed topics related to Reflection 2.
@@ -287,8 +393,8 @@ window.Quarto = {
 </ul></li>
 </ul>
 </section>
-<section id="section-3" class="level2">
-<h2 class="anchored" data-anchor-id="section-3">2/24/25</h2>
+<section id="section-7" class="level2">
+<h2 class="anchored" data-anchor-id="section-7">2/24/25</h2>
 <ul>
 <li>Reading <a href="https://proceedings.neurips.cc/paper_files/paper/2007/file/66368270ffd51418ec58bd793f2d9b1b-Paper.pdf">Bonilla, Chai, &amp; Williams (2007)</a></li>
 <li>Working towards implementing a simulation of <a href="./gaussian_processes/multioutput/index.html">multi-task GPR</a></li>
@@ -298,8 +404,8 @@ window.Quarto = {
 </ul></li>
 </ul>
 </section>
-<section id="section-4" class="level2">
-<h2 class="anchored" data-anchor-id="section-4">2/14/25</h2>
+<section id="section-8" class="level2">
+<h2 class="anchored" data-anchor-id="section-8">2/14/25</h2>
 <ul>
 <li>Reading and searching for more background information about multi-output Gaussian Processes
 <ul>
@@ -319,8 +425,22 @@ v &amp;= f_2(y) + \epsilon_2
 \end{align*}
 \]</span></p>
 </section>
-<section id="section-5" class="level2">
-<h2 class="anchored" data-anchor-id="section-5">1/31/25</h2>
+<section id="section-9" class="level2">
+<h2 class="anchored" data-anchor-id="section-9">2/7/25</h2>
+<ul>
+<li>Discussed the PIV laboratory data that Dr.&nbsp;Wright worked on in 2012.</li>
+<li><span class="math inline">\(\partial_x u + \partial_y v + \partial_z w = 0\)</span>
+<ul>
+<li>recall: <span class="math inline">\(u\)</span> position, <span class="math inline">\(v\)</span> velocity</li>
+</ul></li>
+<li>Goal is to induce Rossby waves within a rotating cylinder.
+<ul>
+<li>Preprocessing of data may be subject to artifacts– opportunity to use statistical methods to fill in, or correct, artifacts.</li>
+</ul></li>
+</ul>
+</section>
+<section id="section-10" class="level2">
+<h2 class="anchored" data-anchor-id="section-10">1/31/25</h2>
 <ul>
 <li>Working on <a href="./gaussian_processes/index.html">an overview of Gaussian processes</a>
 <ul>
@@ -335,26 +455,47 @@ v &amp;= f_2(y) + \epsilon_2
 </ul></li>
 </ul>
 </section>
-<section id="section-6" class="level2">
-<h2 class="anchored" data-anchor-id="section-6">1/23/25</h2>
+<section id="section-11" class="level2">
+<h2 class="anchored" data-anchor-id="section-11">1/23/25</h2>
 <ul>
 <li>Reviewed sections 1-3. Covered the algorithm that auths present on page N.</li>
 <li>Goal: try to have some workable code to demonstrate KRR and GPR on simulated data. Let’s understand what the methods are producing.</li>
 </ul>
 </section>
-<section id="section-7" class="level2">
-<h2 class="anchored" data-anchor-id="section-7">1/16/25</h2>
+<section id="section-12" class="level2">
+<h2 class="anchored" data-anchor-id="section-12">1/16/25</h2>
 <ul>
 <li>Discussion, admin work</li>
-<li>Decided to cover first 3 sections of __ paper</li>
+<li>Decided to cover first 3 sections of <span class="citation" data-cites="kanagawa2018gaussian">Kanagawa et al. (<a href="#ref-kanagawa2018gaussian" role="doc-biblioref">2018</a>)</span></li>
 <li>Mentioned __ textbook.</li>
 </ul>
+</section>
+</div>
+</div>
+</div>
+
 
 
 </section>
-</section>
 
-</main> <!-- /main -->
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-alvarez2012kernels" class="csl-entry" role="listitem">
+Alvarez, Mauricio A, Lorenzo Rosasco, Neil D Lawrence, et al. 2012. <span>“Kernels for Vector-Valued Functions: A Review.”</span> <em>Foundations and Trends<span></span> in Machine Learning</em> 4 (3): 195–266.
+</div>
+<div id="ref-harlander2012reconstruction" class="csl-entry" role="listitem">
+Harlander, Uwe, Grady B Wright, and Christoph Egbers. 2012. <span>“Reconstruction of the 3D Flow Field in a Differentially Heated Rotating Annulus by Synchronized Particle Image Velocimetry and Infrared Thermography Measurements.”</span> In <em>16th International Symposium on Applied Laser Techniques to Fluid Mechanics, Lisbon, Portugal</em>.
+</div>
+<div id="ref-kanagawa2018gaussian" class="csl-entry" role="listitem">
+Kanagawa, Motonobu, Philipp Hennig, Dino Sejdinovic, and Bharath K Sriperumbudur. 2018. <span>“Gaussian Processes and Kernel Methods: A Review on Connections and Equivalences.”</span> <em>arXiv Preprint arXiv:1807.02582</em>.
+</div>
+</div></section><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>For GPs, uncertainty is represented through the posterior variance, and can be estimated/visualized via draws from the posterior distribution. With KRR, <span class="citation" data-cites="kanagawa2018gaussian">Kanagawa et al. (<a href="#ref-kanagawa2018gaussian" role="doc-biblioref">2018</a>)</span> suggest that the posterior variance can be interpreted as a “worst case error” in a Reproducing Kernel Hilbert Space (RKHS).<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>For KRR, it is assumed that the target function belongs to a RKHS (or can be well approximated by function in a RKHS). However, the support for GPs is not identical to that of a RKHS <span class="citation" data-cites="kanagawa2018gaussian">(<a href="#ref-kanagawa2018gaussian" role="doc-biblioref">Kanagawa et al. 2018, 3</a>)</span>.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {

@@ -175,6 +175,10 @@ window.Quarto = {
     <a class="nav-link" href="../../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../poster/index.pdf"> 
+<span class="menu-text">Poster</span></a>
+  </li>  
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
@@ -245,15 +249,27 @@ window.Quarto = {
       <div class="sidebar-item-container"> 
             <a href="../../reflections/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Reflections</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../reflections/reflection_1.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Reflection 1</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../reflections/reflection_2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Reflection 2</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../reflections/reflection_3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Reflection 3</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -273,7 +289,7 @@ window.Quarto = {
         <nav id="TOC" role="doc-toc" class="toc-active">
     <h2 id="toc-title">On this page</h2>
    
-  <ul>
+  <ul class="collapse">
   <li><a href="#definition" id="toc-definition" class="nav-link active" data-scroll-target="#definition">Definition</a></li>
   <li><a href="#sampling-algorithm" id="toc-sampling-algorithm" class="nav-link" data-scroll-target="#sampling-algorithm">Sampling Algorithm</a></li>
   <li><a href="#why-does-the-algorithm-work" id="toc-why-does-the-algorithm-work" class="nav-link" data-scroll-target="#why-does-the-algorithm-work">Why does the algorithm work?</a></li>
@@ -305,26 +321,26 @@ window.Quarto = {
 
 <section id="definition" class="level2">
 <h2 class="anchored" data-anchor-id="definition">Definition</h2>
-<p>Let <span class="math inline">\(\mathbf{x} \in \mathbb{R}^n\)</span> be a vector whose elements, <span class="math inline">\(X_i\)</span>, are random variables (i.e., <span class="math inline">\(\mathbf{x}\)</span> is a <em>random vector</em>). As elements of <span class="math inline">\(\mathbf{x}\)</span>, we say that <span class="math inline">\(X_1, X_2, \dots, X_n\)</span> are jointly distributed. Define the vector <span class="math inline">\(\mathbf{\mu}\)</span> and matrix <span class="math inline">\(\mathbf{\Sigma}\)</span> as <span class="math display">\[
+<p>Let <span class="math inline">\(\mathbf{x} \in \mathbb{R}^N\)</span> be a vector whose elements, <span class="math inline">\(X_i\)</span>, are random variables (i.e., <span class="math inline">\(\mathbf{x}\)</span> is a <em>random vector</em>). As elements of <span class="math inline">\(\mathbf{x}\)</span>, we say that <span class="math inline">\(X_1, X_2, \dots, X_N\)</span> are jointly distributed. Define the vector <span class="math inline">\(\mathbf{\mu}\)</span> and matrix <span class="math inline">\(\mathbf{\Sigma}\)</span> as <span class="math display">\[
 \begin{align*}
-\mathbf{\mu} &amp;= \begin{bmatrix} \mu_1 \\ \mu_2 \\ \vdots \\ \mu_n \end{bmatrix} = \begin{bmatrix} \mathbb{E}(X_1) \\ \mathbb{E}(X_2) \\ \vdots \\ \mathbb{E}(X_n) \end{bmatrix} \in \mathbb{R}^n \\ \\
-\mathbf{\Sigma} &amp;= Cov(\mathbf{x}) = \mathbb{E}[(\mathbf{x} - \mathbf{\mu})(\mathbf{x} - \mathbf{\mu})^\top] = \Bigl[Cov(X_i, X_j) \Bigr]_{i, j = 1}^n \in \mathbb{R}^{n \times n}
+\mathbf{\mu} \in \mathbb{R}^N &amp;= (\mu_1, \mu_2, \dots, \mu_N)^\top = (\mathbb{E}(X_1), \mathbb{E}(X_2), \dots, \mathbb{E}(X_N))^\top  \\
+\mathbf{\Sigma} \in \mathbb{R}^{N \times N} &amp;= Cov(\mathbf{x}) = \mathbb{E}[(\mathbf{x} - \mathbf{\mu})(\mathbf{x} - \mathbf{\mu})^\top] = \Bigl[Cov(X_i, X_j) \Bigr]_{i, j = 1}^N
 \end{align*}
 \]</span></p>
-<p>and suppose <span class="math inline">\(X_i \sim \mathcal{N}(\mu_i, \mathbf{\Sigma}_{i, i})\)</span>. If every linear combination of <span class="math inline">\(\mathbf{x}\)</span>’s elements results in a univariate normal variable, we say that <span class="math inline">\(\mathbf{x}\)</span> comes from the multivariate Gaussian distribution parameterized by <span class="math inline">\(\mathbf{\mu}\)</span> and <span class="math inline">\(\mathbf{\Sigma}\)</span>, written as <span class="math inline">\(\mathbf{x} \sim \mathcal{N}(\mathbf{\mu}, \mathbf{\Sigma}).\)</span></p>
+<p>and suppose <span class="math inline">\(X_i \sim \mathcal{N}(\mu_i, \mathbf{\Sigma}_{i, i})\)</span>. If every linear combination of <span class="math inline">\(\mathbf{x}\)</span>’s elements results in a univariate normal variable, we say that <span class="math inline">\(\mathbf{x}\)</span> comes from the multivariate Gaussian distribution parameterized by <span class="math inline">\(\mathbf{\mu}\)</span> and <span class="math inline">\(\mathbf{\Sigma}\)</span>, written as <span class="math inline">\(\mathbf{x} \sim \mathcal{N}_N (\mathbf{\mu}, \mathbf{\Sigma}).\)</span></p>
 </section>
 <section id="sampling-algorithm" class="level2">
 <h2 class="anchored" data-anchor-id="sampling-algorithm">Sampling Algorithm</h2>
-<p>A commonly used algorithm for sampling from a multivariate Gaussian distribution can be described as the following, given a vector <span class="math inline">\(\mathbf{\mu} \in \mathbb{R}^n\)</span> and a positive-(semi)definite matrix <span class="math inline">\(\mathbf{\Sigma} \in \mathbb{R}^{n \times n}\)</span>:</p>
+<p>A commonly used algorithm for sampling from a multivariate Gaussian distribution can be described as the following, given a vector <span class="math inline">\(\mathbf{\mu} \in \mathbb{R}^N\)</span> and a positive-(semi)definite matrix <span class="math inline">\(\mathbf{\Sigma} \in \mathbb{R}^{N \times N}\)</span>:</p>
 <ol type="1">
 <li>Compute <span class="math inline">\(L L^\top = \mathbf{\Sigma}\)</span>, the Cholesky decomposition of <span class="math inline">\(\mathbf{\Sigma}\)</span>.</li>
-<li>Generate <span class="math inline">\(\mathbf{z} = \begin{bmatrix} Z_1 \\ Z_2 \\ \vdots \\ Z_n \end{bmatrix}\)</span> where <span class="math inline">\(Z_1, Z_2, \dots, Z_n \overset{\text{i.i.d.}}{\sim} \mathcal{N}(0, 1)\)</span>.</li>
+<li>Generate <span class="math inline">\(\mathbf{z} = (Z_1, Z_2, \dots, Z_N)^\top\)</span> where <span class="math inline">\(Z_1, Z_2, \dots, Z_N \overset{\text{i.i.d.}}{\sim} \mathcal{N}(0, 1)\)</span>.</li>
 <li>Compute <span class="math inline">\(\mathbf{x} = L\mathbf{z} + \mathbf{\mu}\)</span>.</li>
 </ol>
 </section>
 <section id="why-does-the-algorithm-work" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="why-does-the-algorithm-work">Why does the algorithm work?</h2>
-<p>The claim is that <span class="math inline">\(\mathbf{x}\)</span> is a draw from the multivariate Gaussian distribution parameterized by <span class="math inline">\(\mathbf{\mu}\)</span> and <span class="math inline">\(\mathbf{\Sigma}\)</span>, i.e., <span class="math inline">\(\mathbf{x} \sim \mathcal{N}(\mathbf{\mu}, \mathbf{\Sigma})\)</span>. So, why does this work? First, we can show that <span class="math inline">\(\mathbb{E}(\mathbf{x}) = \mathbf{\mu}\)</span>:</p>
+<p>The claim is that <span class="math inline">\(\mathbf{x}\)</span> is a draw from a multivariate Gaussian distribution parameterized by <span class="math inline">\(\mathbf{\mu}\)</span> and <span class="math inline">\(\mathbf{\Sigma}\)</span>, i.e., <span class="math inline">\(\mathbf{x} \sim \mathcal{N}_N (\mathbf{\mu}, \mathbf{\Sigma})\)</span>. So, why does this work? First, we can show that <span class="math inline">\(\mathbb{E}(\mathbf{x}) = \mathbf{\mu}\)</span>:</p>
 <p><span class="math display">\[
 \begin{align*}
 \mathbb{E}(\mathbf{x}) &amp;= \mathbb{E}(L\mathbf{z} + \mathbf{\mu}) \\
