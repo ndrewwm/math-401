@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Andrew Moore">
-<meta name="dcterms.date" content="2025-04-22">
+<meta name="dcterms.date" content="2025-04-25">
 <meta name="description" content="In this reflection, you will identify key ideas you want people to understand about your project. How do you explain these to someone who has limited exposure to the mathematics involved?">
 
 <title>Reflection 3 – Math 401</title>
@@ -144,6 +144,10 @@ window.Quarto = {
     <a class="nav-link" href="../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../poster/index.pdf"> 
+<span class="menu-text">Poster</span></a>
+  </li>  
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
@@ -155,7 +159,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item">Reflection 3</li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../reflections/index.html">Reflections</a></li><li class="breadcrumb-item"><a href="../reflections/reflection_3.html">Reflection 3</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -179,11 +183,11 @@ window.Quarto = {
       <div class="sidebar-item-container"> 
             <a href="../gaussian_processes/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Gaussian Processes</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../gaussian_processes/mvnorm/index.html" class="sidebar-item-text sidebar-link">
@@ -227,6 +231,18 @@ window.Quarto = {
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="../reflections/reflection_2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Reflection 2</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reflections/reflection_3.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Reflection 3</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="../reflections/cv.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">cv</span></a>
   </div>
@@ -239,21 +255,12 @@ window.Quarto = {
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">On this page</h2>
-   
-  <ul>
-  <li><a href="#gaussian-processes-gps-generalize-the-multivariate-gaussian-distribution-to-families-of-functions." id="toc-gaussian-processes-gps-generalize-the-multivariate-gaussian-distribution-to-families-of-functions." class="nav-link active" data-scroll-target="#gaussian-processes-gps-generalize-the-multivariate-gaussian-distribution-to-families-of-functions.">1. Gaussian processes (GPs) generalize the multivariate Gaussian distribution to “families” of functions.</a></li>
-  <li><a href="#gaussian-processes-are-useful-in-the-context-of-regression-problems." id="toc-gaussian-processes-are-useful-in-the-context-of-regression-problems." class="nav-link" data-scroll-target="#gaussian-processes-are-useful-in-the-context-of-regression-problems.">2. Gaussian processes are useful in the context of regression problems.</a></li>
-  <li><a href="#we-can-use-gps-to-model-functions-that-have-more-than-one-dimension." id="toc-we-can-use-gps-to-model-functions-that-have-more-than-one-dimension." class="nav-link" data-scroll-target="#we-can-use-gps-to-model-functions-that-have-more-than-one-dimension.">3. We can use GPs to model functions that have more than one dimension.</a></li>
-  <li><a href="#question-think-about-yourself-as-a-freshman-what-would-youve-found-interesting-or-impressive-about-your-project" id="toc-question-think-about-yourself-as-a-freshman-what-would-youve-found-interesting-or-impressive-about-your-project" class="nav-link" data-scroll-target="#question-think-about-yourself-as-a-freshman-what-would-youve-found-interesting-or-impressive-about-your-project">Question – Think about yourself as a freshman: what would you’ve found interesting or impressive about your project?</a></li>
-  </ul>
-<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="reflection_3.pdf"><i class="bi bi-file-pdf"></i>Typst</a></li></ul></div></nav>
-    </div>
+        
+    <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="reflection_3.pdf"><i class="bi bi-file-pdf"></i>Typst</a></li></ul></div></div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default">
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../reflections/index.html">Reflections</a></li><li class="breadcrumb-item"><a href="../reflections/reflection_3.html">Reflection 3</a></li></ol></nav>
 <div class="quarto-title">
 <h1 class="title">Reflection 3</h1>
 </div>
@@ -277,7 +284,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 22, 2025</p>
+      <p class="date">April 25, 2025</p>
     </div>
   </div>
   

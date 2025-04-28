@@ -7,7 +7,7 @@ filters:
 
 ## Motivation: visualizing vector fields
 
-Elsewhere, I've discussed the multivariate normal distribution, and Gaussian processes. Introductory materials discussing Gaussian Processes (GPs) typically focus on univariate outcomes. In more formal notation, input data $\mathbf{X} \in \mathbb{R}^{N \times P}$ is used to model $\mathbf{y} \in \mathbb{R}^N$:
+Elsewhere, I've discussed the [multivariate normal distribution](../mvnorm/index.qmd), and [Gaussian processes](../index.qmd). Introductory materials discussing Gaussian Processes (GPs) typically focus on univariate outcomes. In more formal notation, input data $\mathbf{X} \in \mathbb{R}^{N \times P}$ is used to model $\mathbf{y} \in \mathbb{R}^N$:
 $$
 \begin{align*}
 \mathbf{y} &= f(\mathbf{X}) + \mathbf{\epsilon} \text{ where } \\

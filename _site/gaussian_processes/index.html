@@ -175,6 +175,10 @@ window.Quarto = {
     <a class="nav-link" href="../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../poster/index.pdf"> 
+<span class="menu-text">Poster</span></a>
+  </li>  
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
@@ -245,15 +249,27 @@ window.Quarto = {
       <div class="sidebar-item-container"> 
             <a href="../reflections/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Reflections</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../reflections/reflection_1.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Reflection 1</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reflections/reflection_2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Reflection 2</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../reflections/reflection_3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Reflection 3</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -273,7 +289,7 @@ window.Quarto = {
         <nav id="TOC" role="doc-toc" class="toc-active">
     <h2 id="toc-title">On this page</h2>
    
-  <ul>
+  <ul class="collapse">
   <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
   <li><a href="#definition" id="toc-definition" class="nav-link" data-scroll-target="#definition">Definition</a></li>
   <li><a href="#gaussian-process-regression" id="toc-gaussian-process-regression" class="nav-link" data-scroll-target="#gaussian-process-regression">Gaussian Process Regression</a></li>
@@ -312,22 +328,15 @@ window.Quarto = {
 </section>
 <section id="definition" class="level2">
 <h2 class="anchored" data-anchor-id="definition">Definition</h2>
-<p>A <em>Gaussian Process</em> is an uncountably infinite collection of random variables, with any finite sample from the process sharing a joint <a href="../gaussian_processes/mvnorm/index.html">multivariate Gaussian distribution</a>. If we assume a function <span class="math inline">\(f(\mathbf{x})\)</span> comes from a Gaussian Process, we write <span class="math display">\[
-\begin{align*}
-f(\mathbf{x}) &amp;\sim \mathcal{GP}(m, k)\ \text{ where } \\
-m(\mathbf{x}) &amp;= \mathbb{E}(f(\mathbf{x})), \text{ and } \\
-k(\mathbf{x}, \mathbf{x}') &amp;= \mathbb{E}[(f(\mathbf{x}) - m(\mathbf{x}))(f(\mathbf{x}') - m(\mathbf{x}'))].
-\end{align*}
-\]</span></p>
-<p>The functions <span class="math inline">\(m\)</span> and <span class="math inline">\(k\)</span> are referred to as <em>mean</em> and <em>covariance</em> functions, respectively. The mean function is often set to be the zero function <span class="math inline">\(\mathbf{0}\)</span> for notational convenience. The covariance (kernel) function must produce a positive definite matrix when evaluated on a collection of inputs. For my project, I’ve focused on the squared-exponential function. For the following examples, we’ll define it using its scalar form <span class="math inline">\(k: \mathbb{R} \times \mathbb{R} \to \mathbb{R}\)</span>: <span class="math display">\[
+<p>A <em>Gaussian Process</em> is an uncountably infinite collection of random variables, with any finite sample from the process sharing a joint <a href="../gaussian_processes/mvnorm/index.html">multivariate Gaussian distribution</a>. If we assume a function <span class="math inline">\(f\)</span> comes from a Gaussian Process, we write <span class="math inline">\(f \sim \mathcal{GP}(m, k)\)</span>. The functions <span class="math inline">\(m\)</span> and <span class="math inline">\(k\)</span> are referred to as <em>mean</em> and <em>covariance</em> functions, respectively. The mean function is often set to be the zero function <span class="math inline">\(\mathbf{0}\)</span> for notational convenience. The covariance (kernel) function must produce a positive definite matrix when evaluated on a collection of inputs. For my project, I’ve focused on the squared-exponential function. For the following examples, we’ll define it using its scalar form <span class="math inline">\(k: \mathbb{R} \times \mathbb{R} \to \mathbb{R}\)</span>: <span class="math display">\[
 k(x, x') = \alpha^2 \cdot \exp \Bigl( -\frac{1}{2\rho^2}(x - x')^2 \Bigr), \text{ where } \alpha, \rho &gt; 0.
 \]</span></p>
-<p>Note that the values of <span class="math inline">\(k\)</span> will decrease exponentially as the inputs (<span class="math inline">\(x\)</span> and <span class="math inline">\(x'\)</span>) get farther apart. This is a desirable property for modeling covariance, as we’d generally expect two nearby inputs to be similar to each other and two distant values to be less similar. The range of the functions drawn from the GP is controlled via <span class="math inline">\(\alpha\)</span>, while the frequency (“wiggliness”) of the functions is controlled by the length-scale <span class="math inline">\(\rho\)</span>. Together, we refer to <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\rho\)</span> are as <em>hyperparameters</em>. They can be estimated from sample data using statistical inference, or chosen by the analyst based on expertise or problem context.</p>
+<p>Note that the values of <span class="math inline">\(k\)</span> will decrease exponentially as the inputs (<span class="math inline">\(x\)</span> and <span class="math inline">\(x'\)</span>) get farther apart. This is a desirable property for modeling covariance, as we’d generally expect two nearby inputs to be similar to each other and two distant values to be less similar. The range of the functions drawn from the GP is controlled via <span class="math inline">\(\alpha\)</span>, while the frequency (“wiggliness”) of the functions is controlled by the length-scale <span class="math inline">\(\rho\)</span>. Together, we refer to <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\rho\)</span> as <em>hyperparameters</em>. They can be estimated from sample data using statistical inference, or chosen by the researcher based on expertise or problem context.</p>
 <p>As an aside, the squared-exponential kernel is a common choice as a covariance function, but any function that produces a positive (semi)definite matrix can be used. David Duvenaud’s website and thesis chapter includes descriptions of various kernel functions that can be used for modeling different types of data <span class="citation" data-cites="DuvenaudKernelCookbook">(<a href="#ref-DuvenaudKernelCookbook" role="doc-biblioref">Duvenaud 2014</a>)</span>.</p>
 </section>
 <section id="gaussian-process-regression" class="level2">
 <h2 class="anchored" data-anchor-id="gaussian-process-regression">Gaussian Process Regression</h2>
-<p>In practice, Gaussian Processes are often brought to bear on <em>regression problems</em>, in which an analyst has collected a dataset <span class="math inline">\(S = (\mathbf{x}, \mathbf{y}) = \{ (x_i, y_i) : x_i,y_i \in \mathbb{R}, i \in 1, 2, \dots, N \}\)</span> with the goal of learning the relationship <span class="math inline">\(f\)</span> between <span class="math inline">\(\mathbf{x}\)</span> and <span class="math inline">\(\mathbf{y}\)</span>:</p>
+<p>In practice, Gaussian Processes are often brought to bear on <em>regression problems</em>, in which a researcher has collected a dataset <span class="math inline">\(S = (\mathbf{x}, \mathbf{y}) = \{ (x_i, y_i) : x_i,y_i \in \mathbb{R}, i \in 1, 2, \dots, N \}\)</span> with the goal of learning the relationship <span class="math inline">\(f\)</span> between <span class="math inline">\(\mathbf{x}\)</span> and <span class="math inline">\(\mathbf{y}\)</span>:</p>
 <p><span class="math display">\[
 \begin{align*}
 \mathbf{y} &amp;= f(\mathbf{x}) \ \text{ or} \\
@@ -340,7 +349,7 @@ k(x, x') = \alpha^2 \cdot \exp \Bigl( -\frac{1}{2\rho^2}(x - x')^2 \Bigr), \text
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" aria-current="page">Prior Distribution</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false">Training Data</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-3" role="tab" aria-controls="tabset-1-3" aria-selected="false">Posterior Distribution</a></li></ul>
 <div class="tab-content">
 <div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
-<p>In <span style="color: orange;"><strong>orange</strong></span>, we have a function, unknown to our imagined analyst. In <span style="color: grey;"><strong>grey</strong></span> we have 10 draws from <span class="math inline">\(f \sim \mathcal{GP}(\mathbf{0}, k(\mathbf{x}_*, \mathbf{x}_*))\)</span>. This represents what the analyst knows before incorporating information from <span class="math inline">\(S\)</span>. As we can see, the <span style="color: grey;"><strong>draws</strong></span> span the domain we’re interested in, but their y-values are chaotic and don’t align with the <span style="color: orange;"><strong>target</strong></span>.</p>
+<p>In <span style="color: orange;"><strong>orange</strong></span>, we have a function, unknown to our imagined researcher. In <span style="color: grey;"><strong>grey</strong></span> we have 10 draws from <span class="math inline">\(f \sim \mathcal{GP}(\mathbf{0}, k(\mathbf{x}_*, \mathbf{x}_*))\)</span>. This represents what the analyst knows before incorporating information from <span class="math inline">\(S\)</span>. As we can see, the <span style="color: grey;"><strong>draws</strong></span> span the domain we’re interested in, but their y-values are chaotic and don’t align with the <span style="color: orange;"><strong>target</strong></span>.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -395,7 +404,7 @@ k(x, x') = \alpha^2 \cdot \exp \Bigl( -\frac{1}{2\rho^2}(x - x')^2 \Bigr), \text
 </div>
 </div>
 <div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
-<p>Again we have our unknown target function in <span style="color: orange;"><strong>orange</strong></span>. The <strong>black</strong> dots comprise <span class="math inline">\(S\)</span>, the analyst’s dataset (here, N = 30).</p>
+<p>Again we have our unknown target function in <span style="color: orange;"><strong>orange</strong></span>. The <strong>black</strong> dots comprise <span class="math inline">\(S\)</span>, the researcher’s dataset (here, N = 30).</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>

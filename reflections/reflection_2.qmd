@@ -1,7 +1,7 @@
 ---
 title: Reflection 2
 author: Andrew Moore
-date: "3/7/2025"
+date: "4/25/2025"
 format:
   typst:
     margin:
@@ -14,24 +14,14 @@ description: |
   In this reflection, you will consider ways you can apply your unique skills and knowledge in the world, as you research potential next steps in your career.
 ---
 
-<!-- Meet with your project advisor to discuss potential career opportunities and graduate programs. -->
+For this reflection, I met with my advisor to discuss my CV and career goals. As a second degree student, my circumstances are a bit different from others in the program. Specifically, I've already gained career experience that most students completing their first degree won't have. With this in mind, we contemplated the future paths and opportunities my career might take.
 
-<!-- They will help you identify options that could be a good fit for your interests and background. -->
+I have been consistently drawn towards work in the public sector. In my first job after completing my first degree, I worked within the University of Michigan's Survey Research Center, which is responsible for collecting the monthly *Survey of Consumer Attitudes* (SCA) and the long-running *Panel Study of Income Dynamics* (PSID). My work within the center, centered on data collection, impressed on me how much our society depends on the regularity and consistency of information to operate. It also fed my existing interests related to survey design and statistical inference. Today, I currently work in an IT context which often provides fulfilling work involving system design and technical challenges. I value the skills I've cultivated in this setting, but it may not be work I want to do for the entirety of my career. In the long term, I hope that I can return to working to support (or conduct) scientific or survey work more directly, either at a statistical agency, or within a research center. It's possible that my background qualifies me for some roles today, but my sense is that this progression likely involves further training at the graduate level.
 
-<!-- Research career opportunities and graduate programs, and summarize your findings. -->
+We're living in a time where the foundations needed to provide this training are endangered. The US government's threats to student freedoms and safety and disruption of research funding across the country are extremely dire. It's painful knowing that friends and colleagues across the country have to divert energy away from teaching and scholarly work to resist what's happening. At minimum, it creates unhelpful distractions and uncertainty. Schools across the country have begun reducing admissions for graduate students, with some programs even rescinding acceptance offers. The targeting and harassment of international students will further chill desires to study in the US. Our institutions are not perfect, and access to them is uneven, but our society is not served by undermining them. I'm straying from the intended purpose of this reflection, but it's hard to chart a course whose route flows through higher education, and not acknowledge what's apparent.
 
-<!-- Look into at least two of your advisor’s suggestions, and one additional graduate program or employment opportunity, and create a summary for each that includes: -->
+In spite of our present context, I did follow through on the goals of this reflection. Employment at the federal level seems vulnerable and fraught in the near term; while this is a direction I've contemplated, I don't think this direction is worth pursuing in the next 3-4 years. In lieu of this direction, I further examined graduate programs that I discussed with my advisor: a MS and PhD program at Boise State, and an online MS offered by Colorado State University. I'll summarize each below. My focus on these options reflects the fact that my partner and I would generally prefer to stay in Boise for the short-term, if possible. While I've missed the windows to apply this year, I intend to be ready for the next cycle.
 
-<!-- Application information — application deadlines, submission requirements, and the contact information for the person/department handling applications. -->
+Applying to enroll for graduate training at Boise State University is a practical choice, given I live where the university is located. Boise State offers a masters in mathematics, with statistics offered as an emphasis area. This program takes approximately 33 credits, which would take roughly 2 years to complete if pursued full-time. Alternatively, I could opt to apply to the doctoral program in computing, likely pursuing either the CMSE or Data Science emphasis. This program requires 60 credits, and is meant to be pursued full-time. Prospective students seeking institutional funding are required to submit their materials in early January, with mid-April being the final deadline.
 
-<!-- What interests you about each of the three careers/programs. -->
-
-<!-- How you think your current skills and knowledge prepare you for each career/program. -->
-
-For this reflection, I met with my advisor to discuss my CV and career goals. As a second degree student, my circumstances are a bit different from others in the program. Specifically, I've already gained career experience that most students completing their first undergraduate degree won't have had. With these experiences in mind, we contemplated the future paths and opportunities my career might take.
-
-Successful completion of my program is the conferral of a bachelor of science. In the course of my career, I have worked in academic contexts, supporting the behavioral and social research of faculty; I have also worked in a research center responsible for collecting important survey data for studies on various topics. I was (and am) drawn to study mathematics because I believe that understanding statistical methods relied on for scientific work is valuable. Second, while self-study is important, we benefit greatly from the guidance of experienced teachers. I feel compelled to lend what I've learned towards advancing the public good, either through supporting or conducting scientific research, or as a teacher (if I'm ever fortunate enough to have the opportunity). The natural course for pursuing these callings runs through further training, likely at the doctoral level.
-
-Yet, I can't consider these aspirations without noting the present context in which I write them. The leadership of the US government is currently engaging in numerous actions and policies that threaten the foundations needed to train new scientists. These actions are too numerous to list, but the threats to the stability of funding and to the freedom and safety of university students, targeted for political expression, are incredibly dire. Higher education in the US is beset with numerous preexisting challenges, and I'm deeply worried that the reckless and haphazard uptake of LLMs in educational settings will be damaging in ways that are difficult for us to currently comprehend. These are uncomfortable uncertainties; it feels inadequate to acknowledge how unevenly they're experienced.
-
-
+Colorado State University has a well-regarded masters program in applied statistics. This program is offered online and asynchronously; it is meant to be a terminal degree for professionals interested in working as practicing statisticians. Based on my review of their requirements, completion of my BS this year will have ensured adequate preparation for graduate coursework. Further, the program's tuition rate is the same for in-state and non-Colorado residents. The program is meant to be completed in 1 year for students enrolled full-time, and within 2 years for those studying part-time. Students begin their studies each summer, with applications opening in the preceding September. 

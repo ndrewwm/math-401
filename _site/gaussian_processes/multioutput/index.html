@@ -175,6 +175,10 @@ window.Quarto = {
     <a class="nav-link" href="../../index.html"> 
 <span class="menu-text">Home</span></a>
   </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../poster/index.pdf"> 
+<span class="menu-text">Poster</span></a>
+  </li>  
 </ul>
           </div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
@@ -245,15 +249,27 @@ window.Quarto = {
       <div class="sidebar-item-container"> 
             <a href="../../reflections/index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Reflections</span></a>
-          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Toggle section">
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
             <i class="bi bi-chevron-right ms-2"></i>
           </a> 
       </div>
-      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 ">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../../reflections/reflection_1.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Reflection 1</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../reflections/reflection_2.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Reflection 2</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../reflections/reflection_3.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Reflection 3</span></a>
   </div>
 </li>
           <li class="sidebar-item">
@@ -273,18 +289,12 @@ window.Quarto = {
         <nav id="TOC" role="doc-toc" class="toc-active">
     <h2 id="toc-title">On this page</h2>
    
-  <ul>
+  <ul class="collapse">
   <li><a href="#motivation-visualizing-vector-fields" id="toc-motivation-visualizing-vector-fields" class="nav-link active" data-scroll-target="#motivation-visualizing-vector-fields">Motivation: visualizing vector fields</a></li>
   <li><a href="#theory-and-notation" id="toc-theory-and-notation" class="nav-link" data-scroll-target="#theory-and-notation">Theory and notation</a></li>
   <li><a href="#training-and-test-data" id="toc-training-and-test-data" class="nav-link" data-scroll-target="#training-and-test-data">Training and test data</a></li>
   <li><a href="#kernel-functions" id="toc-kernel-functions" class="nav-link" data-scroll-target="#kernel-functions">Kernel functions</a></li>
-  <li><a href="#hyperparameter-inference" id="toc-hyperparameter-inference" class="nav-link" data-scroll-target="#hyperparameter-inference">Hyperparameter Inference</a>
-  <ul class="collapse">
-  <li><a href="#estimation-via-stan" id="toc-estimation-via-stan" class="nav-link" data-scroll-target="#estimation-via-stan">Estimation via Stan</a></li>
-  <li><a href="#evaluation" id="toc-evaluation" class="nav-link" data-scroll-target="#evaluation">Evaluation</a></li>
-  <li><a href="#icm" id="toc-icm" class="nav-link" data-scroll-target="#icm">ICM</a></li>
-  <li><a href="#independent-gps" id="toc-independent-gps" class="nav-link" data-scroll-target="#independent-gps">Independent GPs</a></li>
-  </ul></li>
+  <li><a href="#hyperparameter-inference" id="toc-hyperparameter-inference" class="nav-link" data-scroll-target="#hyperparameter-inference">Hyperparameter Inference</a></li>
   </ul>
 </nav>
     </div>
@@ -312,7 +322,7 @@ window.Quarto = {
 
 <section id="motivation-visualizing-vector-fields" class="level2 page-columns page-full">
 <h2 class="anchored" data-anchor-id="motivation-visualizing-vector-fields">Motivation: visualizing vector fields</h2>
-<p>Elsewhere, I’ve discussed the multivariate normal distribution, and Gaussian processes. Introductory materials discussing Gaussian Processes (GPs) typically focus on univariate outcomes. In more formal notation, input data <span class="math inline">\(\mathbf{X} \in \mathbb{R}^{N \times P}\)</span> is used to model <span class="math inline">\(\mathbf{y} \in \mathbb{R}^N\)</span>: <span class="math display">\[
+<p>Elsewhere, I’ve discussed the <a href="../../gaussian_processes/mvnorm/index.html">multivariate normal distribution</a>, and <a href="../../gaussian_processes/index.html">Gaussian processes</a>. Introductory materials discussing Gaussian Processes (GPs) typically focus on univariate outcomes. In more formal notation, input data <span class="math inline">\(\mathbf{X} \in \mathbb{R}^{N \times P}\)</span> is used to model <span class="math inline">\(\mathbf{y} \in \mathbb{R}^N\)</span>: <span class="math display">\[
 \begin{align*}
 \mathbf{y} &amp;= f(\mathbf{X}) + \mathbf{\epsilon} \text{ where } \\
 f(\mathbf{X}) &amp;\sim \mathcal{N}_N(\mathbf{0}, \mathbf{K}), \\

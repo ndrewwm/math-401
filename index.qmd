@@ -1,8 +1,53 @@
 ---
 title: "MATH 401"
+author: Andrew Moore
+date: "January 16, 2025"
+date-modified: "April 25, 2025"
+description: Homepage for my senior project.
+bibliography: index.bib
+format:
+  html:
+    toc-depth: 1
 ---
 
-# Meeting Summaries
+# Welcome
+
+Hello! This website contains the work I completed during the course of Math-401, my senior project and final course to complete my BS in Applied Mathematics. I completed this course during Spring 2025; [Dr. Grady Wright](https://gradywright.github.io/) (Professor, Boise State Department of Mathematics), served as my project advisor. During the course, I focused on the topic of [*Gaussian Processes (GPs)*](./gaussian_processes/index.qmd), a generalization of the multivariate Gaussian distribution, and how GPs can be useful in the context of various regression problems.
+
+You can browse my writings on different subtopics from the sidebar, or by searching using the magnifying glass in the upper-right corner of the page. This website was built using [Quarto](https://quarto.org/), with data analysis, inference, and visualization being conducted using the R and Stan programming languages. My poster's layout was built from an excellent [typst](https://typst.app/) [template](https://github.com/quarto-ext/typst-templates/tree/main/poster), with a few formatting tweaks.
+
+# Project Summary
+
+We began the semester by examining the connections between [Gaussian Processes](./gaussian_processes/index.qmd) and Kernal Ridge Regression (KRR), reading @kanagawa2018gaussian as a starting point. The two approaches are theoretically related in that both rely on positive-definite kernels to accomplish interpolation or data fitting. In practice, the approaches are comparable; for example, the KRR estimator is equivalent to the GP posterior mean function. However, the approaches differ in their quantification of uncertainty[^1], and in how they define hypothesis spaces[^2].
+
+Having an introduction to the topics, I worked to gain an understanding of Gaussian Process regression by simulating univariate data. From this basic case, we moved to multidimensional problems to explore how GPs can be useful for regression problems with a spatial dimension. Early applications of GPR were in geostatistics, in which the technique (more commonly referred to as *Kriging*) has been used to predict the distribution of minerals over a sampled area. We concluded by applying GPR to a *vector-valued* outcome, specifically velocity fields. Here I drew upon the *Intrinsic Coregionalization Model*, discussed in @alvarez2012kernels, which involves constructing a similarity matrix to summarize cross-output dependencies which is then combined with the kernel/Gram matrix constructed from the researcher's training data. The page [Multioutput Gaussian Process Regression](./gaussian_processes/multioutput/index.qmd) explores these topics using a simulation of Hurricane Isabel's velocity field, and also includes my attempts to conduct hyperparameter inference using the Stan programming language. I also explored multioutput/vector-valued GPR with Particle Image Velocimetry data from @harlander2012reconstruction in my project's [poster](./poster/index.qmd).
+
+# Weekly Meetings
+
+These are brief notes I took to summarize topics and materials I discussed with Dr. Wright during our scheduled meetings. Some of the links that reference this site may be dead; I ultimately consolidated several pages down to the set that are available today in the sidebar.
+
+::: {.callout-note appearance="simple" icon="false" collapse="true"}
+
+# Notes
+
+## 4/25/25
+
+- Wrap-up. Working on completing incomplete reflections.
+
+## 4/14/25
+
+- Review of current draft
+  - Should tighten up which variables are used in Section I-- would be better to use $\mathbf{z}$, rather than $\mathbf{x}$ (which is what we use to refer to training data).
+- Scaling of the PIV vector field is off (all the magnitudes are too small)-- and appears to be scrambled compared to what we expect. Bug in my code somewhere.
+
+## 4/4/25
+
+- Summary of my progress re: poster drafting
+
+## 3/28/25
+
+- Reading about the ICM and LCM
+- Updating Stan code used for inference of hyperparameters.
 
 ## 3/14/25
 
@@ -51,6 +96,15 @@ v &= f_2(y) + \epsilon_2
 \end{align*}
 $$
 
+## 2/7/25
+
+- Discussed the PIV laboratory data that Dr. Wright worked on in 2012.
+- $\partial_x u + \partial_y v + \partial_z w = 0$
+  - recall: $u$ position, $v$ velocity
+- Goal is to induce Rossby waves within a rotating cylinder.
+  - Preprocessing of data may be subject to artifacts-- opportunity to use statistical methods to fill in, or correct, artifacts.
+
+
 ## 1/31/25
 
 - Working on [an overview of Gaussian processes](/gaussian_processes/index.qmd)
@@ -67,6 +121,11 @@ $$
 ## 1/16/25
 
 - Discussion, admin work
-- Decided to cover first 3 sections of __ paper
+- Decided to cover first 3 sections of @kanagawa2018gaussian
 - Mentioned __ textbook.
 
+:::
+
+[^1]: For GPs, uncertainty is represented through the posterior variance, and can be estimated/visualized via draws from the posterior distribution. With KRR, @kanagawa2018gaussian suggest that the posterior variance can be interpreted as a "worst case error" in a Reproducing Kernel Hilbert Space (RKHS).
+
+[^2]: For KRR, it is assumed that the target function belongs to a RKHS (or can be well approximated by function in a RKHS). However, the support for GPs is not identical to that of a RKHS [@kanagawa2018gaussian, pp. 3].

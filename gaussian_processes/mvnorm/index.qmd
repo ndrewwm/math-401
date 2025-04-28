@@ -5,27 +5,27 @@ bibliography: mvnorm.bib
 
 ## Definition
 
-Let $\mathbf{x} \in \mathbb{R}^n$ be a vector whose elements, $X_i$, are random variables (i.e., $\mathbf{x}$ is a *random vector*). As elements of $\mathbf{x}$, we say that $X_1, X_2, \dots, X_n$ are jointly distributed. Define the vector $\mathbf{\mu}$ and matrix $\mathbf{\Sigma}$ as
+Let $\mathbf{x} \in \mathbb{R}^N$ be a vector whose elements, $X_i$, are random variables (i.e., $\mathbf{x}$ is a *random vector*). As elements of $\mathbf{x}$, we say that $X_1, X_2, \dots, X_N$ are jointly distributed. Define the vector $\mathbf{\mu}$ and matrix $\mathbf{\Sigma}$ as
 $$
 \begin{align*}
-\mathbf{\mu} &= \begin{bmatrix} \mu_1 \\ \mu_2 \\ \vdots \\ \mu_n \end{bmatrix} = \begin{bmatrix} \mathbb{E}(X_1) \\ \mathbb{E}(X_2) \\ \vdots \\ \mathbb{E}(X_n) \end{bmatrix} \in \mathbb{R}^n \\ \\
-\mathbf{\Sigma} &= Cov(\mathbf{x}) = \mathbb{E}[(\mathbf{x} - \mathbf{\mu})(\mathbf{x} - \mathbf{\mu})^\top] = \Bigl[Cov(X_i, X_j) \Bigr]_{i, j = 1}^n \in \mathbb{R}^{n \times n}
+\mathbf{\mu} \in \mathbb{R}^N &= (\mu_1, \mu_2, \dots, \mu_N)^\top = (\mathbb{E}(X_1), \mathbb{E}(X_2), \dots, \mathbb{E}(X_N))^\top  \\
+\mathbf{\Sigma} \in \mathbb{R}^{N \times N} &= Cov(\mathbf{x}) = \mathbb{E}[(\mathbf{x} - \mathbf{\mu})(\mathbf{x} - \mathbf{\mu})^\top] = \Bigl[Cov(X_i, X_j) \Bigr]_{i, j = 1}^N
 \end{align*}
 $$
 
-and suppose $X_i \sim \mathcal{N}(\mu_i, \mathbf{\Sigma}_{i, i})$. If every linear combination of $\mathbf{x}$'s elements results in a univariate normal variable, we say that $\mathbf{x}$ comes from the multivariate Gaussian distribution parameterized by $\mathbf{\mu}$ and $\mathbf{\Sigma}$, written as $\mathbf{x} \sim \mathcal{N}(\mathbf{\mu}, \mathbf{\Sigma}).$
+and suppose $X_i \sim \mathcal{N}(\mu_i, \mathbf{\Sigma}_{i, i})$. If every linear combination of $\mathbf{x}$'s elements results in a univariate normal variable, we say that $\mathbf{x}$ comes from the multivariate Gaussian distribution parameterized by $\mathbf{\mu}$ and $\mathbf{\Sigma}$, written as $\mathbf{x} \sim \mathcal{N}_N (\mathbf{\mu}, \mathbf{\Sigma}).$
 
 ## Sampling Algorithm
 
-A commonly used algorithm for sampling from a multivariate Gaussian distribution can be described as the following, given a vector $\mathbf{\mu} \in \mathbb{R}^n$ and a positive-(semi)definite matrix $\mathbf{\Sigma} \in \mathbb{R}^{n \times n}$:
+A commonly used algorithm for sampling from a multivariate Gaussian distribution can be described as the following, given a vector $\mathbf{\mu} \in \mathbb{R}^N$ and a positive-(semi)definite matrix $\mathbf{\Sigma} \in \mathbb{R}^{N \times N}$:
 
 1. Compute $L L^\top = \mathbf{\Sigma}$, the Cholesky decomposition of $\mathbf{\Sigma}$.
-2. Generate $\mathbf{z} = \begin{bmatrix} Z_1 \\ Z_2 \\ \vdots \\ Z_n \end{bmatrix}$ where $Z_1, Z_2, \dots, Z_n \overset{\text{i.i.d.}}{\sim} \mathcal{N}(0, 1)$.
+2. Generate $\mathbf{z} = (Z_1, Z_2, \dots, Z_N)^\top$ where $Z_1, Z_2, \dots, Z_N \overset{\text{i.i.d.}}{\sim} \mathcal{N}(0, 1)$.
 3. Compute $\mathbf{x} = L\mathbf{z} + \mathbf{\mu}$.
 
 ## Why does the algorithm work?
 
-The claim is that $\mathbf{x}$ is a draw from the multivariate Gaussian distribution parameterized by $\mathbf{\mu}$ and $\mathbf{\Sigma}$, i.e., $\mathbf{x} \sim \mathcal{N}(\mathbf{\mu}, \mathbf{\Sigma})$. So, why does this work? First, we can show that $\mathbb{E}(\mathbf{x}) = \mathbf{\mu}$:
+The claim is that $\mathbf{x}$ is a draw from a multivariate Gaussian distribution parameterized by $\mathbf{\mu}$ and $\mathbf{\Sigma}$, i.e., $\mathbf{x} \sim \mathcal{N}_N (\mathbf{\mu}, \mathbf{\Sigma})$. So, why does this work? First, we can show that $\mathbb{E}(\mathbf{x}) = \mathbf{\mu}$:
 
 $$
 \begin{align*}

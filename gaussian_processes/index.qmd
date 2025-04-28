@@ -18,27 +18,18 @@ This description helpfully orients us to two key aspects. First is that GPs are 
 
 ## Definition
 
-A *Gaussian Process* is an uncountably infinite collection of random variables, with any finite sample from the process sharing a joint [multivariate Gaussian distribution](./mvnorm/index.qmd). If we assume a function $f(\mathbf{x})$ comes from a Gaussian Process, we write
-$$
-\begin{align*}
-f(\mathbf{x}) &\sim \mathcal{GP}(m, k)\ \text{ where } \\
-m(\mathbf{x}) &= \mathbb{E}(f(\mathbf{x})), \text{ and } \\
-k(\mathbf{x}, \mathbf{x}') &= \mathbb{E}[(f(\mathbf{x}) - m(\mathbf{x}))(f(\mathbf{x}') - m(\mathbf{x}'))].
-\end{align*}
-$$
-
-The functions $m$ and $k$ are referred to as *mean* and *covariance* functions, respectively. The mean function is often set to be the zero function $\mathbf{0}$ for notational convenience. The covariance (kernel) function must produce a positive definite matrix when evaluated on a collection of inputs. For my project, I've focused on the squared-exponential function. For the following examples, we'll define it using its scalar form $k: \mathbb{R} \times \mathbb{R} \to \mathbb{R}$:
+A *Gaussian Process* is an uncountably infinite collection of random variables, with any finite sample from the process sharing a joint [multivariate Gaussian distribution](./mvnorm/index.qmd). If we assume a function $f$ comes from a Gaussian Process, we write $f \sim \mathcal{GP}(m, k)$. The functions $m$ and $k$ are referred to as *mean* and *covariance* functions, respectively. The mean function is often set to be the zero function $\mathbf{0}$ for notational convenience. The covariance (kernel) function must produce a positive definite matrix when evaluated on a collection of inputs. For my project, I've focused on the squared-exponential function. For the following examples, we'll define it using its scalar form $k: \mathbb{R} \times \mathbb{R} \to \mathbb{R}$:
 $$
 k(x, x') = \alpha^2 \cdot \exp \Bigl( -\frac{1}{2\rho^2}(x - x')^2 \Bigr), \text{ where } \alpha, \rho > 0.
 $$
 
-Note that the values of $k$ will decrease exponentially as the inputs ($x$ and $x'$) get farther apart. This is a desirable property for modeling covariance, as we'd generally expect two nearby inputs to be similar to each other and two distant values to be less similar. The range of the functions drawn from the GP is controlled via $\alpha$, while the frequency ("wiggliness") of the functions is controlled by the length-scale $\rho$. Together, we refer to $\alpha$ and $\rho$ are as *hyperparameters*. They can be estimated from sample data using statistical inference, or chosen by the analyst based on expertise or problem context.
+Note that the values of $k$ will decrease exponentially as the inputs ($x$ and $x'$) get farther apart. This is a desirable property for modeling covariance, as we'd generally expect two nearby inputs to be similar to each other and two distant values to be less similar. The range of the functions drawn from the GP is controlled via $\alpha$, while the frequency ("wiggliness") of the functions is controlled by the length-scale $\rho$. Together, we refer to $\alpha$ and $\rho$ as *hyperparameters*. They can be estimated from sample data using statistical inference, or chosen by the researcher based on expertise or problem context.
 
 As an aside, the squared-exponential kernel is a common choice as a covariance function, but any function that produces a positive (semi)definite matrix can be used. David Duvenaud's website and thesis chapter includes descriptions of various kernel functions that can be used for modeling different types of data [@DuvenaudKernelCookbook].
 
 ## Gaussian Process Regression
 
-In practice, Gaussian Processes are often brought to bear on *regression problems*, in which an analyst has collected a dataset $S = (\mathbf{x}, \mathbf{y}) = \{ (x_i, y_i) : x_i,y_i \in \mathbb{R}, i \in 1, 2, \dots, N \}$ with the goal of learning the relationship $f$ between $\mathbf{x}$ and $\mathbf{y}$:
+In practice, Gaussian Processes are often brought to bear on *regression problems*, in which a researcher has collected a dataset $S = (\mathbf{x}, \mathbf{y}) = \{ (x_i, y_i) : x_i,y_i \in \mathbb{R}, i \in 1, 2, \dots, N \}$ with the goal of learning the relationship $f$ between $\mathbf{x}$ and $\mathbf{y}$:
 
 $$
 \begin{align*}
@@ -55,7 +46,7 @@ Gaussian Process Regression can be considered a Bayesian method for learning $f$
 
 ### Prior Distribution
 
-In <span style="color: orange;"><strong>orange</strong></span>, we have a function, unknown to our imagined analyst. In <span style="color: grey;"><strong>grey</strong></span> we have 10 draws from $f \sim \mathcal{GP}(\mathbf{0}, k(\mathbf{x}_*, \mathbf{x}_*))$. This represents what the analyst knows before incorporating information from $S$. As we can see, the <span style="color: grey;"><strong>draws</strong></span> span the domain we're interested in, but their y-values are chaotic and don't align with the <span style="color: orange;"><strong>target</strong></span>.
+In <span style="color: orange;"><strong>orange</strong></span>, we have a function, unknown to our imagined researcher. In <span style="color: grey;"><strong>grey</strong></span> we have 10 draws from $f \sim \mathcal{GP}(\mathbf{0}, k(\mathbf{x}_*, \mathbf{x}_*))$. This represents what the analyst knows before incorporating information from $S$. As we can see, the <span style="color: grey;"><strong>draws</strong></span> span the domain we're interested in, but their y-values are chaotic and don't align with the <span style="color: orange;"><strong>target</strong></span>.
 
 ```{r}
 #| code-fold: true
@@ -106,7 +97,7 @@ ggplot() +
 
 ### Training Data
 
-Again we have our unknown target function in <span style="color: orange;"><strong>orange</strong></span>. The **black** dots comprise $S$, the analyst's dataset (here, N = `r n`).
+Again we have our unknown target function in <span style="color: orange;"><strong>orange</strong></span>. The **black** dots comprise $S$, the researcher's dataset (here, N = `r n`).
 
 ```{r}
 #| code-fold: true

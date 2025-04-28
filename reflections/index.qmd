@@ -5,6 +5,9 @@ title: Reflections
 Here are links to the reflection assignments I completed during MATH 401.
 
 - [Reflection 1](/reflections/reflection_1.qmd)
+
 - Reflection 2
   - [Essay](/reflections/reflection_2.qmd)
   - [CV](/reflections/cv.qmd)
+
+- [Reflection 3](/reflections/reflection_3.qmd)

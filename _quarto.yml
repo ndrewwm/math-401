@@ -7,9 +7,12 @@ website:
     left:
       - href: index.qmd
         text: Home
+      - href: "./poster/index.qmd"
+        text: Poster
   sidebar:
     style: docked
     search: true
+    collapse-level: 1
     contents:
       - section: "Gaussian Processes"
         href: "./gaussian_processes/index.qmd"
@@ -23,6 +26,8 @@ website:
         href: "./reflections/index.qmd"
         contents:
           - "./reflections/reflection_1.qmd"
+          - "./reflections/reflection_2.qmd"
+          - "./reflections/reflection_3.qmd"
           - "./reflections/cv.qmd"
 
 execute:
@@ -33,3 +38,4 @@ format:
     theme: cosmo
     css: styles.css
     toc: true
+    toc-depth: 2
