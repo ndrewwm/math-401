@@ -1,0 +1,32 @@
+---
+title: MATH-401, Project Submission
+date: "2025-04-27"
+format:
+  typst:
+    margin:
+      top: 30mm
+      bottom: 30mm
+      left: 30mm
+      right: 30mm
+  html: default
+description: |
+  Cover page for project submission
+---
+
+**Name:** Andrew Moore
+
+**Advisor:** Grady Wright
+
+**Title:** Vector-valued Gaussian Processes
+
+**Project URL:** https://ndrewwm.github.io/math-401
+
+**Abstract:** For this project, I worked to gain an understanding of Gaussian processes (GPs). Gaussian processes are defined as uncountably infinite collections of random variables, from which any finite sample can be described by a multivariate Gaussian distribution. Early applications of GPs can be found in the field of geostatistics, where they have been used to predict spatial locations of mineral deposits after the collection of sample data. GPs are characterized by mean and covariance (kernel) functions, the latter of which (through their functional forms and hyperparameters) are crucial for determining the kinds of functions that a GP can be used to model. My project is presented as a static website, with pages dedicated to the following topics:
+
+1. Definitions of Gaussian processes and the multivariate Gaussian distribution (and the commonly used sampling algorithm).
+2. Gaussian process regression:
+    - scalar $\mathbf{y}$, scalar $\mathbf{x}$
+    - scalar $\mathbf{y}$, vector-valued $\mathbf{x}$
+    - vector-valued $\mathbf{y}$, vector-valued $\mathbf{x}$
+
+The rendered content can be browsed by opening the `.html` files (located under the `/_site/` subfolder) in a browser. Alternatively, it can be viewed online via the project URL provided.
