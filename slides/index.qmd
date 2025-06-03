@@ -1,0 +1,201 @@
+---
+title: "Gaussian Processes"
+subtitle: "(I just think they're neat)"
+author: "Andrew Moore"
+format: revealjs
+---
+
+## An age old story...
+
+Curve fitting: we have some data, but actually want $f$ that satisfies $y = f(x)$.
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| fig.align: center
+
+library(tidyverse)
+set.seed(123)
+
+theme_set(
+    theme_minimal(base_size = 15) + theme(panel.grid.minor = element_blank())
+)
+
+f <- function(x) sin(2*x) + sin(4*x)
+k <- function(x_i, x_j, alpha, rho) alpha^2 * exp(-(x_i - x_j)^2 / (2 * rho^2))
+
+k_xX <- function(x, X, alpha = 1, rho = 0.4) {
+  N <- NROW(x)
+  M <- NROW(X)
+  K <- matrix(0, N, M)
+  for (n in 1:N) {
+    for (m in 1:M) {
+      K[n, m] <- k(x[n], X[m], alpha, rho)
+    }
+  }
+  return(K)
+}
+
+N <- 400
+n <- 30
+x <- seq(-5, 5, length.out = N)
+f_x <- f(x)
+
+D <- tibble(x, y = f_x)
+S <- slice_sample(D, n = n)
+Z <- anti_join(D, S, by = "x")
+
+ggplot() + geom_point(data = S, aes(x, y), size = 2.5)
+```
+
+---
+
+- What's the right way?
+    - Function is probably nonlinear... maybe use LOESS?
+    - What if there's uncertainty (error) in our measurements?
+
+```{r}
+#| fig.align: center
+
+ggplot(data = S, aes(x, y)) +
+    geom_line(data = D, aes(x, y), color = "orange") +
+    geom_point(size = 2.5) +
+    geom_smooth(method = "lm", se = FALSE) +
+    geom_smooth(span = 0.3, lty = "dashed")
+```
+
+The plot shows some <span style="color: blue;">predictions</span> and our <span style="color: orange;">target</span> function.
+
+---
+
+Most remember the Gaussian distribution: $y \sim \mathcal{N}(\mu, \sigma)$
+
+```{r}
+ggplot(tibble(x = c(-3, 3)), aes(x)) +
+  stat_function(fun = dnorm, n = 101, args = list(mean = 0, sd = 1)) +
+  scale_y_continuous(breaks = NULL, name = "")
+```
+
+---
+
+What if we gave each point in the data its own distribution?
+
+::: {.panel-tabset}
+
+### Plot
+
+```{r}
+#| fig-align: center
+
+library(ggnormalviolin)
+
+S |>
+  mutate(sigma = runif(n(), 0.5, 2)) |>
+  ggplot(aes(x, mu = y, sigma = sigma)) +
+  geom_normalviolin(face_right = FALSE)
+```
+
+### Distribution
+
+$$
+\mu = \begin{bmatrix} \mu_1 \\ \mu_2 \\ \mu_3 \\ \vdots \\ \mu_N \end{bmatrix} \ \ \mathbf{\Sigma} =
+  \begin{bmatrix}
+    \sigma_1 & & & & & \\
+    & \sigma_2 & & & \\
+    & & \sigma_3 & & \\
+    & & & \ddots & \\
+    & & & & \sigma_N
+  \end{bmatrix}
+$$
+
+$$
+\mathbf{y} \sim \mathcal{N}_N(\mu, \mathbf{\Sigma})
+$$
+
+:::
+
+---
+
+$$
+\mathbf{y} \sim \mathcal{N}_N(\mu, \mathbf{\Sigma}) \to f \sim \mathcal{GP}(m, k)
+$$
+
+- *Gaussian Process:* (uncountably) infinite collection of random variables, any finite sample is MV normal
+- Shift in perspective: probability distribution over *functions* (infinite lengths), rather than vectors of a fixed size
+- $m$ and $k$ determine the "flavor" of the GP's functions
+    - Typical to choose the zero function for $m$, and focus on $k$
+
+## $k$ is used to build covariance matrices
+
+$$
+k(x, x') = \alpha \exp \Bigl(-\frac{1}{2\rho^2} (x - x')^2 \Bigr) \ \ \ \alpha, \rho > 0
+$$
+
+For data $\mathbf{x} \in \mathbb{R}^N$:
+
+$$
+k(\mathbf{x}, \mathbf{x}) \in \mathbb{R}^{N \times N} = \begin{bmatrix}
+k(x_1, x_1) & k(x_2, x_1) & \cdots & k(x_N, x_1) \\
+k(x_1, x_2) & k(x_2, x_2) & \cdots & k(x_N, x_2) \\
+\vdots & \vdots & \ddots & \vdots \\
+k(x_1, x_N) & k(x_2, x_N) & \cdots & k(x_N, x_N)
+\end{bmatrix}
+$$
+
+---
+
+Training/sample data: $\ \mathbf{x}, \mathbf{y} \in \mathbb{R}^N$
+
+Test points: $\ \mathbf{x}_* \in \mathbb{R}^M$
+
+Prior: $\ f \sim \mathcal{GP}(m, k) \to \mathbf{y}_* \sim \mathcal{N}_M(\mathbf{0}, k(\mathbf{x}_*, \mathbf{x}_*))$
+
+<br>
+
+Conditional distribution of $\ \mathbf{y}_*$ is found via linear algebra:
+
+$$
+\begin{align*}
+\mathbf{y}_* | \mathbf{x}, \mathbf{y}, \mathbf{x}_* &\sim \mathcal{N}_M (\mu_*, \mathbf{\Sigma}_*) \\
+\mu_* &= k(\mathbf{x}_*, \mathbf{x})(k(\mathbf{x}, \mathbf{x}))^{-1}\mathbf{y} \\
+\mathbf{\Sigma}_* &= k(\mathbf{x}_*, \mathbf{x}_*) - k(\mathbf{x}_*, \mathbf{x})(k(\mathbf{x}, \mathbf{x}))^{-1}k(\mathbf{x}_*, \mathbf{x})^\top
+\end{align*}
+$$
+
+---
+
+Our <span style="color: blue; "><strong>posterior mean</strong></span>, <span style="color: grey;"><strong>credible interval</strong></span>, and the <span style="color: orange;"><strong>target</strong></span> function.
+
+```{r}
+#| cache: true
+
+K_xx <- k_xX(x, x)
+
+eps <- 0.009
+K_XX <- k_xX(S$x, S$x)
+K_xX <- k_xX(D$x, S$x)
+
+# Adding a small amount of noise to the diagonal for numerical stability
+mu <- K_xX %*% solve(K_XX + eps^2 * diag(n)) %*% S$y
+sigma <- K_xx - K_xX %*% solve(K_XX + eps^2 * diag(n)) %*% t(K_xX)
+
+draws <- MASS::mvrnorm(100, mu, sigma)
+
+draws <- as_tibble(t(draws)) |>
+  mutate(x = D$x) |>
+  pivot_longer(-x) |>
+  group_by(x) |>
+  summarise(y = mean(value), s = sd(value))
+
+ggplot() +
+  geom_line(data = D, aes(x, y), color = "orange") +
+  geom_ribbon(data = draws, aes(x, ymin = y - 2*s, ymax = y + 2*s), alpha = 0.2) +
+  geom_line(data = draws, aes(x, y), color = "blue") +
+  geom_point(data = S, aes(x, y))
+```
+
+## Questions?
+
+![](https://ndrewwm.github.io/math-401/reflections/reflection_3_files/figure-html/unnamed-chunk-5-1.png)
+

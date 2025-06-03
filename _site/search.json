@@ -386,5 +386,33 @@
     "title": "MATH-401, Project Submission",
     "section": "",
     "text": "Name: Andrew Moore\nAdvisor: Grady Wright\nTitle: Vector-valued Gaussian Processes\nProject URL: https://ndrewwm.github.io/math-401\nAbstract: For this project, I worked to gain an understanding of Gaussian processes (GPs). Gaussian processes are defined as uncountably infinite collections of random variables, from which any finite sample can be described by a multivariate Gaussian distribution. Early applications of GPs can be found in the field of geostatistics, where they have been used to predict spatial locations of mineral deposits after the collection of sample data. GPs are characterized by mean and covariance (kernel) functions, the latter of which (through their functional forms and hyperparameters) are crucial for determining the kinds of functions that a GP can be used to model. My project is presented as a static website, with pages dedicated to the following topics:\n\nDefinitions of Gaussian processes and the multivariate Gaussian distribution (and the commonly used sampling algorithm).\nGaussian process regression:\n\nscalar \\(\\mathbf{y}\\), scalar \\(\\mathbf{x}\\)\nscalar \\(\\mathbf{y}\\), vector-valued \\(\\mathbf{x}\\)\nvector-valued \\(\\mathbf{y}\\), vector-valued \\(\\mathbf{x}\\)\n\n\nThe rendered content can be browsed by opening the .html files (located under the /_site/ subfolder) in a browser. Alternatively, it can be viewed online via the project URL provided."
+  },
+  {
+    "objectID": "slides/index.html#an-age-old-story-curve-fitting",
+    "href": "slides/index.html#an-age-old-story-curve-fitting",
+    "title": "Gaussian Processes (I just think they’re neat)",
+    "section": "An age old story… curve fitting",
+    "text": "An age old story… curve fitting\nCurve fitting: we have some data, but actually want \\(f\\) that satisfies \\(y = f(x)\\)."
+  },
+  {
+    "objectID": "slides/index.html#k-is-used-to-build-covariance-matrices",
+    "href": "slides/index.html#k-is-used-to-build-covariance-matrices",
+    "title": "Gaussian Processes",
+    "section": "\\(k\\) is used to build covariance matrices",
+    "text": "\\(k\\) is used to build covariance matrices\n\\[\nk(x, x') = \\alpha \\exp \\Bigl(-\\frac{1}{2\\rho^2} (x - x')^2 \\Bigr) \\ \\ \\ \\alpha, \\rho &gt; 0\n\\]\nFor data \\(\\mathbf{x} \\in \\mathbb{R}^N\\):\n\\[\nk(\\mathbf{x}, \\mathbf{x}) \\in \\mathbb{R}^{N \\times N} = \\begin{bmatrix}\nk(x_1, x_1) & k(x_2, x_1) & \\cdots & k(x_N, x_1) \\\\\nk(x_1, x_2) & k(x_2, x_2) & \\cdots & k(x_N, x_2) \\\\\n\\vdots & \\vdots & \\ddots & \\vdots \\\\\nk(x_1, x_N) & k(x_2, x_N) & \\cdots & k(x_N, x_N)\n\\end{bmatrix}\n\\]"
+  },
+  {
+    "objectID": "slides/index.html#an-age-old-story",
+    "href": "slides/index.html#an-age-old-story",
+    "title": "Gaussian Processes",
+    "section": "An age old story…",
+    "text": "An age old story…\nCurve fitting: we have some data, but actually want \\(f\\) that satisfies \\(y = f(x)\\)."
+  },
+  {
+    "objectID": "slides/index.html#questions",
+    "href": "slides/index.html#questions",
+    "title": "Gaussian Processes",
+    "section": "Questions?",
+    "text": "Questions?"
   }
 ]
