@@ -338,18 +338,18 @@ Andrew Moore
 </div>
 
 </section>
-<section id="an-age-old-story" class="slide level2">
-<h2>An age old story…</h2>
-<p>Curve fitting: we have some data, but actually want <span class="math inline">\(f\)</span> that satisfies <span class="math inline">\(y = f(x)\)</span>.</p>
+<section id="an-age-old-story-curve-fitting" class="slide level2">
+<h2>An age old story… curve fitting</h2>
+<p>We have some data, but want to recover <span class="math inline">\(f\)</span> satisfying <span class="math inline">\(y = f(x)\)</span>.</p>
 
 <img data-src="index_files/figure-revealjs/unnamed-chunk-1-1.png" class="quarto-figure quarto-figure-center r-stretch" width="960"></section>
 <section class="slide level2">
 
 <ul>
-<li>What’s the right way?
+<li>What’s the right way? Training data appears nonlinear.
 <ul>
-<li>Function is probably nonlinear… maybe use LOESS?</li>
-<li>What if there’s uncertainty (error) in our measurements?</li>
+<li>Simple linear regression provides an average of <span class="math inline">\(y\)</span></li>
+<li>LOESS better, but not capturing signal</li>
 </ul></li>
 </ul>
 
@@ -357,7 +357,8 @@ Andrew Moore
 </section>
 <section class="slide level2">
 
-<p>Most remember the Gaussian distribution: <span class="math inline">\(y \sim \mathcal{N}(\mu, \sigma)\)</span></p>
+<p>Most remember the Gaussian distribution</p>
+<p><span class="math inline">\(\ y \sim \mathcal{N}(\mu, \sigma)\)</span> or standardized: <span class="math inline">\(\ y \sim \mathcal{N}(0, 1)\)</span></p>
 
 <img data-src="index_files/figure-revealjs/unnamed-chunk-3-1.png" width="960" class="r-stretch"></section>
 <section class="slide level2">
@@ -379,14 +380,18 @@ Andrew Moore
 </div>
 <div id="tabset-1-2">
 <p><span class="math display">\[
-\mu = \begin{bmatrix} \mu_1 \\ \mu_2 \\ \mu_3 \\ \vdots \\ \mu_N \end{bmatrix} \ \ \mathbf{\Sigma} =
+\mu = \begin{bmatrix} \mu_1 \\ \mu_2 \\ \mu_3 \\ \vdots \\ \mu_N \end{bmatrix}, \ \ \mathbf{\Sigma} =
   \begin{bmatrix}
-    \sigma_1 &amp; &amp; &amp; &amp; &amp; \\
-    &amp; \sigma_2 &amp; &amp; &amp; \\
-    &amp; &amp; \sigma_3 &amp; &amp; \\
+    \sigma_1^2 &amp; &amp; &amp; &amp; \\
+    &amp; \sigma_2^2 &amp; &amp; &amp; \\
+    &amp; &amp; \sigma_3^2 &amp; &amp; \\
     &amp; &amp; &amp; \ddots &amp; \\
-    &amp; &amp; &amp; &amp; \sigma_N
-  \end{bmatrix}
+    &amp; &amp; &amp; &amp; \sigma_N^2 \end{bmatrix}, \ \
+  \begin{align*}
+    \mu_i &amp;= E(y_i) \\
+    \mathbf{\Sigma}_{i, j} &amp;= Cov(y_i, y_j) \\
+    \mathbf{\Sigma}_{i, i} &amp;= Var(y_i)
+   \end{align*}
 \]</span></p>
 <p><span class="math display">\[
 \mathbf{y} \sim \mathcal{N}_N(\mu, \mathbf{\Sigma})
@@ -398,7 +403,7 @@ Andrew Moore
 <section class="slide level2">
 
 <p><span class="math display">\[
-\mathbf{y} \sim \mathcal{N}_N(\mu, \mathbf{\Sigma}) \to f \sim \mathcal{GP}(m, k)
+f \sim \mathcal{GP}(m, k) \to f(\mathbf{x}) \sim \mathcal{N}_N(\mu, \mathbf{\Sigma})
 \]</span></p>
 <ul>
 <li><em>Gaussian Process:</em> (uncountably) infinite collection of random variables, any finite sample is MV normal</li>

@@ -5,9 +5,9 @@ author: "Andrew Moore"
 format: revealjs
 ---
 
-## An age old story...
+## An age old story... curve fitting
 
-Curve fitting: we have some data, but actually want $f$ that satisfies $y = f(x)$.
+We have some data, but want to recover $f$ satisfying $y = f(x)$.
 
 ```{r}
 #| echo: false
@@ -46,14 +46,16 @@ D <- tibble(x, y = f_x)
 S <- slice_sample(D, n = n)
 Z <- anti_join(D, S, by = "x")
 
-ggplot() + geom_point(data = S, aes(x, y), size = 2.5)
+ggplot() +
+  geom_point(data = S, aes(x, y), size = 2.5) +
+  scale_y_continuous(limits = c(-2, 2))
 ```
 
 ---
 
-- What's the right way?
-    - Function is probably nonlinear... maybe use LOESS?
-    - What if there's uncertainty (error) in our measurements?
+- What's the right way? Training data appears nonlinear.
+    - Simple linear regression provides an average of $y$
+    - LOESS better, but not capturing signal
 
 ```{r}
 #| fig.align: center
@@ -69,11 +71,20 @@ The plot shows some <span style="color: blue;">predictions</span> and our <span 
 
 ---
 
-Most remember the Gaussian distribution: $y \sim \mathcal{N}(\mu, \sigma)$
+Most remember the Gaussian distribution
+
+$\ y \sim \mathcal{N}(\mu, \sigma)$ or standardized: $\ y \sim \mathcal{N}(0, 1)$
 
 ```{r}
 ggplot(tibble(x = c(-3, 3)), aes(x)) +
   stat_function(fun = dnorm, n = 101, args = list(mean = 0, sd = 1)) +
+  geom_segment(aes(x = 0, xend = 0, y = 0, yend = dnorm(0)), lty = "dashed") +
+  geom_segment(aes(x = 0, xend = 1, y = dnorm(1), yend = dnorm(1)), linend = "mitre", lty = "dashed") +
+  geom_segment(aes(x = 0, xend = 2, y = dnorm(2), yend = dnorm(2)), lty = "dashed") +
+  annotate(geom = "text", x = 0, y = dnorm(0) + 0.017, label = expression(mu), size = 7) +
+  annotate(geom = "text", x = 1.15, y = dnorm(1), label = expression(sigma), size = 7) +
+  annotate(geom = "text", x = 2.15, y = dnorm(2) + 0.01, label = "2*sigma", parse = TRUE, size = 7) +
+  scale_x_continuous(breaks = -3:3) +
   scale_y_continuous(breaks = NULL, name = "")
 ```
 
@@ -99,14 +110,18 @@ S |>
 ### Distribution
 
 $$
-\mu = \begin{bmatrix} \mu_1 \\ \mu_2 \\ \mu_3 \\ \vdots \\ \mu_N \end{bmatrix} \ \ \mathbf{\Sigma} =
+\mu = \begin{bmatrix} \mu_1 \\ \mu_2 \\ \mu_3 \\ \vdots \\ \mu_N \end{bmatrix}, \ \ \mathbf{\Sigma} =
   \begin{bmatrix}
-    \sigma_1 & & & & & \\
-    & \sigma_2 & & & \\
-    & & \sigma_3 & & \\
+    \sigma_1^2 & & & & \\
+    & \sigma_2^2 & & & \\
+    & & \sigma_3^2 & & \\
     & & & \ddots & \\
-    & & & & \sigma_N
-  \end{bmatrix}
+    & & & & \sigma_N^2 \end{bmatrix}, \ \
+  \begin{align*}
+    \mu_i &= E(y_i) \\
+    \mathbf{\Sigma}_{i, j} &= Cov(y_i, y_j) \\
+    \mathbf{\Sigma}_{i, i} &= Var(y_i)
+   \end{align*}
 $$
 
 $$
@@ -118,7 +133,7 @@ $$
 ---
 
 $$
-\mathbf{y} \sim \mathcal{N}_N(\mu, \mathbf{\Sigma}) \to f \sim \mathcal{GP}(m, k)
+f \sim \mathcal{GP}(m, k) \to f(\mathbf{x}) \sim \mathcal{N}_N(\mu, \mathbf{\Sigma})
 $$
 
 - *Gaussian Process:* (uncountably) infinite collection of random variables, any finite sample is MV normal

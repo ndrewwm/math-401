@@ -390,9 +390,9 @@
   {
     "objectID": "slides/index.html#an-age-old-story-curve-fitting",
     "href": "slides/index.html#an-age-old-story-curve-fitting",
-    "title": "Gaussian Processes (I just think they’re neat)",
+    "title": "Gaussian Processes",
     "section": "An age old story… curve fitting",
-    "text": "An age old story… curve fitting\nCurve fitting: we have some data, but actually want \\(f\\) that satisfies \\(y = f(x)\\)."
+    "text": "An age old story… curve fitting\nWe have some data, but want to recover \\(f\\) satisfying \\(y = f(x)\\)."
   },
   {
     "objectID": "slides/index.html#k-is-used-to-build-covariance-matrices",
